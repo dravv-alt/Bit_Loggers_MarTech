@@ -132,3 +132,4 @@ export default function AuditTrailView({ currentUser, onSelectCampaign, showToas
     </div>
   );
 }
+

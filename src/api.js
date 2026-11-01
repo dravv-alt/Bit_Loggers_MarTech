@@ -79,3 +79,4 @@ export const api = {
   runTests: (user) => apiRequest('/api/test/run-all', { method: 'POST', user }),
   seedData: (user) => apiRequest('/api/seed', { method: 'POST', user })
 };
+

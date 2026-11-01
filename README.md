@@ -1,9 +1,9 @@
 # Bit Loggers — Campaign Management & Intelligence Platform
 
 > **Domain:** Marketing Technology (MarTech)  
-> **Product:** Mobile-First Campaign Platform with Responsive Web  
+> **Product:** Mobile-First Campaign Platform (Flutter & Web)  
 > **Users:** Marketers & Campaign Reviewers  
-> **Architecture Style:** Modular Monolith with Event-Driven Background Processing (ACID Persistence & Transactional Outbox)
+> **Architecture Style:** Modular Monolith with Event-Driven Background Processing (ACID Persistence, Transactional Outbox & Flutter Mobile/Desktop/Web Frontend)
 
 ---
 
@@ -11,18 +11,47 @@
 
 **Bit Loggers** is an intelligent, auditable, and version-aware campaign management platform built to unify the marketing lifecycle across proposal drafting, reviewer governance, scheduling, multi-channel alerting, and performance intelligence.
 
-### The Problem It Solves
-Fragmented marketing tools often cause:
-- Opaque approval decisions and unauthorized/conflicting edits.
-- Dangerous ambiguity between historical proposals and modified drafts.
-- Scheduling unapproved or outdated campaign versions.
-- Performance and ROI metrics that are disconnected from approval context.
+### Complete Flutter Migration
+The entire presentation layer is now built in **Flutter (Dart 3.5+)**, providing native performance, smooth animations, and a unified codebase across:
+- **Android & iOS Mobile** (Optimized touch targets, bottom navigation, gestures)
+- **Windows Desktop** (Desktop window frame, keyboard navigation)
+- **Web** (Release bundle compiled with CanvasKit / HTML renderer and served directly by the server)
 
-### Architectural Core Guarantee
-**Approvals belong to an exact version, NOT a campaign-level flag.**
-- An approval on Version `v1` **never** authorizes Version `v2`.
-- Any edit to budget or audience increments the version number and drops approval state to `Revised`, requiring fresh reviewer justification.
-- Scheduling transactions explicitly validate that the exact, current version holds an `APPROVED` decision.
+---
+
+## 📱 How to Run the Flutter Application
+
+### Option A: Run Natively via Flutter CLI
+```bash
+# Navigate to the Flutter app directory
+cd bit_loggers_app
+
+# Run on Chrome / Web
+flutter run -d chrome
+
+# Run on Windows Desktop
+flutter run -d windows
+
+# Run on connected Android / Emulator
+flutter run
+```
+
+### Option B: Run Fullstack Server (Serves Flutter Web Release)
+```bash
+# Starts Express server on http://localhost:3000 serving the Flutter Web Release
+npm start
+```
+Open **[http://localhost:3000](http://localhost:3000)** in your browser to interact with the Flutter application!
+
+### Option C: Run Automated Architecture Tests
+```bash
+# 1. Run Backend LLD Architecture Tests (14/14 tests)
+npm test
+
+# 2. Run Flutter App Widget & Smoke Tests
+cd bit_loggers_app
+flutter test
+```
 
 ---
 
@@ -30,8 +59,8 @@ Fragmented marketing tools often cause:
 
 | Pillar | Capabilities |
 | :--- | :--- |
-| **Pillar 1: Workflow & Access** | • Role-based Kanban boards (`Draft`, `Submitted`, `ChangesRequested`, `Approved`, `Scheduled`, `Rejected`)<br>• Backend RBAC & Self-Approval Prevention (Marketer cannot approve own proposal)<br>• Review/Approval workflow with **mandatory written justification reason**<br>• Atomic scheduling validation |
-| **Pillar 2: Intelligence & Analytics** | • 5 Mandatory MarTech KPIs: **Conversion Rate (%)**, **Click-Through Rate (CTR %)**, **Return on Investment (ROI x)**, **Cost Per Acquisition (CPA $)**, **Average Order Value (AOV $)**<br>• Projected vs Actual comparisons with delta percentage indicators<br>• Channel breakdowns (Social, Email, Search, Display, Influencer, Video) |
+| **Pillar 1: Workflow & Access** | • Flutter Kanban board with role filters (`Draft`, `Submitted`, `ChangesRequested`, `Approved`, `Scheduled`, `Rejected`)<br>• Backend RBAC & Self-Approval Prevention (Marketer cannot approve own proposal)<br>• Review/Approval workflow with **mandatory written justification reason**<br>• Atomic scheduling validation |
+| **Pillar 2: Intelligence & Analytics** | • 5 Mandatory MarTech KPIs: **Conversion Rate (%)**, **Click-Through Rate (CTR %)**, **Return on Investment (ROI x)**, **Cost Per Acquisition (CPA $)**, **Average Order Value (AOV $)**<br>• Projected vs Actual comparisons with delta percentage indicators<br>• Channel yield breakdowns (Social, Email, Search, Display, Influencer, Video) |
 | **Pillar 3: Governance & Integrity** | • Internal Marketing Calendar with flight timeline & collision conflict checks<br>• Strict immutable version history & visual snapshot diff viewer<br>• Append-only tamper-resistant audit registry<br>• Hybrid concurrency: Temporary Edit Leases (`EDIT_LOCK`) + Optimistic Version Concurrency (`expected_version`) |
 | **Pillar 4: Collaboration & AI** | • In-context discussion streams with replies and `@mentions`<br>• Multi-channel notifications: In-App, Push alerts, and durable Email dispatch<br>• Transactional Outbox pattern with exponential backoff retry and deduplication key (`event_id:recipient:channel`)<br>• **Gemini Argon AI Proposal Strategist**: Generates marketing briefs, audience profiles, and forecast KPIs with mandatory human-in-the-loop verification |
 | **Pillar 5: Reliability & Testing** | • ACID-compliant durable persistence (survives process restarts)<br>• Idempotent submission endpoint (`Idempotency-Key` header with database uniqueness constraints)<br>• Standard diagnostic vocabulary logging (`CAMPAIGN_SUBMITTED`, `CAMPAIGN_APPROVED`, `VERSION_CONFLICT`, `SCHEDULE_BLOCKED`, etc.)<br>• Complete automated architecture test suite (14/14 tests pass) |
@@ -92,3 +121,4 @@ npm run dev:client
 
 ## 📱 Mobile-First Experience
 In the top header, click the **"Mobile Frame" / "Desktop View"** toggle to switch between responsive widescreen mode and a realistic mobile mockup (iPhone 15 Pro, 390x844). Both Marketer and Reviewer flows are fully optimized for touchscreen ergonomics and high-density information architecture.
+

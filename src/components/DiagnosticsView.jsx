@@ -123,3 +123,4 @@ export default function DiagnosticsView({ currentUser, showToast }) {
     </div>
   );
 }
+

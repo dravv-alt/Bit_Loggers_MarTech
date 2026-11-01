@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'node:crypto';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { initDatabase } from './db.js';
 import { Diagnostics, DIAGNOSTIC_EVENTS } from './diagnostics.js';
@@ -364,8 +365,10 @@ export function createApp(dbPath = null) {
     }
   });
 
-  // Serve static files in production if client build exists
-  const clientDist = path.resolve(__dirname, '../dist');
+  // Serve static files in production (Flutter web build prioritized)
+  const flutterDist = path.resolve(__dirname, '../bit_loggers_app/build/web');
+  const reactDist = path.resolve(__dirname, '../dist');
+  const clientDist = fs.existsSync(path.join(flutterDist, 'index.html')) ? flutterDist : reactDist;
   app.use(express.static(clientDist));
 
   // Catch-all SPA route

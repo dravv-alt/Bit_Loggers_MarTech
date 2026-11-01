@@ -19,3 +19,4 @@ app.listen(PORT, () => {
   console.log(`\n🚀 Bit Loggers Backend API running on http://localhost:${PORT}`);
   console.log(`📡 Transactional Outbox Worker active (polling interval: 4s)`);
 });
+

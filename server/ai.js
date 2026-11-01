@@ -128,3 +128,4 @@ Projected performance metrics reflect a solid ${roi}x ROI and ${conv}% conversio
 Audience sizing and channel economics are within standard marketing governance thresholds. Recommended for approval pending final creative review.`;
   }
 }
+

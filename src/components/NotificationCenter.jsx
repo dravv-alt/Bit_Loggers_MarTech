@@ -171,3 +171,4 @@ export default function NotificationCenter({ currentUser, onSelectCampaign, show
     </div>
   );
 }
+
