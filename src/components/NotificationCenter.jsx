@@ -78,7 +78,7 @@ export default function NotificationCenter({ currentUser, onSelectCampaign, show
           <div className="flex rounded-xl bg-slate-800 p-0.5 border border-slate-700 text-xs">
             <button
               onClick={() => setFilter('all')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-1 rounded-lg font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50 ${
                 filter === 'all' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -86,7 +86,7 @@ export default function NotificationCenter({ currentUser, onSelectCampaign, show
             </button>
             <button
               onClick={() => setFilter('unread')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-1 rounded-lg font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50 ${
                 filter === 'unread' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -96,7 +96,7 @@ export default function NotificationCenter({ currentUser, onSelectCampaign, show
 
           <button
             onClick={handleMarkAllRead}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50"
           >
             <CheckCheck className="w-3.5 h-3.5 text-cyan-400" />
             <span>Mark All Read</span>
@@ -107,7 +107,7 @@ export default function NotificationCenter({ currentUser, onSelectCampaign, show
       {/* Notifications List */}
       <div className="space-y-2.5">
         {loading ? (
-          <div className="text-center py-12 text-xs text-cyan-400">Loading notifications...</div>
+          <div className="text-center py-12 text-xs text-cyan-400">Loading notifications…</div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center glass-panel rounded-2xl border border-slate-800 text-xs text-slate-400 space-y-2">
             <Bell className="w-8 h-8 text-slate-600 mx-auto" />
@@ -121,7 +121,7 @@ export default function NotificationCenter({ currentUser, onSelectCampaign, show
                 if (notif.campaign_id) onSelectCampaign(notif.campaign_id);
                 if (!notif.is_read) handleMarkRead(notif.notification_id);
               }}
-              className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-4 ${
+              className={`p-4 rounded-xl border transition-colors cursor-pointer flex items-start justify-between gap-4 ${
                 notif.is_read 
                   ? 'glass-card border-slate-800 opacity-80 hover:opacity-100' 
                   : 'glass-panel border-cyan-500/40 shadow-lg shadow-cyan-500/5 ring-1 ring-cyan-500/20'
@@ -129,14 +129,14 @@ export default function NotificationCenter({ currentUser, onSelectCampaign, show
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                     notif.channel === 'email' ? 'bg-blue-500/20 text-blue-300' :
                     notif.channel === 'push' ? 'bg-purple-500/20 text-purple-300' : 'bg-cyan-500/20 text-cyan-300'
                   }`}>
                     {notif.channel}
                   </span>
 
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
                     notif.priority === 'high' ? 'bg-red-500/20 text-red-300' : 'bg-slate-800 text-slate-400'
                   }`}>
                     {notif.priority}

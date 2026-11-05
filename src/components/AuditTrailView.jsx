@@ -62,7 +62,7 @@ export default function AuditTrailView({ currentUser, onSelectCampaign, showToas
 
           <button
             onClick={fetchAudit}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -72,8 +72,8 @@ export default function AuditTrailView({ currentUser, onSelectCampaign, showToas
       {/* Table */}
       <div className="glass-panel p-5 rounded-2xl border border-slate-800">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-900/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-900/80 border-b border-slate-800 text-xs font-semibold text-slate-400">
               <tr>
                 <th className="p-3">Timestamp</th>
                 <th className="p-3">Event</th>
