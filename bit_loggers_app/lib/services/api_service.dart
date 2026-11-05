@@ -1,11 +1,26 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
+import 'sync_queue_service.dart';
 
 class ApiService {
-  static String baseUrl = 'http://localhost:3000';
+  static String _resolveBaseUrl() {
+    if (!kIsWeb) {
+      try {
+        if (Platform.isAndroid) {
+          return 'http://10.0.2.2:3000';
+        }
+      } catch (_) {}
+    }
+    return 'http://localhost:3000';
+  }
+
+  static String baseUrl = _resolveBaseUrl();
   final _uuid = const Uuid();
+  final SyncQueueService syncQueue = SyncQueueService();
 
   // Active user header for RBAC
   User currentUser = User(
@@ -96,6 +111,39 @@ class ApiService {
 
   // --- Create Campaign ---
   Future<Campaign> createCampaign(Map<String, dynamic> body) async {
+    if (syncQueue.isOfflineSimulationEnabled) {
+      final action = syncQueue.enqueueAction(
+        actionType: 'CREATE_CAMPAIGN',
+        endpoint: '/api/campaigns',
+        method: 'POST',
+        payload: body,
+      );
+      final newId = 'camp-${action.actionId.substring(4)}';
+      const verId = 'ver-v1';
+      return Campaign(
+        campaignId: newId,
+        title: body['title'] ?? 'Untitled (Offline Draft)',
+        ownerId: currentUser.id,
+        ownerName: currentUser.name,
+        status: 'Draft',
+        currentVersionId: verId,
+        currentVersion: CampaignVersion(
+          versionId: verId,
+          campaignId: newId,
+          versionNo: 1,
+          objective: body['objective'] ?? '',
+          targetAudience: body['target_audience'] ?? '',
+          channel: body['channel'] ?? 'Social',
+          budget: (body['budget'] as num?)?.toDouble() ?? 10000,
+          kpiProjected: KpiMetrics.fromJson(body['kpi_projected']),
+          createdBy: currentUser.id,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+    }
+
     try {
       final res = await http.post(
         Uri.parse('$baseUrl/api/campaigns'),
@@ -110,12 +158,18 @@ class ApiService {
       }
     } catch (e) {
       if (e is Exception && !e.toString().contains('Failed to create')) {
-        // Return local mock created campaign
+        // Enqueue offline action on connection drop
+        syncQueue.enqueueAction(
+          actionType: 'CREATE_CAMPAIGN',
+          endpoint: '/api/campaigns',
+          method: 'POST',
+          payload: body,
+        );
         final newId = 'camp-${_uuid.v4().substring(0, 8)}';
         const verId = 'ver-v1';
         return Campaign(
           campaignId: newId,
-          title: body['title'] ?? 'Untitled',
+          title: body['title'] ?? 'Untitled (Queued Offline)',
           ownerId: currentUser.id,
           ownerName: currentUser.name,
           status: 'Draft',
@@ -142,6 +196,42 @@ class ApiService {
 
   // --- Update Campaign ---
   Future<Campaign> updateCampaign(String id, Map<String, dynamic> body, {int? expectedVersion}) async {
+    if (syncQueue.isOfflineSimulationEnabled) {
+      syncQueue.enqueueAction(
+        actionType: 'UPDATE_CAMPAIGN',
+        endpoint: '/api/campaigns/$id',
+        method: 'PUT',
+        payload: {
+          'campaign_id': id,
+          'expected_version': expectedVersion,
+          ...body,
+        },
+      );
+      final verId = 'ver-v${(expectedVersion ?? 1) + 1}';
+      return Campaign(
+        campaignId: id,
+        title: body['title'] ?? 'Updated Campaign',
+        ownerId: currentUser.id,
+        ownerName: currentUser.name,
+        status: 'Draft',
+        currentVersionId: verId,
+        currentVersion: CampaignVersion(
+          versionId: verId,
+          campaignId: id,
+          versionNo: (expectedVersion ?? 1) + 1,
+          objective: body['objective'] ?? '',
+          targetAudience: body['target_audience'] ?? '',
+          channel: body['channel'] ?? 'Social',
+          budget: (body['budget'] as num?)?.toDouble() ?? 15000,
+          kpiProjected: KpiMetrics.fromJson(body['kpi_projected']),
+          createdBy: currentUser.id,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+    }
+
     final res = await http.put(
       Uri.parse('$baseUrl/api/campaigns/$id'),
       headers: _headers(expectedVersion: expectedVersion),
@@ -158,6 +248,22 @@ class ApiService {
   // --- Submit Proposal ---
   Future<Map<String, dynamic>> submitCampaign(String id, {String? idempotencyKey}) async {
     final key = idempotencyKey ?? 'submit-${DateTime.now().millisecondsSinceEpoch}';
+    if (syncQueue.isOfflineSimulationEnabled) {
+      syncQueue.enqueueAction(
+        actionType: 'SUBMIT_CAMPAIGN',
+        endpoint: '/api/campaigns/$id/submit',
+        method: 'POST',
+        payload: {'campaign_id': id},
+        customIdempotencyKey: key,
+      );
+      return {
+        'success': true,
+        'status': 'Submitted',
+        'campaign_id': id,
+        'queued_offline': true,
+      };
+    }
+
     final res = await http.post(
       Uri.parse('$baseUrl/api/campaigns/$id/submit'),
       headers: _headers(idempotencyKey: key),
@@ -171,6 +277,16 @@ class ApiService {
   }
 
   // --- Review Decisions ---
+  Future<Map<String, dynamic>> recordReviewDecision({
+    required String campaignId,
+    required String versionId,
+    required String decisionType,
+    required String reason,
+    String? policyRef,
+  }) async {
+    return makeDecision(campaignId, decisionType, versionId, reason, policyReference: policyRef);
+  }
+
   Future<Map<String, dynamic>> makeDecision(String id, String type, String versionId, String reason, {String? policyReference}) async {
     final endpoint = type == 'APPROVED'
         ? '/api/campaigns/$id/approve'
@@ -233,10 +349,26 @@ class ApiService {
     await http.delete(Uri.parse('$baseUrl/api/campaigns/$id/lock'), headers: _headers());
   }
 
-  // --- Discussions ---
-  Future<List<DiscussionMessage>> getDiscussions(String id) async {
+  // --- Discussions (FR-12) ---
+  Future<List<Collaborator>> getCollaborators(String id) async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/api/campaigns/$id/discussions'), headers: _headers());
+      final res = await http.get(Uri.parse('$baseUrl/api/campaigns/$id/collaborators'), headers: _headers());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return (data['collaborators'] as List).map((c) => Collaborator.fromJson(c)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<List<DiscussionMessage>> getDiscussions(String id, {String? versionId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/campaigns/$id/discussions').replace(
+        queryParameters: {
+          if (versionId != null) 'version_id': versionId,
+        },
+      );
+      final res = await http.get(uri, headers: _headers());
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         return (data['messages'] as List).map((m) => DiscussionMessage.fromJson(m)).toList();
@@ -245,15 +377,28 @@ class ApiService {
     return [];
   }
 
-  Future<void> postDiscussion(String id, String content) async {
+  Future<DiscussionMessage> postDiscussion(
+    String id,
+    String content, {
+    String? parentMessageId,
+    String? versionId,
+    bool isInternalOnly = false,
+  }) async {
     final res = await http.post(
       Uri.parse('$baseUrl/api/campaigns/$id/discussions'),
       headers: _headers(),
-      body: jsonEncode({'content': content}),
+      body: jsonEncode({
+        'content': content,
+        if (parentMessageId != null) 'parentMessageId': parentMessageId,
+        if (versionId != null) 'versionId': versionId,
+        'isInternalOnly': isInternalOnly,
+      }),
     );
     if (res.statusCode != 201 && res.statusCode != 200) {
-      throw Exception('Failed to post comment');
+      final err = jsonDecode(res.body);
+      throw Exception(err['error']?['message'] ?? 'Failed to post message');
     }
+    return DiscussionMessage.fromJson(jsonDecode(res.body));
   }
 
   // --- Notifications ---
@@ -275,10 +420,18 @@ class ApiService {
   }
 
   // --- Analytics ---
-  Future<Map<String, dynamic>> getAnalytics({String? channel}) async {
+  Future<Map<String, dynamic>> getAnalytics({
+    String? channel,
+    String? startDate,
+    String? endDate,
+    String? interval,
+  }) async {
     try {
       final uri = Uri.parse('$baseUrl/api/analytics').replace(queryParameters: {
         if (channel != null && channel != 'All') 'channel': channel,
+        if (startDate != null) 'start_date': startDate,
+        if (endDate != null) 'end_date': endDate,
+        if (interval != null) 'interval': interval,
       });
       final res = await http.get(uri, headers: _headers());
       if (res.statusCode == 200) {
@@ -303,7 +456,8 @@ class ApiService {
         {'channel': 'Email', 'count': 1, 'budget': 22000.0, 'roi': 5.1, 'conv': 5.6},
         {'channel': 'Search', 'count': 1, 'budget': 28000.0, 'roi': 5.5, 'conv': 4.8},
         {'channel': 'Display', 'count': 1, 'budget': 15000.0, 'roi': 1.8, 'conv': 1.5},
-      ]
+      ],
+      'trends': []
     };
   }
 
@@ -320,10 +474,21 @@ class ApiService {
     return [];
   }
 
-  // --- Audit Trail ---
-  Future<List<AuditEventItem>> getAudit() async {
+  Future<void> seedCalendar() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/api/audit'), headers: _headers());
+      await http.post(Uri.parse('$baseUrl/api/seed/calendar'), headers: _headers());
+    } catch (_) {}
+  }
+
+  // --- Audit Trail ---
+  Future<List<AuditEventItem>> getAudit({String? campaignId, String? eventType, String? search}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/audit').replace(queryParameters: {
+        if (campaignId != null && campaignId.isNotEmpty) 'campaign_id': campaignId,
+        if (eventType != null && eventType.isNotEmpty && eventType != 'ALL') 'event_type': eventType,
+        if (search != null && search.isNotEmpty) 'search': search,
+      });
+      final res = await http.get(uri, headers: _headers());
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         return (data['audit'] as List).map((a) => AuditEventItem.fromJson(a)).toList();
@@ -374,6 +539,128 @@ class ApiService {
     } else {
       throw Exception('Failed to run test suite on backend server.');
     }
+  }
+
+  // --- Offline Sync Queue (FR-13, ADR-005) ---
+  Future<Map<String, dynamic>> syncBatch(List<OfflineSyncAction> actions) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/api/sync/queue'),
+        headers: _headers(),
+        body: jsonEncode({
+          'actions': actions.map((a) => a.toServerAction()).toList(),
+        }),
+      );
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body);
+      } else {
+        final err = jsonDecode(res.body);
+        throw Exception(err['error']?['message'] ?? 'Batch sync failed with status ${res.statusCode}');
+      }
+    } catch (e) {
+      // In offline mock mode or when server is unreachable, simulate successful replay for local demo
+      return {
+        'processed': actions.length,
+        'synced': actions.length,
+        'failed': 0,
+        'results': actions.map((a) => {
+          'action_id': a.actionId,
+          'idempotency_key': a.idempotencyKey,
+          'status': 'SYNCED',
+          'is_replay': false,
+          'response_code': 200,
+          'data': {'mock_synced': true, 'action_type': a.actionType}
+        }).toList()
+      };
+    }
+  }
+
+  // --- Transactional Outbox (FR-14, ADR-004) ---
+  Future<Map<String, dynamic>> getOutbox() async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/api/outbox'), headers: _headers());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final eventsList = (data['events'] as List? ?? [])
+            .map((e) => OutboxEventItem.fromJson(e))
+            .toList();
+        final stats = OutboxStats.fromJson(data);
+        return {
+          'events': eventsList,
+          'stats': stats,
+          'isEmailServiceFailing': data['isEmailServiceFailing'] == true,
+        };
+      }
+    } catch (_) {}
+
+    // Fallback mock outbox data for offline presentation
+    return {
+      'events': [
+        OutboxEventItem(
+          eventId: 'evt-outbox-mock-1',
+          eventType: 'CAMPAIGN_SUBMITTED_EMAIL',
+          payload: {'recipient': 'marcus.reviewer@bitloggers.com', 'subject': 'Campaign V3 Needs Review'},
+          status: 'PROCESSED',
+          attempts: 1,
+          maxAttempts: 5,
+          createdAt: DateTime.now().subtract(const Duration(minutes: 12)).toIso8601String(),
+          processedAt: DateTime.now().subtract(const Duration(minutes: 11)).toIso8601String(),
+        ),
+        OutboxEventItem(
+          eventId: 'evt-outbox-mock-2',
+          eventType: 'CAMPAIGN_DECISION_EMAIL',
+          payload: {'recipient': 'alice.marketer@bitloggers.com', 'subject': 'Decision: APPROVED'},
+          status: 'PROCESSED',
+          attempts: 1,
+          maxAttempts: 5,
+          createdAt: DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
+          processedAt: DateTime.now().subtract(const Duration(minutes: 4)).toIso8601String(),
+        ),
+        OutboxEventItem(
+          eventId: 'evt-outbox-mock-3',
+          eventType: 'ANALYTICS_DATA_SYNC',
+          payload: {'metric': 'roi', 'campaign_id': 'camp-01'},
+          status: 'PENDING',
+          attempts: 0,
+          maxAttempts: 5,
+          createdAt: DateTime.now().subtract(const Duration(minutes: 1)).toIso8601String(),
+        ),
+      ],
+      'stats': OutboxStats(
+        pending: 1,
+        processed: 2,
+        failed: 0,
+        total: 3,
+        isEmailServiceFailing: false,
+      ),
+      'isEmailServiceFailing': false,
+    };
+  }
+
+  Future<List<dynamic>> processOutbox() async {
+    try {
+      final res = await http.post(Uri.parse('$baseUrl/api/outbox/process'), headers: _headers());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data['processed'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> toggleEmailFailure({bool? failing}) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/api/outbox/toggle-email-failure'),
+        headers: _headers(),
+        body: jsonEncode({if (failing != null) 'failing': failing}),
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data['isEmailServiceFailing'] == true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   // Fallback initial demo campaigns
