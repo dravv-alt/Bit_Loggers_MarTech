@@ -37,7 +37,7 @@ export default function AnalyticsDashboard({ currentUser, showToast }) {
   if (loading && !data) {
     return (
       <div className="text-center py-16 text-cyan-400 text-xs">
-        Compiling MarTech intelligence metrics...
+        Compiling MarTech intelligence metrics…
       </div>
     );
   }
@@ -128,9 +128,9 @@ export default function AnalyticsDashboard({ currentUser, showToast }) {
               </div>
 
               {/* Projected Target Reference */}
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                <span>Target Projected:</span>
-                <span className="text-slate-300">
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                <span>Target projected:</span>
+                <span className="font-mono text-slate-300">
                   {item.unit === '$' ? `$${proj}` : `${proj}${item.unit}`}
                 </span>
               </div>
@@ -152,7 +152,7 @@ export default function AnalyticsDashboard({ currentUser, showToast }) {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400">
+            <thead className="bg-slate-900/80 border-b border-slate-800 text-xs font-semibold text-slate-400">
               <tr>
                 <th className="p-3">Channel</th>
                 <th className="p-3">Campaigns</th>
@@ -162,7 +162,7 @@ export default function AnalyticsDashboard({ currentUser, showToast }) {
                 <th className="p-3 text-right">Yield Efficiency</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
+            <tbody className="divide-y divide-slate-800/60">
               {channelBreakdown.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-6 text-center text-slate-500">
@@ -175,7 +175,7 @@ export default function AnalyticsDashboard({ currentUser, showToast }) {
                     <td className="p-3 font-sans font-bold text-slate-200">
                       {ch.channel}
                     </td>
-                    <td className="p-3 text-slate-300">
+                    <td className="p-3 font-mono text-slate-300">
                       {ch.count}
                     </td>
                     <td className="p-3 text-emerald-400 font-bold">
