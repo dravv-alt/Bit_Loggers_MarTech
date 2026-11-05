@@ -56,8 +56,8 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.red.shade900 : Colors.teal.shade900,
+        content: Text(msg, style: const TextStyle(color: AppTheme.leaf)),
+        backgroundColor: isError ? AppTheme.statusRejected : AppTheme.forge,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -164,6 +164,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
     final isEditing = widget.existingCampaign != null;
 
     return Scaffold(
+      backgroundColor: AppTheme.paper,
       appBar: AppBar(
         title: Text(isEditing ? 'Revise Proposal' : 'Author Campaign Proposal'),
       ),
@@ -174,33 +175,49 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0C2A3D), AppTheme.card],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: AppTheme.leaf,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.primary.withOpacity(0.5)),
+              border: Border.all(color: AppTheme.borderSage, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.auto_awesome, color: AppTheme.primary, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'GEMINI ARGON AI PROPOSAL STRATEGIST',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primary),
-                    ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.verdictLime.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppTheme.verdictLimeDark, width: 0.5),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.auto_awesome, color: AppTheme.forge, size: 14),
+                      SizedBox(width: 6),
+                      Text(
+                        'GEMINI ARGON AI STRATEGIST',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.forge,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Enter a campaign theme or goal. Gemini will structure your objective, target persona, and forecast 5 KPIs.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -215,10 +232,17 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: _isGeneratingAi ? null : _generateAi,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.forge,
+                        foregroundColor: AppTheme.leaf,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
                       icon: _isGeneratingAi
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf))
                           : const Icon(Icons.bolt, size: 16),
-                      label: const Text('Draft AI'),
+                      label: const Text('Draft AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
                   ],
                 ),
@@ -228,7 +252,10 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           const SizedBox(height: 20),
 
           // Title
-          const Text('CAMPAIGN TITLE *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+          const Text(
+            'CAMPAIGN TITLE *',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+          ),
           const SizedBox(height: 6),
           TextField(controller: _titleController, decoration: const InputDecoration(hintText: 'e.g. Summer Solar Flash Sale')),
           const SizedBox(height: 16),
@@ -240,12 +267,18 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('CHANNEL', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const Text(
+                      'CHANNEL',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+                    ),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       value: _channel,
+                      isExpanded: true,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10)),
+                      dropdownColor: AppTheme.leaf,
                       items: ['Social', 'Email', 'Search', 'Display', 'Influencer', 'Video']
-                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary))))
                           .toList(),
                       onChanged: (val) {
                         if (val != null) setState(() => _channel = val);
@@ -259,12 +292,15 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('BUDGET (USD \$) *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const Text(
+                      'BUDGET (USD \$) *',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+                    ),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _budgetController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(hintText: '10000'),
+                      decoration: const InputDecoration(hintText: '10000', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10)),
                     ),
                   ],
                 ),
@@ -274,13 +310,19 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           const SizedBox(height: 16),
 
           // Objective
-          const Text('STRATEGIC OBJECTIVE *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+          const Text(
+            'STRATEGIC OBJECTIVE *',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+          ),
           const SizedBox(height: 6),
           TextField(controller: _objectiveController, maxLines: 3, decoration: const InputDecoration(hintText: 'State marketing target...')),
           const SizedBox(height: 16),
 
           // Target Audience
-          const Text('TARGET AUDIENCE PERSONA *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+          const Text(
+            'TARGET AUDIENCE PERSONA *',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+          ),
           const SizedBox(height: 6),
           TextField(controller: _audienceController, maxLines: 2, decoration: const InputDecoration(hintText: 'Target segment, persona...')),
           const SizedBox(height: 20),
@@ -289,14 +331,17 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.surface,
+              color: AppTheme.leaf,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.cardBorder),
+              border: Border.all(color: AppTheme.borderSage),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('5 MANDATORY PROJECTED MARTECH KPIS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                const Text(
+                  '5 MANDATORY PROJECTED MARTECH KPIS',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+                ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -323,10 +368,21 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 child: OutlinedButton(
                   onPressed: _submitting ? null : () => _save(false),
                   style: OutlinedButton.styleFrom(
+                    backgroundColor: AppTheme.leaf,
+                    foregroundColor: AppTheme.forge,
+                    elevation: 0,
+                    side: const BorderSide(color: AppTheme.borderSage, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: Colors.grey),
                   ),
-                  child: const Text('Save Draft', style: TextStyle(color: Colors.white)),
+                  child: const Text(
+                    'Save Draft',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.forge,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -334,12 +390,26 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 child: ElevatedButton(
                   onPressed: _submitting ? null : () => _save(true),
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.forge,
+                    foregroundColor: AppTheme.leaf,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: AppTheme.primary,
                   ),
                   child: _submitting
-                      ? const CircularProgressIndicator(color: Colors.black)
-                      : Text(isEditing ? 'Submit Revision' : 'Submit for Review'),
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
+                        )
+                      : Text(
+                          isEditing ? 'Submit Revision' : 'Submit for Review',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.leaf,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -351,22 +421,46 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
 
   Widget _kpiInput(String label, double val, Function(double) onChanged) {
     return Expanded(
-      child: Column(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-          const SizedBox(height: 4),
-          TextFormField(
-            initialValue: val.toString(),
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primary),
-            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.all(6)),
-            onChanged: (text) {
-              final d = double.tryParse(text);
-              if (d != null) onChanged(d);
-            },
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: AppTheme.paper.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppTheme.borderSage, width: 0.5),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 4),
+            TextFormField(
+              initialValue: val.toString(),
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textPrimary,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+              decoration: const InputDecoration(
+                isDense: true,
+                filled: true,
+                fillColor: AppTheme.leaf,
+                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                border: OutlineInputBorder(borderSide: BorderSide.none),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.forge, width: 1)),
+              ),
+              onChanged: (text) {
+                final d = double.tryParse(text);
+                if (d != null) onChanged(d);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
