@@ -136,10 +136,10 @@ export default function CampaignWizardModal({
         <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                {isEditing ? `Revise Proposal (v${curVer.version_no})` : 'New Proposal'}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                {isEditing ? `Revise proposal (v${curVer.version_no})` : 'New proposal'}
               </span>
-              <span className="text-xs text-slate-400">Pillar 4: Human-Verified AI</span>
+              <span className="text-xs text-slate-400">Pillar 4: Human-verified AI</span>
             </div>
             <h2 className="text-lg font-extrabold text-slate-100 tracking-tight">
               {isEditing ? 'Revise & Refine Campaign Proposal' : 'Author Campaign Proposal'}
@@ -147,7 +147,7 @@ export default function CampaignWizardModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -157,13 +157,13 @@ export default function CampaignWizardModal({
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
 
           {/* AI Drafting Assistant (Pillar 4) */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-950/40 via-blue-950/30 to-slate-900/70 border border-cyan-500/40 space-y-3">
+          <div className="p-4 rounded-xl bg-slate-900 border border-cyan-500/40 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-bold text-cyan-300 uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-xs font-semibold text-cyan-300">
                 <Sparkles className="w-4 h-4 text-cyan-400" />
-                Gemini Argon AI Proposal Strategist
+                Gemini Argon AI proposal strategist
               </div>
-              <span className="text-[10px] text-slate-400">LLM-Assisted Drafting</span>
+              <span className="text-[10px] text-slate-400">LLM-assisted drafting</span>
             </div>
 
             <p className="text-xs text-slate-300">
@@ -173,19 +173,19 @@ export default function CampaignWizardModal({
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="e.g. Q4 Black Friday early access blitz targeting high-value loyalty members..."
+                placeholder="e.g. Q4 Black Friday early access blitz targeting high-value loyalty members…"
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                className="flex-1 p-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+                className="flex-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
               />
               <button
                 type="button"
                 onClick={handleGenerateAi}
                 disabled={isGeneratingAi}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/25 transition-all flex items-center gap-1.5 shrink-0"
+                className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:opacity-90 disabled:opacity-50 flex items-center gap-1.5 shrink-0"
               >
-                {isGeneratingAi ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                <span>{isGeneratingAi ? 'Drafting...' : 'Generate AI Brief'}</span>
+                {isGeneratingAi ? <Clock className="w-3.5 h-3.5 motion-safe:animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                <span>{isGeneratingAi ? 'Drafting…' : 'Generate AI brief'}</span>
               </button>
             </div>
 
@@ -295,15 +295,15 @@ export default function CampaignWizardModal({
             </div>
 
             {/* 5 Mandatory KPIs Projections (Pillar 2) */}
-            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-300 uppercase tracking-wider">
-                <span>Projected KPIs (Pillar 2 Requirement)</span>
-                <span className="text-[10px] text-slate-500 font-normal font-mono">5 Required Metrics</span>
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+                <span>Projected KPIs (Pillar 2 requirement)</span>
+                <span className="text-[10px] text-slate-400 font-normal">5 required metrics</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs font-mono">
                 <div>
-                  <label className="block text-[10px] text-slate-400 mb-1">Conv. Rate (%)</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-sans">Conv. Rate (%)</label>
                   <input
                     type="number"
                     step="0.1"
@@ -314,7 +314,7 @@ export default function CampaignWizardModal({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-slate-400 mb-1">CTR (%)</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-sans">CTR (%)</label>
                   <input
                     type="number"
                     step="0.1"
@@ -325,7 +325,7 @@ export default function CampaignWizardModal({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-slate-400 mb-1">ROI (x)</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-sans">ROI (x)</label>
                   <input
                     type="number"
                     step="0.1"
@@ -336,7 +336,7 @@ export default function CampaignWizardModal({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-slate-400 mb-1">CPA ($)</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-sans">CPA ($)</label>
                   <input
                     type="number"
                     step="1"
@@ -347,7 +347,7 @@ export default function CampaignWizardModal({
                 </div>
 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[10px] text-slate-400 mb-1">AOV ($)</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-sans">AOV ($)</label>
                   <input
                     type="number"
                     step="1"
@@ -366,7 +366,7 @@ export default function CampaignWizardModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 active:opacity-90 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -376,18 +376,18 @@ export default function CampaignWizardModal({
               type="button"
               onClick={() => handleSave(false)}
               disabled={submitting}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 active:opacity-90 disabled:opacity-50"
             >
-              Save as Draft
+              Save as draft
             </button>
             <button
               type="button"
               onClick={() => handleSave(true)}
               disabled={submitting}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:opacity-90 disabled:opacity-50 flex items-center gap-1.5 shadow-md shadow-cyan-500/20"
             >
-              {submitting && <Clock className="w-3.5 h-3.5 animate-spin" />}
-              <span>{isEditing ? 'Save & Submit Revision' : 'Submit for Review'}</span>
+              {submitting && <Clock className="w-3.5 h-3.5 motion-safe:animate-spin" />}
+              <span>{isEditing ? 'Save and submit revision' : 'Submit for review'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

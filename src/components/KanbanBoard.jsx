@@ -109,7 +109,7 @@ export default function KanbanBoard({
               {/* Column Header */}
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-xs uppercase tracking-wider text-slate-200">
+                  <h3 className="font-semibold text-xs text-slate-200">
                     {col.title}
                   </h3>
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${col.badge}`}>
@@ -134,14 +134,14 @@ export default function KanbanBoard({
                       <div
                         key={camp.campaign_id}
                         onClick={() => onSelectCampaign(camp.campaign_id)}
-                        className="glass-card rounded-xl p-3.5 space-y-2.5 cursor-pointer transition-all hover:translate-y-[-2px] hover:shadow-lg hover:shadow-cyan-500/10 border border-slate-800 relative group"
+                        className="glass-card rounded-xl p-3.5 space-y-2.5 cursor-pointer transition-colors hover:border-cyan-500/40 border border-slate-800 relative group"
                       >
                         {/* Title and Version badge */}
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="font-bold text-xs text-slate-100 group-hover:text-cyan-400 transition-colors line-clamp-2">
                             {camp.title}
                           </h4>
-                          <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-800 text-cyan-300 border border-cyan-500/30 rounded-md">
+                          <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-slate-800 text-cyan-300 border border-cyan-500/30 rounded-md">
                             v{camp.version_no || 1}
                           </span>
                         </div>
@@ -162,14 +162,14 @@ export default function KanbanBoard({
                         </p>
 
                         {/* Projected 5 KPIs Mini-Ribbon */}
-                        <div className="grid grid-cols-2 gap-1.5 py-1.5 px-2 rounded-lg bg-slate-900/60 border border-slate-800/60 text-[10px] font-mono">
+                        <div className="grid grid-cols-2 gap-1.5 py-1.5 px-2 rounded-lg bg-slate-900/60 border border-slate-800/60 text-[10px]">
                           <div className="flex items-center justify-between text-slate-400">
                             <span>ROI:</span>
-                            <span className="font-bold text-emerald-400">{kpi.roi ? `${kpi.roi}x` : '3.8x'}</span>
+                            <span className="font-mono font-bold text-emerald-400">{kpi.roi ? `${kpi.roi}x` : '3.8x'}</span>
                           </div>
                           <div className="flex items-center justify-between text-slate-400">
                             <span>Conv:</span>
-                            <span className="font-bold text-cyan-400">{kpi.conversionRate ? `${kpi.conversionRate}%` : '3.5%'}</span>
+                            <span className="font-mono font-bold text-cyan-400">{kpi.conversionRate ? `${kpi.conversionRate}%` : '3.5%'}</span>
                           </div>
                         </div>
 

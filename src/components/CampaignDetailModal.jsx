@@ -179,8 +179,8 @@ export default function CampaignDetailModal({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
         <div className="glass-panel p-6 rounded-2xl flex items-center gap-3 text-cyan-400 font-semibold text-sm">
-          <Clock className="w-5 h-5 animate-spin" />
-          Loading campaign dossier...
+          <Clock className="w-5 h-5 motion-safe:animate-spin" />
+          Loading campaign dossier…
         </div>
       </div>
     );
@@ -197,16 +197,16 @@ export default function CampaignDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <div className="glass-panel rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col border border-slate-700/80 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="glass-panel rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col border border-slate-700/80 shadow-2xl overflow-hidden motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95">
         
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-800 flex items-start justify-between gap-4 bg-slate-900/60">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                 {campaign.status}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
                 v{curVer.version_no || 1}
               </span>
               <span className="text-xs text-slate-400">
@@ -229,7 +229,7 @@ export default function CampaignDetailModal({
               <button
                 onClick={handleToggleLock}
                 disabled={lockingLoading}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors border ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50 ${
                   hasLock 
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30' 
                     : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
@@ -237,7 +237,7 @@ export default function CampaignDetailModal({
                 title={hasLock ? "Click to release edit lease" : "Acquire exclusive edit lease for safe updates"}
               >
                 {hasLock ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                <span>{hasLock ? 'Lease Active' : 'Acquire Lease'}</span>
+                <span>{hasLock ? 'Lease active' : 'Acquire lease'}</span>
               </button>
             ) : null}
 
@@ -248,7 +248,7 @@ export default function CampaignDetailModal({
                   onClose();
                   onEditCampaign(campaign);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 active:opacity-90 disabled:opacity-50"
               >
                 <Edit3 className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Revise / Edit</span>
@@ -257,7 +257,7 @@ export default function CampaignDetailModal({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 active:opacity-90 disabled:opacity-50"
             >
               <X className="w-5 h-5" />
             </button>
@@ -280,7 +280,7 @@ export default function CampaignDetailModal({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50 ${
                   active 
                     ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' 
                     : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -288,7 +288,7 @@ export default function CampaignDetailModal({
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
-                {tab.alert && <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>}
+                {tab.alert && <span className="w-2 h-2 rounded-full bg-cyan-400 motion-safe:animate-pulse"></span>}
               </button>
             );
           })}
@@ -303,8 +303,8 @@ export default function CampaignDetailModal({
               {/* Channel and Budget Overview Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="glass-card p-3.5 rounded-xl border border-slate-800">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Primary Channel
+                  <div className="text-[11px] font-semibold text-slate-400 mb-1">
+                    Primary channel
                   </div>
                   <div className="text-base font-bold text-slate-100 flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
@@ -313,8 +313,8 @@ export default function CampaignDetailModal({
                 </div>
 
                 <div className="glass-card p-3.5 rounded-xl border border-slate-800">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Total Budget
+                  <div className="text-[11px] font-semibold text-slate-400 mb-1">
+                    Total budget
                   </div>
                   <div className="text-base font-bold font-mono text-emerald-400">
                     ${(curVer.budget || 0).toLocaleString()} USD
@@ -322,8 +322,8 @@ export default function CampaignDetailModal({
                 </div>
 
                 <div className="glass-card p-3.5 rounded-xl border border-slate-800">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Workflow State
+                  <div className="text-[11px] font-semibold text-slate-400 mb-1">
+                    Workflow state
                   </div>
                   <div className="text-base font-bold text-cyan-300">
                     {campaign.status}
@@ -333,10 +333,10 @@ export default function CampaignDetailModal({
 
               {/* AI Strategy Summary (Pillar 4) */}
               {curVer.ai_summary && (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-950/40 via-blue-950/30 to-slate-900 border border-cyan-500/30">
-                  <div className="flex items-center gap-2 text-xs font-bold text-cyan-300 uppercase tracking-wider mb-2">
+                <div className="p-4 rounded-xl bg-slate-900 border border-cyan-500/30">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-cyan-300 mb-2">
                     <Sparkles className="w-4 h-4 text-cyan-400" />
-                    AI Intelligence Summary (Gemini Argon)
+                    AI intelligence summary (Gemini Argon)
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed italic">
                     "{curVer.ai_summary}"
@@ -347,8 +347,8 @@ export default function CampaignDetailModal({
               {/* Strategic Objective & Target Audience */}
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                    Strategic Objective
+                  <h4 className="text-xs font-semibold text-slate-400 mb-1.5">
+                    Strategic objective
                   </h4>
                   <p className="text-sm text-slate-200 bg-slate-900/60 p-3 rounded-xl border border-slate-800 leading-relaxed">
                     {curVer.objective}
@@ -356,8 +356,8 @@ export default function CampaignDetailModal({
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                    Target Audience Persona
+                  <h4 className="text-xs font-semibold text-slate-400 mb-1.5">
+                    Target audience persona
                   </h4>
                   <p className="text-sm text-slate-200 bg-slate-900/60 p-3 rounded-xl border border-slate-800 leading-relaxed">
                     {curVer.target_audience}
@@ -367,31 +367,31 @@ export default function CampaignDetailModal({
 
               {/* The 5 Mandatory KPIs Projected (Pillar 2) */}
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
-                  <span>5 Projected Campaign KPIs</span>
-                  <span className="text-[11px] text-cyan-400 font-mono">Bound to v{curVer.version_no}</span>
+                <h4 className="text-xs font-semibold text-slate-400 mb-3 flex items-center justify-between">
+                  <span>5 projected campaign KPIs</span>
+                  <span className="text-[11px] text-cyan-400">Bound to v{curVer.version_no}</span>
                 </h4>
                 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   <div className="p-3 rounded-xl glass-card border border-slate-800 text-center">
-                    <div className="text-[10px] text-slate-400 uppercase mb-1">Conversion Rate</div>
-                    <div className="text-lg font-bold text-cyan-400">{kpis.conversionRate || 3.5}%</div>
+                    <div className="text-[10px] text-slate-400 mb-1">Conversion Rate</div>
+                    <div className="text-lg font-mono font-bold text-cyan-400">{kpis.conversionRate || 3.5}%</div>
                   </div>
                   <div className="p-3 rounded-xl glass-card border border-slate-800 text-center">
-                    <div className="text-[10px] text-slate-400 uppercase mb-1">Click-Through Rate</div>
-                    <div className="text-lg font-bold text-blue-400">{kpis.ctr || 4.2}%</div>
+                    <div className="text-[10px] text-slate-400 mb-1">Click-Through Rate</div>
+                    <div className="text-lg font-mono font-bold text-blue-400">{kpis.ctr || 4.2}%</div>
                   </div>
                   <div className="p-3 rounded-xl glass-card border border-slate-800 text-center">
-                    <div className="text-[10px] text-slate-400 uppercase mb-1">ROI Multiplier</div>
-                    <div className="text-lg font-bold text-emerald-400">{kpis.roi || 3.8}x</div>
+                    <div className="text-[10px] text-slate-400 mb-1">ROI Multiplier</div>
+                    <div className="text-lg font-mono font-bold text-emerald-400">{kpis.roi || 3.8}x</div>
                   </div>
                   <div className="p-3 rounded-xl glass-card border border-slate-800 text-center">
-                    <div className="text-[10px] text-slate-400 uppercase mb-1">Cost Per Acq.</div>
-                    <div className="text-lg font-bold text-amber-400">${kpis.cpa || 25.00}</div>
+                    <div className="text-[10px] text-slate-400 mb-1">Cost Per Acq.</div>
+                    <div className="text-lg font-mono font-bold text-amber-400">${kpis.cpa || 25.00}</div>
                   </div>
                   <div className="p-3 rounded-xl glass-card border border-slate-800 text-center col-span-2 sm:col-span-1">
-                    <div className="text-[10px] text-slate-400 uppercase mb-1">Avg Order Value</div>
-                    <div className="text-lg font-bold text-purple-400">${kpis.aov || 95.00}</div>
+                    <div className="text-[10px] text-slate-400 mb-1">Avg Order Value</div>
+                    <div className="text-lg font-mono font-bold text-purple-400">${kpis.aov || 95.00}</div>
                   </div>
                 </div>
               </div>
@@ -399,14 +399,14 @@ export default function CampaignDetailModal({
               {/* Recorded Decisions on this Campaign */}
               {campaign.decisions?.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                    Review Decisions History
+                  <h4 className="text-xs font-semibold text-slate-400 mb-2">
+                    Review decisions history
                   </h4>
                   <div className="space-y-2">
                     {campaign.decisions.map(dec => (
                       <div key={dec.decision_id} className="p-3 rounded-xl glass-card border border-slate-800 text-xs space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                          <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
                             dec.decision_type === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' :
                             dec.decision_type === 'CHANGES_REQUESTED' ? 'bg-orange-500/20 text-orange-300' : 'bg-red-500/20 text-red-300'
                           }`}>
@@ -444,7 +444,7 @@ export default function CampaignDetailModal({
                   return (
                     <div 
                       key={ver.version_id} 
-                      className={`p-4 rounded-xl border transition-all ${
+                      className={`p-4 rounded-xl border transition-colors ${
                         isCurrent 
                           ? 'glass-panel border-cyan-500/40 shadow-lg shadow-cyan-500/5' 
                           : 'glass-card border-slate-800 opacity-90'
@@ -452,16 +452,16 @@ export default function CampaignDetailModal({
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-extrabold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
                             Version v{ver.version_no}
                           </span>
                           {isCurrent && (
-                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                              Active Current Version
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                              Active current version
                             </span>
                           )}
                           {verDecision && (
-                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
                               verDecision.decision_type === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-300' :
                               verDecision.decision_type === 'CHANGES_REQUESTED' ? 'bg-orange-500/20 text-orange-300' : 'bg-red-500/20 text-red-300'
                             }`}>
@@ -478,7 +478,7 @@ export default function CampaignDetailModal({
                       {/* Version Snapshot Diff Visualizer */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                         <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
-                          <div className="text-[10px] uppercase font-bold text-slate-400">Channel & Budget</div>
+                          <div className="text-[10px] font-semibold text-slate-400">Channel and budget</div>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-200">{ver.channel}</span>
                             <span className="text-slate-500">•</span>
@@ -492,7 +492,7 @@ export default function CampaignDetailModal({
                         </div>
 
                         <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1">
-                          <div className="text-[10px] uppercase font-bold text-slate-400">Target Audience</div>
+                          <div className="text-[10px] font-semibold text-slate-400">Target audience</div>
                           <div className="text-slate-300 line-clamp-2">
                             {ver.target_audience}
                           </div>
@@ -502,8 +502,8 @@ export default function CampaignDetailModal({
                       {/* Decision Details if reviewed */}
                       {verDecision && (
                         <div className="mt-3 p-2.5 rounded-lg bg-slate-900/40 border border-slate-800/80 text-xs">
-                          <div className="text-[10px] font-bold text-slate-400 uppercase">
-                            Decision Reason ({verDecision.reviewer_name}):
+                          <div className="text-[10px] font-semibold text-slate-400">
+                            Decision reason ({verDecision.reviewer_name}):
                           </div>
                           <p className="text-slate-300 italic pt-0.5">
                             "{verDecision.reason}"
@@ -534,7 +534,7 @@ export default function CampaignDetailModal({
                   <div
                     key={opt.id}
                     onClick={() => setDecisionType(opt.id)}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-3.5 rounded-xl border cursor-pointer transition-colors ${
                       decisionType === opt.id ? opt.border + ' ring-2 ring-cyan-500/30' : 'glass-card border-slate-800 text-slate-400 hover:border-slate-700'
                     }`}
                   >
@@ -585,16 +585,16 @@ export default function CampaignDetailModal({
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 active:opacity-90 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitDecision}
                   disabled={submittingDecision || !reason.trim()}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25 disabled:opacity-50 transition-all flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/25 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:opacity-90 flex items-center gap-2"
                 >
-                  {submittingDecision && <Clock className="w-3.5 h-3.5 animate-spin" />}
+                  {submittingDecision && <Clock className="w-3.5 h-3.5 motion-safe:animate-spin" />}
                   <span>Record {decisionType} Decision</span>
                 </button>
               </div>
@@ -649,17 +649,17 @@ export default function CampaignDetailModal({
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 active:opacity-90 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleScheduleCampaign}
                   disabled={submittingSchedule}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 active:opacity-90 disabled:opacity-50 flex items-center gap-2"
                 >
-                  {submittingSchedule && <Clock className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Confirm Flight Schedule</span>
+                  {submittingSchedule && <Clock className="w-3.5 h-3.5 motion-safe:animate-spin" />}
+                  <span>Confirm flight schedule</span>
                 </button>
               </div>
             </div>
@@ -679,7 +679,7 @@ export default function CampaignDetailModal({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-200">{msg.author_name}</span>
-                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 uppercase font-semibold">
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-semibold">
                             {msg.author_role}
                           </span>
                         </div>
