@@ -1,191 +1,111 @@
-import { DatabaseSync } from 'node:sqlite';
+import pg from 'pg';
 import path from 'node:path';
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-const DB_PATH = process.env.DB_PATH || path.resolve(process.cwd(), 'campaigns.db');
+const { Pool } = pg;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-export function initDatabase(dbPath) {
-  const targetPath = dbPath || DB_PATH;
-  const dbDir = path.dirname(targetPath);
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+// Configure TimescaleDB / PostgreSQL connection
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgres://bitloggers:bitloggers_password@127.0.0.1:5438/bit_loggers',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+pool.on('error', (err) => {
+  console.error('[DATABASE] Unexpected error on idle client:', err.message);
+});
+
+// Helper for single queries
+export async function query(text, params) {
+  const start = Date.now();
+  const res = await pool.query(text, params);
+  const duration = Date.now() - start;
+  // Optional query trace for diagnostics
+  if (process.env.DEBUG_SQL === 'true') {
+    console.log('[SQL]', { text, duration, rows: res.rowCount });
+  }
+  return res;
+}
+
+// Transaction runner: acquires client, BEGIN -> callback -> COMMIT or ROLLBACK
+export async function withTransaction(callback) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await callback(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// Initialize database schema and default users
+export async function initDatabase(maxRetries = 6, retryDelay = 2500) {
+  let client;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      client = await pool.connect();
+      break;
+    } catch (err) {
+      if (err.code === 'ECONNREFUSED' && attempt < maxRetries) {
+        console.warn(`[DATABASE] Connection to TimescaleDB (attempt ${attempt}/${maxRetries}) refused. Retrying in ${retryDelay / 1000}s... (Ensure Docker Desktop container bitloggers-timescaledb is started)`);
+        await new Promise(r => setTimeout(r, retryDelay));
+      } else {
+        throw err;
+      }
+    }
+  }
+  try {
+    // 1. Ensure TimescaleDB extension and tables exist
+    const schemaPath = path.resolve(__dirname, 'schema.sql');
+    if (fs.existsSync(schemaPath)) {
+      const sql = fs.readFileSync(schemaPath, 'utf8');
+      await client.query(sql);
+
+      // Safe migration for FR-12 discussion enhancements
+      await client.query(`
+        ALTER TABLE discussions ADD COLUMN IF NOT EXISTS parent_message_id VARCHAR(64) REFERENCES discussions(message_id) ON DELETE CASCADE;
+        ALTER TABLE discussions ADD COLUMN IF NOT EXISTS version_id VARCHAR(64) REFERENCES campaign_versions(version_id) ON DELETE SET NULL;
+        ALTER TABLE discussions ADD COLUMN IF NOT EXISTS version_no INT;
+        ALTER TABLE discussions ADD COLUMN IF NOT EXISTS mentions JSONB DEFAULT '[]'::jsonb;
+        ALTER TABLE discussions ADD COLUMN IF NOT EXISTS is_internal_only BOOLEAN NOT NULL DEFAULT FALSE;
+        CREATE INDEX IF NOT EXISTS idx_discussions_campaign_id ON discussions(campaign_id);
+        CREATE INDEX IF NOT EXISTS idx_discussions_parent_id ON discussions(parent_message_id);
+        CREATE INDEX IF NOT EXISTS idx_discussions_version_id ON discussions(version_id);
+      `);
+    }
+
+    // 2. Seed default users if empty
+    const usersCheck = await client.query('SELECT COUNT(*) as count FROM users');
+    if (parseInt(usersCheck.rows[0].count, 10) === 0) {
+      console.log('[DATABASE] Seeding default RBAC users into PostgreSQL...');
+      const insertUser = `
+        INSERT INTO users (user_id, name, email, role)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id) DO NOTHING
+      `;
+      await client.query(insertUser, ['usr-marketer-1', 'Alice Cooper (Marketer)', 'alice.marketer@bitloggers.com', 'marketer']);
+      await client.query(insertUser, ['usr-reviewer-1', 'Marcus Vance (Reviewer)', 'marcus.reviewer@bitloggers.com', 'reviewer']);
+      await client.query(insertUser, ['usr-reviewer-2', 'Elena Rostova (Compliance)', 'elena.compliance@bitloggers.com', 'reviewer']);
+      await client.query(insertUser, ['usr-admin-1', 'Sarah Jenkins (Admin)', 'sarah.admin@bitloggers.com', 'admin']);
+    }
+
+    console.log('✅ [DATABASE] PostgreSQL + TimescaleDB initialized & verified.');
+  } finally {
+    client.release();
   }
 
-  const db = new DatabaseSync(targetPath);
-
-  // Enable WAL and Foreign Keys
-  db.exec('PRAGMA journal_mode = WAL;');
-  db.exec('PRAGMA foreign_keys = ON;');
-
-  // Create tables according to Bit Loggers LLD
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      role TEXT NOT NULL CHECK(role IN ('marketer', 'reviewer', 'admin')),
-      avatar TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS campaigns (
-      campaign_id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      owner_id TEXT NOT NULL REFERENCES users(id),
-      status TEXT NOT NULL CHECK(status IN ('Draft', 'Submitted', 'ChangesRequested', 'Approved', 'Revised', 'Scheduled', 'Rejected', 'Completed')),
-      current_version_id TEXT,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS campaign_versions (
-      version_id TEXT PRIMARY KEY,
-      campaign_id TEXT NOT NULL REFERENCES campaigns(campaign_id),
-      version_no INTEGER NOT NULL,
-      objective TEXT NOT NULL,
-      target_audience TEXT NOT NULL,
-      channel TEXT NOT NULL,
-      budget REAL NOT NULL,
-      kpi_projected TEXT NOT NULL,
-      kpi_actual TEXT,
-      snapshot TEXT NOT NULL,
-      ai_summary TEXT,
-      created_by TEXT NOT NULL REFERENCES users(id),
-      created_at TEXT NOT NULL,
-      UNIQUE (campaign_id, version_no)
-    );
-
-    CREATE TABLE IF NOT EXISTS approval_decisions (
-      decision_id TEXT PRIMARY KEY,
-      campaign_id TEXT NOT NULL REFERENCES campaigns(campaign_id),
-      version_id TEXT NOT NULL UNIQUE REFERENCES campaign_versions(version_id),
-      reviewer_id TEXT NOT NULL REFERENCES users(id),
-      decision_type TEXT NOT NULL CHECK(decision_type IN ('APPROVED', 'CHANGES_REQUESTED', 'REJECTED')),
-      reason TEXT NOT NULL CHECK(length(trim(reason)) > 0),
-      policy_reference TEXT,
-      decided_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS decision_amendments (
-      amendment_id TEXT PRIMARY KEY,
-      decision_id TEXT NOT NULL REFERENCES approval_decisions(decision_id),
-      amended_by TEXT NOT NULL REFERENCES users(id),
-      amendment_reason TEXT NOT NULL CHECK(length(trim(amendment_reason)) > 0),
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS schedules (
-      schedule_id TEXT PRIMARY KEY,
-      campaign_id TEXT NOT NULL REFERENCES campaigns(campaign_id),
-      version_id TEXT NOT NULL REFERENCES campaign_versions(version_id),
-      decision_id TEXT NOT NULL REFERENCES approval_decisions(decision_id),
-      starts_at TEXT NOT NULL,
-      ends_at TEXT NOT NULL,
-      channel TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'SCHEDULED',
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS audit_events (
-      event_id TEXT PRIMARY KEY,
-      campaign_id TEXT REFERENCES campaigns(campaign_id),
-      version_id TEXT,
-      actor_id TEXT NOT NULL,
-      event_type TEXT NOT NULL,
-      previous_state TEXT,
-      new_state TEXT,
-      details TEXT,
-      correlation_id TEXT,
-      occurred_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS outbox_events (
-      event_id TEXT PRIMARY KEY,
-      event_type TEXT NOT NULL,
-      payload TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'PROCESSED', 'FAILED')),
-      attempts INTEGER NOT NULL DEFAULT 0,
-      last_error TEXT,
-      available_at TEXT NOT NULL,
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS idempotency_keys (
-      user_id TEXT NOT NULL,
-      operation TEXT NOT NULL,
-      idempotency_key TEXT NOT NULL,
-      campaign_id TEXT,
-      request_hash TEXT NOT NULL,
-      stored_response TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      PRIMARY KEY (user_id, operation, idempotency_key)
-    );
-
-    CREATE TABLE IF NOT EXISTS edit_locks (
-      campaign_id TEXT PRIMARY KEY REFERENCES campaigns(campaign_id),
-      holder_id TEXT NOT NULL REFERENCES users(id),
-      holder_name TEXT NOT NULL,
-      acquired_at TEXT NOT NULL,
-      expires_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS discussions (
-      message_id TEXT PRIMARY KEY,
-      campaign_id TEXT NOT NULL REFERENCES campaigns(campaign_id),
-      author_id TEXT NOT NULL REFERENCES users(id),
-      author_name TEXT NOT NULL,
-      author_role TEXT NOT NULL,
-      content TEXT NOT NULL,
-      mentions TEXT,
-      parent_id TEXT,
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS notifications (
-      notification_id TEXT PRIMARY KEY,
-      recipient_id TEXT NOT NULL REFERENCES users(id),
-      campaign_id TEXT,
-      event_type TEXT NOT NULL,
-      title TEXT NOT NULL,
-      message TEXT NOT NULL,
-      channel TEXT NOT NULL CHECK(channel IN ('in-app', 'push', 'email')),
-      priority TEXT NOT NULL DEFAULT 'medium',
-      dedupe_key TEXT UNIQUE,
-      is_read INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS diagnostic_logs (
-      log_id TEXT PRIMARY KEY,
-      correlation_id TEXT NOT NULL,
-      campaign_id TEXT,
-      version_id TEXT,
-      event_type TEXT NOT NULL,
-      actor_id TEXT,
-      outcome TEXT NOT NULL,
-      error_category TEXT,
-      message TEXT NOT NULL,
-      timestamp TEXT NOT NULL
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_outbox_due ON outbox_events (status, available_at);
-    CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON notifications (recipient_id, is_read);
-    CREATE INDEX IF NOT EXISTS idx_audit_campaign ON audit_events (campaign_id, occurred_at);
-    CREATE INDEX IF NOT EXISTS idx_schedules_channel_dates ON schedules (channel, starts_at, ends_at);
-  `);
-
-  // Seed default demo users if not present
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-  if (userCount === 0) {
-    const insertUser = db.prepare(`
-      INSERT INTO users (id, name, email, role, avatar)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    insertUser.run('usr-marketer-1', 'Alice Cooper (Marketer)', 'alice.marketer@bitloggers.com', 'marketer', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150');
-    insertUser.run('usr-reviewer-1', 'Marcus Vance (Reviewer)', 'marcus.reviewer@bitloggers.com', 'reviewer', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150');
-    insertUser.run('usr-reviewer-2', 'Elena Rostova (Compliance)', 'elena.compliance@bitloggers.com', 'reviewer', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150');
-    insertUser.run('usr-admin-1', 'Sarah Jenkins (Platform Admin)', 'sarah.admin@bitloggers.com', 'admin', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150');
-  }
-
-  return db;
+  return {
+    query,
+    withTransaction,
+    pool,
+  };
 }
