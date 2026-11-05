@@ -21,61 +21,62 @@ export class Diagnostics {
     this.db = db;
   }
 
-  log({ correlationId, campaignId, versionId, eventType, actorId, outcome = 'INFO', errorCategory = null, message }) {
+  async log({ correlationId, campaignId, versionId, eventType, actorId, outcome = 'INFO', errorCategory = null, message = '', latencyMs = null, details = null }) {
     const logId = 'log-' + crypto.randomUUID().slice(0, 8);
-    const timestamp = new Date().toISOString();
+    const recordedAt = new Date().toISOString();
     const corrId = correlationId || ('c-' + crypto.randomUUID().slice(0, 8));
 
     try {
-      const stmt = this.db.prepare(`
-        INSERT INTO diagnostic_logs 
-        (log_id, correlation_id, campaign_id, version_id, event_type, actor_id, outcome, error_category, message, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-      stmt.run(
-        logId,
-        corrId,
-        campaignId || null,
-        versionId || null,
-        eventType,
-        actorId || null,
-        outcome || 'INFO',
-        errorCategory || null,
-        message || '',
-        timestamp
+      await this.db.query(
+        `INSERT INTO diagnostic_logs 
+         (log_id, recorded_at, correlation_id, campaign_id, version_id, event_type, outcome, actor_id, latency_ms, details)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          logId,
+          recordedAt,
+          corrId,
+          campaignId || null,
+          versionId || null,
+          eventType,
+          outcome,
+          actorId || null,
+          latencyMs || null,
+          details ? JSON.stringify(details) : null
+        ]
       );
     } catch (err) {
-      console.error('Failed to write diagnostic log:', err.message);
+      console.error('[DIAGNOSTICS] Failed to write hypertable log:', err.message);
     }
 
-    // Also console log for debugging
+    // Console output for immediate developer visibility
     const symbol = outcome === 'FAILURE' ? '❌' : outcome === 'SUCCESS' ? '✅' : 'ℹ️';
     console.log(`[DIAGNOSTIC] ${symbol} [${eventType}] [Corr: ${corrId}] [Camp: ${campaignId || 'N/A'}] ${message}`);
 
-    return { logId, correlationId: corrId, timestamp };
+    return { logId, correlationId: corrId, timestamp: recordedAt };
   }
 
-  getLogs({ limit = 100, eventType = null, campaignId = null } = {}) {
-    let query = 'SELECT * FROM diagnostic_logs';
+  async getLogs({ limit = 100, eventType = null, campaignId = null } = {}) {
+    let sql = 'SELECT * FROM diagnostic_logs';
     const params = [];
     const conditions = [];
 
     if (eventType) {
-      conditions.push('event_type = ?');
       params.push(eventType);
+      conditions.push(`event_type = $${params.length}`);
     }
     if (campaignId) {
-      conditions.push('campaign_id = ?');
       params.push(campaignId);
+      conditions.push(`campaign_id = $${params.length}`);
     }
 
     if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      sql += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' ORDER BY timestamp DESC LIMIT ?';
     params.push(limit);
+    sql += ` ORDER BY recorded_at DESC LIMIT $${params.length}`;
 
-    return this.db.prepare(query).all(...params);
+    const res = await this.db.query(sql, params);
+    return res.rows;
   }
 }
