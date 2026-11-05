@@ -82,7 +82,7 @@ export default function CalendarView({ currentUser, onSelectCampaign, showToast 
       {/* Flight Schedule Timeline List */}
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-12 text-xs text-cyan-400">Loading flight calendar...</div>
+          <div className="text-center py-12 text-xs text-cyan-400">Loading flight calendar…</div>
         ) : filteredEvents.length === 0 ? (
           <div className="p-12 text-center glass-panel rounded-2xl border border-slate-800 text-xs text-slate-400 space-y-2">
             <CalendarIcon className="w-8 h-8 text-slate-600 mx-auto" />
@@ -99,14 +99,14 @@ export default function CalendarView({ currentUser, onSelectCampaign, showToast 
               <div 
                 key={evt.schedule_id}
                 onClick={() => onSelectCampaign(evt.campaign_id)}
-                className="glass-card p-4 rounded-xl border border-slate-800 hover:border-cyan-500/40 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="glass-card p-4 rounded-xl border border-slate-800 hover:border-cyan-500/40 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${CHANNEL_COLORS[evt.channel] || 'bg-slate-800 text-slate-300'}`}>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${CHANNEL_COLORS[evt.channel] || 'bg-slate-800 text-slate-300'}`}>
                       {evt.channel}
                     </span>
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-cyan-300 border border-slate-700">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-cyan-300 border border-slate-700">
                       v{evt.version_no}
                     </span>
                     <span className="text-[11px] font-semibold text-emerald-400">
@@ -119,13 +119,13 @@ export default function CalendarView({ currentUser, onSelectCampaign, showToast 
                   </h3>
 
                   <div className="text-xs text-slate-400 flex items-center gap-2">
-                    <span>Flight Window: <strong className="text-slate-200">{start.toLocaleDateString()}</strong> to <strong className="text-slate-200">{end.toLocaleDateString()}</strong> ({daysDuration} days)</span>
+                    <span>Flight window: <strong className="text-slate-200">{start.toLocaleDateString()}</strong> to <strong className="text-slate-200">{end.toLocaleDateString()}</strong> ({daysDuration} days)</span>
                   </div>
                 </div>
 
-                <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-800 text-xs font-mono">
-                  <div className="text-slate-400">Budget Flight</div>
-                  <div className="text-base font-bold text-emerald-400">
+                <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-800 text-xs">
+                  <div className="text-slate-400">Budget flight</div>
+                  <div className="text-base font-mono font-bold text-emerald-400">
                     ${(evt.budget || 0).toLocaleString()}
                   </div>
                 </div>
