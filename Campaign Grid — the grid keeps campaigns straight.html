@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Campaign Grid — the grid keeps campaigns straight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--plaster:#E9E6DF;--paper:#F3F1EC;--ink:#122230;--mute:#46535F;--line:#C9C4B8;--verT:#B9301D;--pru:#0E2233;--pru2:#16324A;--pru3:#21496A;--lt:#E9ECEE;--lt2:#B7C5D1;--yel:#F0B323;--ver:#D9412B;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--plaster:#12191F;--paper:#1B252D;--ink:#E9ECEE;--mute:#AEBBC5;--line:#2F3D48;--verT:#FF8F78;--pru:#0A1A27;--pru2:#12293B;color-scheme:dark}}
+:root[data-theme="dark"]{--plaster:#12191F;--paper:#1B252D;--ink:#E9ECEE;--mute:#AEBBC5;--line:#2F3D48;--verT:#FF8F78;--pru:#0A1A27;--pru2:#12293B;color-scheme:dark}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{background:var(--plaster);color:var(--ink);font-family:'Hanken Grotesk',sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:-.02em;line-height:.98}
+button,input{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}a{color:inherit}
+:focus-visible{outline:3px solid var(--ver);outline-offset:3px}
+.mn{font-family:'IBM Plex Mono',monospace}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;padding:14px 24px;border-radius:4px;background:var(--yel);color:#122230;border:2px solid #122230;font-weight:700;font-size:16px;text-decoration:none;transition:background .15s,color .15s,transform .15s}
+.btn:hover{background:#122230;color:var(--yel);transform:translateY(-2px)}
+.btn.g{background:transparent;color:var(--ink);border-color:var(--ink)}.btn.g:hover{background:var(--ink);color:var(--plaster)}
+.dk .btn.g{color:var(--lt);border-color:var(--lt)}.dk .btn.g:hover{background:var(--lt);color:#0E2233}
+.dk .btn{border-color:var(--yel)}.dk .btn:hover{background:#0E2233}
+
+.nav{position:fixed;inset:0 0 auto;z-index:50;background:var(--plaster);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.nr{height:64px;display:flex;align-items:center;gap:32px;max-width:1240px;margin:auto;padding:0 24px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;text-decoration:none;letter-spacing:-.02em}
+.lm{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:22px}.lm i{height:10px;background:var(--ink)}.lm i:nth-child(2){background:var(--yel)}.lm i:nth-child(3){background:var(--ver)}
+.links{display:flex;gap:26px;margin-right:auto;font-size:15px;font-weight:500}.links a{text-decoration:none;color:var(--mute)}.links a:hover{color:var(--ink)}
+.nr .btn{padding:9px 16px;font-size:14px}.si{font-size:15px;font-weight:500;text-decoration:none;color:var(--mute)}
+.mb{display:none;margin-left:auto;width:44px;height:44px;border:1.5px solid var(--line);border-radius:4px}
+@media (max-width:900px){.mb{display:block}.links,.si,.nr>.btn{display:none}.nav.open .links{display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--plaster);padding:16px 24px 24px;border-bottom:1px solid var(--line);gap:18px}}
+
+.hero{position:relative;height:100svh;min-height:640px;padding-top:calc(64px + env(safe-area-inset-top,0px))}
+#cub{position:absolute;left:0;right:0;bottom:0;top:calc(64px + env(safe-area-inset-top,0px));width:100%;height:calc(100% - 64px - env(safe-area-inset-top,0px));display:block}
+.lab{position:absolute;left:clamp(16px,3vw,40px);bottom:clamp(16px,4vh,44px);width:min(660px,calc(100% - 32px));background:var(--paper);border:1.5px solid var(--ink);padding:30px 34px 32px}
+.lab h1{font-size:clamp(40px,5.4vw,76px)}
+.lab p{margin:18px 0 24px;max-width:46ch;color:var(--mute);font-size:18px}
+.acts{display:flex;gap:12px;flex-wrap:wrap}
+.cap{position:absolute;right:16px;top:calc(64px + env(safe-area-inset-top,0px) + 16px);background:var(--paper);border:1px solid var(--ink);padding:6px 12px;font-size:14px;color:var(--ink)}
+@media (max-width:700px){.cap{display:none}.lab{padding:22px}}
+
+.lede{padding:110px 0 90px}
+.lede p{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(30px,4vw,58px);line-height:1.08;letter-spacing:-.02em;max-width:26em}
+.lede a{text-decoration:underline;text-decoration-color:var(--yel);text-decoration-thickness:5px;text-underline-offset:6px;transition:text-decoration-color .15s}
+.lede a:hover{text-decoration-color:var(--ver)}
+
+.sec{padding:100px 0}
+.h2{font-size:clamp(38px,5vw,70px);max-width:12em}
+.ep{color:var(--mute);margin-top:18px;max-width:44ch;font-size:18px}
+.ag{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:56px;align-items:center}
+@media (max-width:900px){.ag{grid-template-columns:1fr}}
+.sheet{background:var(--paper);border:1.5px solid var(--ink);padding:14px;position:relative}
+#vit{width:100%;height:auto;display:block;touch-action:none}
+#vit .ln{fill:none;stroke:var(--ink);stroke-width:1.3}#vit .thin{stroke-width:.7;opacity:.7}
+#vit #sqm{stroke-width:2.4;transition:stroke .2s}#vit.chg #sqm{stroke:var(--verT)}
+#vit .bud{fill:none;stroke:var(--yel);stroke-width:5}
+#vit .hdl{fill:#122230;stroke:var(--yel);stroke-width:4;cursor:grab}#vit .hit{fill:transparent;cursor:grab}
+#vit text{fill:var(--ink);font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:700}#vit .t2{font-family:'Hanken Grotesk',sans-serif;font-size:15px;font-weight:500;fill:var(--mute)}
+#vit.chg .t3{fill:var(--verT)}
+.vc{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px;font-size:15px}
+.vc .btn{padding:9px 16px;font-size:14px}.vc .btn.on{background:#122230;color:var(--yel)}
+
+.spend{position:relative;height:min(100svh,880px);min-height:660px;background:var(--pru);overflow:hidden}
+#sw{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
+.pan{position:absolute;left:clamp(16px,3vw,40px);bottom:clamp(16px,4vh,44px);width:min(540px,calc(100% - 32px));background:var(--pru2);border:1px solid #35607F;padding:30px;color:var(--lt)}
+.pan .h2{font-size:clamp(34px,4.2vw,56px)}.pan .ep{color:var(--lt2);margin:14px 0 20px}
+.rd{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}.rd .n{font-size:46px;color:var(--yel);font-family:'IBM Plex Mono',monospace;letter-spacing:-.04em}
+.chip{font-size:13.5px;padding:4px 10px;border:1px solid var(--lt2);color:var(--lt)}.chip.p{background:var(--ver);border-color:var(--ver);color:#fff}
+.bar{height:10px;background:#0E2233;position:relative;margin:6px 0 22px;border:1px solid #35607F}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--yel);transition:width .1s}.bar.p i{background:var(--ver)}
+.bar u{position:absolute;left:75%;top:-6px;bottom:-6px;width:2px;background:var(--lt)}
+.cap2{position:absolute;right:16px;top:16px;background:var(--pru2);border:1px solid #35607F;color:var(--lt);padding:7px 12px;font-size:14px}
+
+.sched{background:var(--plaster)}
+.brd{margin-top:44px;overflow-x:auto}
+.bi{min-width:760px;display:grid;grid-template-columns:104px 1fr;border:1.5px solid var(--ink);background:var(--paper)}
+.bi .dh{grid-column:2;display:flex}.bi .dh span{flex:1;text-align:center;font-size:13px;color:var(--mute);padding:8px 0;border-left:1px solid var(--line)}
+.sl{display:grid;grid-auto-rows:56px;border-top:1px solid var(--ink)}.sl span{display:flex;align-items:center;padding-left:14px;font-size:14px;font-weight:600;border-bottom:1px solid var(--line)}
+.sb{position:relative;height:280px;border-top:1px solid var(--ink);background:repeating-linear-gradient(90deg,transparent 0,transparent calc(var(--cw) - 1px),var(--line) calc(var(--cw) - 1px),var(--line) var(--cw)),repeating-linear-gradient(180deg,transparent 0,transparent 55px,var(--line) 55px,var(--line) 56px)}
+.blk{position:absolute;height:46px;margin-top:5px;margin-left:2px;border:1.5px solid #122230;border-radius:2px;display:flex;align-items:center;padding:0 10px;font-weight:700;font-size:14px;color:#122230;cursor:grab;touch-action:none;user-select:none;background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%);transition:left .28s cubic-bezier(.3,1.4,.5,1),top .28s cubic-bezier(.3,1.4,.5,1),transform .28s cubic-bezier(.3,1.4,.5,1);white-space:nowrap;overflow:hidden}
+.blk.drg{z-index:5;transition:none;cursor:grabbing;box-shadow:0 14px 24px -10px rgba(0,0,0,.45)}
+.blk.bad{border-color:var(--ver);background:repeating-linear-gradient(45deg,#F1C6BD 0 8px,#E7A99C 8px 16px)}
+.t2b{margin-top:18px;padding:14px 18px;border:1.5px solid var(--ink);background:var(--paper);font-weight:500;min-height:56px}.t2b.no{border-color:var(--verT);color:var(--verT)}
+
+.proto{background:var(--pru2);color:var(--lt);padding:110px 0}
+.proto .ep{color:var(--lt2)}
+.pg{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:72px;align-items:center}
+@media (max-width:960px){.pg{grid-template-columns:minmax(0,1fr)}}
+.plac{margin-top:36px;border:1px solid #35607F;padding:18px 22px;max-width:380px;font-family:'Cormorant Garamond',serif;font-size:19px;line-height:1.3;background:var(--pru)}
+.plac b{display:block;font-size:24px}.plac span{display:block;color:var(--lt2);font-family:'Hanken Grotesk',sans-serif;font-size:14.5px;margin-top:8px}
+.frame{background:#8A6417;padding:12px;box-shadow:inset 0 0 0 3px #C9962A,0 40px 70px -24px rgba(0,0,0,.6);width:fit-content;margin:auto}
+.mat{background:#E9E6DF;padding:26px;box-shadow:inset 0 0 0 1px #C9C4B8}
+.ph2{width:304px;height:620px;background:#0A1620;border-radius:40px;padding:9px;position:relative}
+.pscr{position:relative;height:100%;border-radius:32px;background:#F3F1EC;color:#122230;overflow:hidden}
+.pscr::before{content:"";position:absolute;top:8px;left:50%;width:78px;height:22px;margin-left:-39px;background:#0A1620;border-radius:14px;z-index:3}
+.scr2{height:100%;overflow-y:auto;padding:46px 16px 90px}
+.scr2 h4{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:12px}
+.pc{background:#fff;border:1px solid #D6D2C8;border-radius:14px;padding:14px;margin-bottom:10px;font-size:14px}
+.pc .r{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;font-size:15px}.pc p{color:#46535F;margin:4px 0 10px;font-size:13px}
+.tg2{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#E4E8EC;padding:2px 7px;border-radius:5px;font-weight:500}
+.pb{display:flex;gap:8px}.pb button{flex:1;padding:11px 4px;border-radius:10px;font-weight:700;font-size:13px;border:1.5px solid #122230;background:#fff;color:#122230}.pb .pri{background:#F0B323}
+.ok2{display:flex;gap:8px;align-items:center;font-size:14px;padding:10px 0;border-top:1px solid #D6D2C8}
+.pg7{display:grid;grid-template-columns:44px repeat(7,1fr);gap:3px;font-size:11px;color:#46535F;align-items:center;margin-bottom:5px}
+.pg7 b{height:28px;border-radius:5px;font-size:10px;display:flex;align-items:center;padding:0 5px;color:#122230;overflow:hidden;white-space:nowrap;font-weight:700}
+.pg7 b.a{background:#F0B323}.pg7 b.q{border:1.5px dashed #122230}
+.big2{font-family:'IBM Plex Mono',monospace;font-size:44px;letter-spacing:-.05em;margin:4px 0}
+.bar2{height:10px;background:#E4E8EC;position:relative;margin:10px 0 6px;border-radius:5px}.bar2 i{position:absolute;inset:0 auto 0 0;background:#122230;border-radius:5px;transition:width .5s}.bar2 u{position:absolute;left:75%;top:-5px;bottom:-5px;width:2px;background:#D9412B}
+.alert{background:#FBDDD7;color:#8A2113;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;margin:12px 0}
+.sp2{width:100%;padding:13px;border-radius:10px;border:1.5px solid #122230;font-weight:700;margin-top:10px;background:#F0B323;color:#122230}
+.lg{list-style:none;padding:0;font-size:13.5px}.lg li{display:grid;grid-template-columns:44px 1fr;gap:6px;padding:9px 0;border-top:1px solid #D6D2C8}.lg li span:first-child{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#46535F}
+.tb2{position:absolute;left:0;right:0;bottom:0;display:flex;background:#fff;border-top:1px solid #D6D2C8;padding:6px 6px 12px}
+.tb2 button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:11px;font-weight:600;color:#46535F;position:relative}
+.tb2 button[aria-selected=true]{color:#122230}.tb2 button[aria-selected=true] svg{stroke:#122230}.tb2 svg{width:22px;height:22px;fill:none;stroke:#46535F;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tb2 em{position:absolute;top:0;left:55%;background:#D9412B;color:#fff;font-style:normal;font-size:10px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+
+.qa{background:var(--plaster)}
+.qg{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:64px;align-items:start}
+@media (max-width:900px){.qg{grid-template-columns:1fr}}
+details{border-top:1px solid var(--ink);padding:20px 0}details:last-of-type{border-bottom:1px solid var(--ink)}
+summary{font-family:'Cormorant Garamond',serif;font-size:27px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;line-height:1.1}
+summary::-webkit-details-marker{display:none}summary::after{content:"+";font-size:30px;line-height:.8;transition:transform .2s}details[open] summary::after{transform:rotate(45deg)}
+details p{margin-top:12px;color:var(--mute);max-width:52ch}
+.fp{background:var(--paper);border:1.5px solid var(--ink);padding:34px}
+.fp h3{font-size:38px}.fp p{color:var(--mute);margin:12px 0 22px}
+.fp input{width:100%;padding:14px 16px;border:1.5px solid var(--ink);background:var(--plaster);font-size:16px;margin-bottom:12px;border-radius:4px}
+.fp .btn{width:100%;justify-content:center}.fok{margin-top:14px;font-weight:600}.fok:empty{display:none}
+
+footer{background:var(--pru);color:var(--lt)}
+.sky{position:relative;height:clamp(300px,54vh,540px);background:#0B1B2A;overflow:hidden}
+#ft,.sky svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sky svg{pointer-events:none}
+@keyframes tw{0%,100%{opacity:.45}50%{opacity:.95}}.tw{animation:tw 4s ease-in-out infinite}.tw:nth-child(2n){animation-delay:1.3s}.tw:nth-child(3n){animation-delay:2.4s}
+.fcols{padding:60px 0 20px}
+.fg{display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:32px}
+@media (max-width:860px){.fg{grid-template-columns:1fr 1fr}.fg>:first-child{grid-column:1/-1}}
+footer p.d{color:var(--lt2);font-size:15px;max-width:32ch;margin-top:14px}
+footer h4{font-size:14px;color:var(--lt2);font-weight:600;margin-bottom:14px}footer ul{padding:0}footer li{list-style:none;margin-bottom:10px;font-size:15.5px}footer li a{text-decoration:none}footer li a:hover{color:var(--yel)}
+.cred{margin-top:48px;padding:22px 0 calc(28px + env(safe-area-inset-bottom,0px));border-top:1px solid #2A4A63;color:var(--lt2);font-size:13.5px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.cred span{max-width:70ch}
+@media (max-width:480px){.acts .btn{flex:1 1 100%;justify-content:center}.mat{padding:12px}.frame{padding:8px}.ph2{width:min(304px,calc(100vw - 88px))}}.rm *{animation:none!important;transition-duration:.01ms!important}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<header class="nav" id="nav"><div class="nr">
+  <a href="#top" class="logo"><span class="lm"><i></i><i></i><i></i><i></i></span>Campaign Grid</a>
+  <nav class="links" aria-label="Primary"><a href="#approvals">Approvals</a><a href="#spend">Spend</a><a href="#schedule">Schedule</a><a href="#prototype">Prototype</a><a href="#faq">FAQ</a></nav>
+  <a href="#access" class="si">Sign in</a><a href="#access" class="btn">Request early access</a>
+  <button class="mb" id="mb" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+</div></header>
+
+<main id="top">
+<section class="hero">
+  <canvas id="cub" aria-label="Interactive cubist grid. Move the pointer to fracture it, click to shatter it."></canvas>
+  <div class="cap">Move across the canvas. Click to shatter it.</div>
+  <div class="lab">
+    <h1>Campaigns get messy. The grid keeps them straight.</h1>
+    <p>Campaign Grid is where marketing teams schedule, approve and cap the spend on every campaign, so what goes live is what was signed off.</p>
+    <div class="acts"><a class="btn" href="#access">Request early access</a><a class="btn g" href="#prototype">Try the app prototype</a></div>
+  </div>
+</section>
+
+<section class="lede"><div class="wrap"><p>Fast campaigns go wrong in three ways: <a href="#approvals">the wrong version ships</a>, <a href="#spend">spend runs past the budget</a>, or <a href="#schedule">two campaigns book the same slot</a>. Campaign Grid deals with all three in one place. Here is each one, in the order a campaign meets them.</p></div></section>
+
+<section class="sec" id="approvals" style="padding-top:20px"><div class="wrap ag">
+  <div>
+    <h2 class="h2">Approve a version, not a draft.</h2>
+    <p class="ep">An approval is tied to one exact version of a campaign. Drag the gold ring outward to raise the budget: the change opens a new version for review, and the one already running keeps running.</p>
+    <div class="vc"><button class="btn g" id="fix" aria-pressed="false">Fix a typo in the headline</button><span id="vnote" role="status"></span></div>
+  </div>
+  <div class="sheet">
+    <svg id="vit" viewBox="0 0 640 610" role="group" aria-label="Construction drawing of a campaign: a square for the approved plan and a ring for the budget">
+      <g class="ln">
+        <rect class="dr" id="sqm" x="120" y="90" width="400" height="400" pathLength="1"/>
+        <circle class="dr" cx="320" cy="290" r="200" pathLength="1"/>
+        <path class="dr" d="M120 90L520 490M520 90L120 490" pathLength="1"/>
+        <path class="dr" d="M320 90V490M120 290H520" pathLength="1"/>
+        <path class="dr thin" d="M220 90V490M420 90V490M120 190H520M120 390H520" pathLength="1"/>
+        <path class="dr thin" d="M120 90H60M120 490H60M520 90H580M520 490H580" pathLength="1"/>
+      </g>
+      <circle id="bc" class="bud" cx="320" cy="290" r="200"/>
+      <rect x="196" y="270" width="248" height="38" fill="var(--paper)"/><text x="320" y="297" text-anchor="middle" id="hl">Diwali Festive Offer</text>
+      <text x="120" y="66">V2.0 live, $50,000</text>
+      <text x="120" y="538" id="v3t" class="t3">V3.0 draft, no changes yet</text>
+      <text x="120" y="580" class="t2" id="vst">Drag the ring to change the budget.</text>
+      <circle class="hit" id="hit" cx="461" cy="149" r="26"/>
+      <circle class="hdl" id="hd" cx="461" cy="149" r="12" tabindex="0" role="slider" aria-label="Budget ring" aria-valuemin="0" aria-valuemax="41" aria-valuenow="0"/>
+    </svg>
+  </div>
+</div></section>
+
+<section class="spend dk" id="spend">
+  <canvas id="sw" aria-label="Painterly swirl that grows turbulent as spend rises"></canvas>
+  <div class="cap2">Press and hold the painting to raise spend.</div>
+  <div class="pan">
+    <h2 class="h2">Spend that stops itself at the ceiling.</h2>
+    <p class="ep">Every approved version carries a cost-per-acquisition ceiling. Cross it and delivery pauses, and the team is told why.</p>
+    <div class="rd"><span class="n" id="cpa">$11.40</span><span class="chip" id="chp">Running</span></div>
+    <div class="bar" id="bar"><i id="barf" style="width:57%"></i><u></u></div>
+    <div class="acts"><button class="btn" id="raise">Raise spend</button><button class="btn g" id="resume" hidden>Resume delivery</button></div>
+  </div>
+</section>
+
+<section class="sec sched" id="schedule"><div class="wrap">
+  <h2 class="h2">Two campaigns can’t hold the same slot.</h2>
+  <p class="ep">Drag any block on the board. Move it onto a slot that’s taken and the grid refuses, and tells you who has it.</p>
+  <div class="brd"><div class="bi" id="bi">
+    <div></div><div class="dh" id="sd"></div>
+    <div class="sl" id="sl"></div><div class="sb" id="sb"></div>
+  </div></div>
+  <div class="t2b" id="st2" role="status">Drag a campaign onto a taken slot to see what happens.</div>
+</div></section>
+
+<section class="proto dk" id="prototype"><div class="wrap pg">
+  <div>
+    <h2 class="h2">Try the app before it ships.</h2>
+    <p class="ep">Campaign Grid is still being built. This is a working mock of the mobile app: approve a campaign, spike the spend, then check the Activity tab.</p>
+    <div class="plac"><b>Campaign Grid, mobile prototype</b>Interactive web mock, 2026<span>Please touch the screen.</span></div>
+  </div>
+  <div class="frame"><div class="mat"><div class="ph2"><div class="pscr"><div class="scr2" id="scr2"></div><nav class="tb2" id="tb2" aria-label="App tabs"></nav></div></div></div></div>
+</div></section>
+
+<section class="sec qa" id="faq"><div class="wrap qg">
+  <div>
+    <h2 class="h2" style="margin-bottom:34px">Before you ask.</h2>
+    <details><summary>Is Campaign Grid available today?</summary><p>Not yet. It is in development. Request early access and we’ll share progress as it takes shape.</p></details>
+    <details><summary>What does version-locked approval mean?</summary><p>An approval applies to one exact version. A later edit to budget or schedule creates a new version that needs its own review, while the approved one keeps running.</p></details>
+    <details><summary>What happens when spend crosses the limit?</summary><p>Each approved version has a cost-per-acquisition ceiling. When it is crossed, delivery pauses and the team is notified.</p></details>
+    <details><summary>Which ad platforms will it connect to?</summary><p>Connections to the major ad and messaging platforms are planned. The first set will be settled with early-access teams.</p></details>
+  </div>
+  <div class="fp" id="access"><h3>Get on the early access list.</h3><p>Leave a work email. We’ll write when there is something to try.</p>
+    <form id="fm"><input type="email" required placeholder="you@company.com" aria-label="Work email"><button class="btn" type="submit">Request access</button></form><div class="fok" id="fok" role="status"></div></div>
+</div></section>
+</main>
+
+<footer>
+  <div class="sky"><canvas id="ft" aria-hidden="true"></canvas>
+    <svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M996 70a48 48 0 1 0 40 82a40 40 0 1 1 -40 -82z" fill="#F0B323"/>
+      <g fill="none" stroke="#F0B323" stroke-width="1.6"><circle class="tw" cx="1010" cy="112" r="64"/><circle class="tw" cx="1010" cy="112" r="80" stroke-dasharray="3 7"/></g>
+      <g id="stars"></g>
+      <path d="M92 420C60 370 44 310 62 246C74 206 64 160 88 92C94 150 118 186 112 240C134 296 138 366 128 420Z" fill="#071420"/>
+      <path d="M0 420V372C140 360 260 384 400 366C560 346 640 380 800 372C960 364 1080 356 1200 372V420Z" fill="#071420"/>
+    </svg>
+  </div>
+  <div class="fcols"><div class="wrap">
+    <div class="fg">
+      <div><a href="#top" class="logo"><span class="lm"><i style="background:#E9ECEE"></i><i></i><i></i><i style="background:#E9ECEE"></i></span>Campaign Grid</a><p class="d">Scheduling, approvals and spend control for marketing teams.</p></div>
+      <div><h4>Product</h4><ul><li><a href="#approvals">Approvals</a></li><li><a href="#spend">Spend</a></li><li><a href="#schedule">Schedule</a></li><li><a href="#prototype">Prototype</a></li></ul></div>
+      <div><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Careers</a></li></ul></div>
+      <div><h4>Resources</h4><ul><li><a href="#faq">FAQ</a></li><li><a href="#">Changelog</a></li><li><a href="#">Help centre</a></li></ul></div>
+      <div><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">Security</a></li></ul></div>
+    </div>
+    <div class="cred"><span>The footer sky, the ring drawing and the fractured hero are generative studies after Van Gogh’s The Starry Night, Leonardo’s Vitruvian Man and Picasso’s cubism. No original artwork is reproduced.</span><span>© 2026 Campaign Grid</span></div>
+  </div></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce)document.documentElement.classList.add('rm');
+gsap.registerPlugin(ScrollTrigger);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const nav=$('#nav');
+$('#mb').onclick=()=>nav.classList.toggle('open');
+$$('.links a').forEach(a=>a.addEventListener('click',()=>nav.classList.remove('open')));
+const bgOf=()=>getComputedStyle(document.documentElement).getPropertyValue('--plaster').trim();
+
+/* ---------- hero: cubist grid with spring physics (optimized) ---------- */
+(function(){
+  const cv=$('#cub');
+  if(!cv) return;
+  const x=cv.getContext('2d');
+  const LI=['#DDB35A','#E4DED0','#D9A79B','#8E9AA4','#C98B2B'],DA=['#2C5876','#33433E','#A3472F','#5F7F8C','#2C5876'];
+  let W=0,H=0,cells=[],cs=96,px=-999,py=-999,pvx=0,pvy=0,t=0,vis=true,run=false,bg=bgOf(),still=0,lastT=0;
+  function build(){const r=cv.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,1.25);W=r.width;H=r.height;if(!W)return;cv.width=Math.floor(W*d);cv.height=Math.floor(H*d);x.setTransform(d,0,0,d,0,0);cs=W<700?80:112;
+    const cols=Math.ceil(W/cs)+1,rows=Math.ceil(H/cs)+1;cells=[];let s=7;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+    for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)cells.push({bx:i*cs+cs/2,by:j*cs+cs/2,ox:0,oy:0,vx:0,vy:0,a:0,va:0,c1:LI[(rnd()*LI.length)|0],c2:DA[(rnd()*DA.length)|0],d:rnd()<.5,k:rnd()*6.28})}
+  cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect(),nx=e.clientX-r.left,ny=e.clientY-r.top;pvx=px<-900?0:nx-px;pvy=px<-900?0:ny-py;px=nx;py=ny;still=0;if(vis&&!run){run=true;requestAnimationFrame(frame)}});
+  cv.addEventListener('pointerleave',()=>{px=py=-999;pvx=pvy=0});
+  cv.addEventListener('click',()=>cells.forEach(c=>{c.vx=(Math.random()-.5)*24;c.vy=(Math.random()-.5)*24;c.va=(Math.random()-.5)*.5;still=0;if(vis&&!run){run=true;requestAnimationFrame(frame)}}));
+  const PL=[[[.05,.2],[.4,.05],[.55,.5],[.2,.7]],[[.5,.1],[.95,.3],[.8,.8],[.55,.5]],[[.55,.6],[.9,.88],[.7,1],[.45,.85]],[[0,.75],[.3,.9],[.25,1],[0,1]]];
+  function frame(timestamp){if(!vis){run=false;return}
+    if(timestamp-lastT<30){if(run)requestAnimationFrame(frame);return}
+    lastT=timestamp;
+    t+=.015;
+    const sp=Math.hypot(pvx,pvy);
+    if(px>-900&&sp>.5)for(const c of cells){const dx=c.bx-px,dy=c.by-py,d=Math.hypot(dx,dy);if(d<190){const f=(1-d/190)*Math.min(sp,30)*.08;c.vx+=dx/(d+1)*f;c.vy+=dy/(d+1)*f;c.va+=(Math.random()-.5)*f*.04;still=0}}
+    pvx*=.8;pvy*=.8;
+    x.fillStyle=bg;x.fillRect(0,0,W,H);
+    let maxV=0;
+    for(const c of cells){c.vx+=-c.ox*.07;c.vy+=-c.oy*.07;c.va+=-c.a*.07;c.vx*=.85;c.vy*=.85;c.va*=.86;c.ox+=c.vx;c.oy+=c.vy;c.a+=c.va;
+      maxV=Math.max(maxV,Math.abs(c.vx)+Math.abs(c.vy));
+      x.save();x.translate(c.bx+c.ox,c.by+c.oy);x.rotate(c.a+(reduce?0:Math.sin(t+c.k)*.012));const h=cs/2-1.5;
+      x.fillStyle=c.c1;x.beginPath();if(c.d){x.moveTo(-h,-h);x.lineTo(h,-h);x.lineTo(h,h)}else{x.moveTo(-h,-h);x.lineTo(h,-h);x.lineTo(-h,h)}x.closePath();x.fill();
+      x.fillStyle=c.c2;x.beginPath();if(c.d){x.moveTo(-h,-h);x.lineTo(h,h);x.lineTo(-h,h)}else{x.moveTo(h,-h);x.lineTo(h,h);x.lineTo(-h,h)}x.closePath();x.fill();
+      x.strokeStyle='#122230';x.lineWidth=1.5;x.strokeRect(-h,-h,2*h,2*h);x.beginPath();if(c.d){x.moveTo(-h,-h);x.lineTo(h,h)}else{x.moveTo(h,-h);x.lineTo(-h,h)}x.stroke();x.restore()}
+    const ox=px>-900?(px/W-.5)*18:0;x.strokeStyle='#122230';x.lineWidth=2.6;const FL=['rgba(240,179,35,.22)','rgba(44,88,118,.2)','rgba(217,65,43,.16)','rgba(233,230,223,.22)'];
+    PL.forEach((q,k)=>{x.beginPath();q.forEach((p,i)=>i?x.lineTo(p[0]*W+ox*(k+1)*.5,p[1]*H):x.moveTo(p[0]*W+ox*(k+1)*.5,p[1]*H));x.closePath();x.fillStyle=FL[k];x.fill();x.stroke()});
+    if(maxV<0.02&&px<-900){still++;if(still>50){run=false;return}}
+    if(run)requestAnimationFrame(frame);
+  }
+  new ResizeObserver(build).observe(cv);build();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>setTimeout(()=>bg=bgOf(),60));
+  new IntersectionObserver(e=>{vis=e[0].isIntersecting;if(vis&&!run){run=true;still=0;requestAnimationFrame(frame)}}).observe(cv);
+})();
+
+/* ---------- shared painterly flow field (throttled & batched) ---------- */
+function swirl(cv,o){
+  if(!cv) return {e:0,paused:true};
+  const x=cv.getContext('2d'),M=24;let W=0,H=0,ps=[],t=0,vis=true,run=false,n=0,lastT=0;const st={e:o.e||0,paused:false,hold:false};
+  const spawn=p=>{p.x=Math.random()*W;p.y=Math.random()*H;p.h=[]};
+  function size(){const r=cv.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,1.25);W=r.width;H=r.height;if(!W)return;cv.width=Math.floor(W*d);cv.height=Math.floor(H*d);x.setTransform(d,0,0,d,0,0);x.fillStyle=o.bg;x.fillRect(0,0,W,H);
+    ps=Array.from({length:Math.min(360,Math.round(W*H/(o.dens*1.8)))},()=>{const p={c:o.cols[(Math.random()*o.cols.length)|0],r:Math.random(),w:.75+Math.random()*.6};spawn(p);return p});for(let i=0;i<M;i++)for(const p of ps)adv(p,.9)}
+  const VX=[[.28,.42,1],[.7,.5,-1],[.5,.2,.6]],SEG=[[0,.36,.4,.28],[.34,.68,.7,.62],[.66,1,1,1]];
+  function ang(px,py){const q=Math.sin(px*.005+t)*1.6+Math.cos(py*.006-t*.8)*1.6;let vx=Math.cos(q)*.4,vy=Math.sin(q)*.4;for(const v of VX){const dx=px-v[0]*W,dy=py-v[1]*H,d=Math.hypot(dx,dy)+30,w=Math.min(1.5,320/d)*v[2];vx+=-dy/d*w;vy+=dx/d*w}return Math.atan2(vy,vx)}
+  function adv(p,k){const a=ang(p.x,p.y);p.x+=Math.cos(a)*k;p.y+=Math.sin(a)*k;if(p.x<-20||p.x>W+20||p.y<-20||p.y>H+20){spawn(p);return false}const h=p.h;h.push(p.x,p.y);if(h.length>M*2)h.splice(0,2);return true}
+  function frame(timestamp){if(!vis||document.hidden){run=false;return}if(reduce&&++n>60){run=false;return}
+    if(timestamp-lastT<33){if(run)requestAnimationFrame(frame);return}
+    lastT=timestamp;
+    if(run)requestAnimationFrame(frame);
+    if(o.tick)o.tick(st);
+    if(st.paused)return;
+    const k=.55+st.e*2.2,lw=3.4+st.e*2,hot=Math.max(0,st.e-.15)*.6;t+=.004+st.e*.01;
+    x.fillStyle=o.bg;x.fillRect(0,0,W,H);x.lineCap='round';x.lineJoin='round';
+    for(const p of ps){if(!adv(p,k))continue;
+      const h=p.h,L=h.length;if(L<8)continue;
+      x.strokeStyle=(!o.calm&&p.r<hot)?'#D9412B':p.c;
+      for(const g of SEG){const a=((L*g[0])|0)&~1,b=Math.min(L-2,((L*g[1])|0)&~1);if(b<=a)continue;x.globalAlpha=g[3];x.lineWidth=lw*p.w*g[2];x.beginPath();x.moveTo(h[a],h[a+1]);for(let q=a+2;q<=b;q+=2)x.lineTo(h[q],h[q+1]);x.stroke()}}
+    x.globalAlpha=1}
+  new ResizeObserver(size).observe(cv);size();
+  new IntersectionObserver(e=>{vis=e[0].isIntersecting;if(vis&&!run){run=true;requestAnimationFrame(frame)}}).observe(cv);
+  return st}
+
+/* ---------- approvals: construction drawing ---------- */
+(function(){
+  const svg=$('#vit'),bc=$('#bc'),hd=$('#hd'),hit=$('#hit'),cx=320,cy=290;let drag=false,r=200,ang=-Math.PI/4;
+  function set(rr,a){r=Math.max(200,Math.min(283,rr));ang=a;bc.setAttribute('r',r);[hd,hit].forEach(h=>{h.setAttribute('cx',cx+r*Math.cos(a));h.setAttribute('cy',cy+r*Math.sin(a))});
+    const p=Math.round((r/200-1)*100),b=Math.round(50000*r/200/100)*100;svg.classList.toggle('chg',p>0);hd.setAttribute('aria-valuenow',p);
+    $('#v3t').textContent=p>0?`V3.0 draft, $${b.toLocaleString()} (+${p}%)`:'V3.0 draft, no changes yet';
+    $('#vst').textContent=p>0?'V3.0 opens for review. V2.0 keeps running.':'Drag the ring to change the budget.'}
+  const pt=e=>new DOMPoint(e.clientX,e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+  [hd,hit].forEach(h=>{h.addEventListener('pointerdown',e=>{drag=true;h.setPointerCapture(e.pointerId);e.preventDefault()});
+    h.addEventListener('pointermove',e=>{if(!drag)return;const q=pt(e);set(Math.hypot(q.x-cx,q.y-cy),Math.atan2(q.y-cy,q.x-cx))});
+    h.addEventListener('pointerup',()=>drag=false);h.addEventListener('pointercancel',()=>drag=false)});
+  hd.addEventListener('keydown',e=>{const d=(e.key==='ArrowRight'||e.key==='ArrowUp')?10:(e.key==='ArrowLeft'||e.key==='ArrowDown')?-10:0;if(d){e.preventDefault();set(r+d,ang)}});
+  set(200,-Math.PI/4);
+  $('#fix').onclick=function(){const on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',on);this.classList.toggle('g',!on);$('#hl').textContent=on?'Diwali Festive Sale!':'Diwali Festive Offer';$('#vnote').textContent=on?'Fixed on V2.0 in place. No new review.':''};
+  if(!reduce)$$('#vit .dr').forEach((el,i)=>{gsap.set(el,{strokeDasharray:1,strokeDashoffset:1});gsap.to(el,{strokeDashoffset:0,ease:'none',scrollTrigger:{trigger:'#approvals',start:'top 75%',end:'top '+(25-i*2)+'%',scrub:.6}})});
+})();
+
+/* ---------- spend: Van Gogh turbulence ---------- */
+(function(){
+  const cv=$('#sw'),raise=$('#raise'),res=$('#resume'),MIN=.1,MAX=.6;
+  const st=swirl(cv,{bg:'#0E2233',fade:'rgba(14,34,51,.06)',dens:1100,cols:['#2B5C86','#3E7CB1','#7FA8C9','#F0B323','#E7D9A5','#1F4663'],e:MIN,
+    tick:s=>{if(s.paused)return;s.e+=s.hold?.006:-.0025;s.e=Math.max(MIN,Math.min(MAX,s.e));if(s.e>=MAX){s.paused=true;s.hold=false}upd()}});
+  function upd(){const c=11.4+(st.e-MIN)/(MAX-MIN)*3.6;$('#cpa').textContent='$'+c.toFixed(2);$('#barf').style.width=Math.min(100,c/20*100)+'%';
+    $('#bar').classList.toggle('p',st.paused);const ch=$('#chp');ch.textContent=st.paused?'Paused at $15.00 ceiling':c>13.5?'Nearing ceiling':'Running';ch.classList.toggle('p',st.paused);res.hidden=!st.paused;raise.hidden=st.paused}
+  const on=()=>{if(!st.paused)st.hold=true},off=()=>st.hold=false;
+  [cv,raise].forEach(el=>{el.addEventListener('pointerdown',on);el.addEventListener('pointerup',off);el.addEventListener('pointerleave',off);el.addEventListener('pointercancel',off)});
+  raise.addEventListener('click',e=>{if(e.detail===0&&!st.paused)st.e=Math.min(MAX,st.e+.1)});
+  res.onclick=()=>{st.paused=false;st.e=MIN;upd()};upd();
+})();
+
+/* ---------- schedule: collision-free drag board ---------- */
+(function(){
+  const board=$('#sb'),ND=10,RH=56,toast=$('#st2'),CH=['Paid search','Social','Display','Email','Creators'],pad=n=>String(n).padStart(2,'0');
+  $('#sd').innerHTML=Array.from({length:ND},(_,i)=>`<span>Nov ${pad(i+1)}</span>`).join('');
+  $('#sl').innerHTML=CH.map(c=>`<span>${c}</span>`).join('');
+  const CA=[['Diwali Launch',0,0,4,'#F0B323','#E4C46B'],['Brand Refresh',1,0,3,'#A9C3D4','#8FB0C5'],['Q4 Retargeting',2,5,4,'#E3B5A8','#C4CBD1'],['Festive Email',3,2,3,'#9CCBB9','#7DB5A1'],['Creator Drop',4,6,3,'#F0B323','#E3B5A8'],['Search retargeting',0,6,3,'#A9C3D4','#C4CBD1']];
+  const B=CA.map(c=>{const b=document.createElement('div');b.className='blk';b.textContent=c[0];b.style.setProperty('--a',c[4]);b.style.setProperty('--b',c[5]);b.n=c[0];b.r=c[1];b.c=c[2];b.l=c[3];board.appendChild(b);return b});
+  let cw=60;
+  function place(b){b.style.left=b.c*cw+'px';b.style.top=b.r*RH+'px';b.style.width=b.l*cw-4+'px'}
+  function lay(){cw=board.clientWidth/ND;board.style.setProperty('--cw',cw+'px');B.forEach(place)}
+  new ResizeObserver(lay).observe(board);lay();
+  const hold=(b,c,r)=>B.find(o=>o!==b&&o.r===r&&!(c+b.l<=o.c||o.c+o.l<=c));
+  let d=null;
+  board.addEventListener('pointerdown',e=>{const b=e.target.closest('.blk');if(!b)return;b.setPointerCapture(e.pointerId);d={b,sx:e.clientX,sy:e.clientY,c:b.c,r:b.r};b.classList.add('drg')});
+  board.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy,b=d.b;b.style.transform=`translate(${dx}px,${dy}px)`;
+    d.c=Math.max(0,Math.min(ND-b.l,Math.round(b.c+dx/cw)));d.r=Math.max(0,Math.min(4,Math.round(b.r+dy/RH)));b.classList.toggle('bad',!!hold(b,d.c,d.r))});
+  function end(){if(!d)return;const b=d.b,h=hold(b,d.c,d.r);b.classList.remove('drg','bad');b.style.transform='';
+    if(h){toast.className='t2b no';toast.textContent=`Slot taken. ${CH[d.r]} is held by ${h.n} until Nov ${pad(h.c+h.l)}.`}
+    else{if(d.c!==b.c||d.r!==b.r){toast.className='t2b';toast.textContent=`Reserved. ${b.n} now holds ${CH[d.r]} from Nov ${pad(d.c+1)} to Nov ${pad(d.c+b.l)}.`}b.c=d.c;b.r=d.r}
+    place(b);d=null}
+  board.addEventListener('pointerup',end);board.addEventListener('pointercancel',end);
+})();
+
+/* ---------- prototype app ---------- */
+(function(){
+  const S={tab:'review',c:[{n:'Diwali Launch',v:'V3.0',m:'Budget +20%, needs sign-off',s:'p',r:0,c:0,l:4},{n:'Brand Refresh',v:'V2.0',m:'Waiting 24 hours',s:'p',r:1,c:0,l:3},{n:'Q4 Retargeting',v:'V4.0',m:'Three revisions so far',s:'p',r:2,c:3,l:4}],log:[['09:12','Priya S. submitted Diwali Launch V3.0']],cpa:11.4,pause:false};
+  const IC={review:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',spend:'<path d="M4 17a8 8 0 0116 0"/><path d="M12 17l4-5"/>',log:'<path d="M5 7h14M5 12h14M5 17h9"/>'};
+  const TB=[['review','Review'],['grid','Grid'],['spend','Spend'],['log','Activity']];
+  const now=()=>new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false}),add=t=>S.log.unshift([now(),t]);
+  const scr=$('#scr2');
+  function render(){const top=scr.scrollTop,P=S.c.filter(c=>c.s==='p'),A=S.c.filter(c=>c.s==='a');let h='';
+    if(S.tab==='review'){h='<h4>Waiting for review</h4>'+(P.length?P.map((c,i)=>`<div class="pc"><div class="r"><span>${c.n}</span><span class="tg2">${c.v}</span></div><p>${c.m}</p><div class="pb"><button data-a="no" data-i="${S.c.indexOf(c)}">Send back</button><button class="pri" data-a="ok" data-i="${S.c.indexOf(c)}">Approve</button></div></div>`).join(''):'<p style="color:#46535F;font-size:14px;margin-bottom:14px">Nothing waiting. New versions land here.</p>')+(A.length?'<h4 style="margin-top:18px;font-size:18px">Approved</h4>'+A.map(c=>`<div class="ok2"><span>${c.n} <span class="tg2">${c.v}</span></span></div>`).join(''):'')}
+    if(S.tab==='grid'){h='<h4>This week</h4><div class="pg7"><span></span>'+'MTWTFSS'.split('').map(d=>`<span style="text-align:center">${d}</span>`).join('')+'</div>'+['Search','Social','Display'].map((n,r)=>`<div class="pg7"><span>${n}</span>${S.c.filter(c=>c.r===r&&c.s!=='n').map(c=>`<b class="${c.s==='a'?'a':'q'}" style="grid-column:${c.c+2}/span ${Math.min(c.l,7-c.c)}">${c.n.split(' ')[0]}</b>`).join('')}</div>`).join('')+'<p style="color:#46535F;font-size:13px;margin-top:12px">Solid blocks are approved. Dashed blocks are waiting for review.</p>'}
+    if(S.tab==='spend'){h=`<h4>Diwali Launch</h4><div style="font-size:13px;color:#46535F">Cost per acquisition</div><div class="big2">$${S.cpa.toFixed(2)}</div><div class="bar2"><i style="width:${Math.min(100,S.cpa/20*100)}%"></i><u></u></div><div class="mn" style="font-size:11px;color:#46535F">Ceiling $15.00</div>${S.pause?'<div class="alert">Delivery paused at the ceiling.</div>':''}<button class="sp2" data-a="spike">${S.pause?'Resume delivery':'Spike spend'}</button>`}
+    if(S.tab==='log'){h='<h4>Activity</h4><ul class="lg">'+S.log.map(l=>`<li><span>${l[0]}</span><span>${l[1]}</span></li>`).join('')+'</ul>'}
+    scr.innerHTML=h;scr.scrollTop=top;
+    $('#tb2').innerHTML=TB.map(([k,l])=>`<button data-t="${k}" aria-selected="${S.tab===k}"><svg viewBox="0 0 24 24">${IC[k]}</svg>${l}${k==='review'&&P.length?`<em>${P.length}</em>`:''}</button>`).join('')}
+  scr.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,c=S.c[+b.dataset.i];
+    if(a==='ok'){c.s='a';add(`You approved ${c.n} ${c.v}`)}
+    if(a==='no'){c.s='n';add(`You sent ${c.n} ${c.v} back`)}
+    if(a==='spike'){if(S.pause){S.pause=false;S.cpa=11.4;add('You resumed delivery')}else{S.cpa=15;S.pause=true;add('CPA reached $15.00. Delivery paused')}}
+    render()});
+  $('#tb2').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b){S.tab=b.dataset.t;render()}});
+  setInterval(()=>{if(S.pause)return;S.cpa=Math.max(10.5,Math.min(13,S.cpa+(Math.random()-.5)*.3));if(S.tab==='spend'&&!document.hidden)render()},1200);
+  render();
+})();
+
+/* ---------- footer sky ---------- */
+(function(){
+  const g=$('#stars'),S=[[170,70],[300,130],[420,60],[560,110],[700,52],[820,120],[900,70],[250,40],[640,150]];
+  g.innerHTML=S.map(([a,b])=>`<g><circle cx="${a}" cy="${b}" r="5" fill="#FFF1B8"/><circle class="tw" cx="${a}" cy="${b}" r="12" fill="none" stroke="#F0B323" stroke-width="1.5"/><circle class="tw" cx="${a}" cy="${b}" r="19" fill="none" stroke="#F0B323" stroke-width="1" stroke-dasharray="2 5"/></g>`).join('');
+  const st=swirl($('#ft'),{bg:'#0B1B2A',fade:'rgba(11,27,42,.07)',dens:1500,calm:true,cols:['#1F4663','#2B5C86','#3E7CB1','#7FA8C9','#F0B323','#E7D9A5'],e:.2,tick:s=>{s.e=Math.max(.2,s.e-.003)}});
+  $('.sky').addEventListener('pointermove',()=>{st.e=Math.min(.5,st.e+.02)});
+})();
+
+/* ---------- early access ---------- */
+$('#fm').onsubmit=e=>{e.preventDefault();$('#fok').textContent='Thank you. We’ll write to '+e.target.querySelector('input').value+'.';e.target.reset()};
+addEventListener('scroll',()=>{},{passive:true});
+</script>
+</body>
+</html>
