@@ -80,36 +80,36 @@ export default function OutboxMonitor({ currentUser, showToast }) {
           {/* Email Outage Simulation Toggle (T-12) */}
           <button
             onClick={handleToggleEmailFailure}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 active:opacity-90 disabled:opacity-50 ${
               isEmailFailing 
-                ? 'bg-red-500/20 text-red-300 border-red-500/40 animate-pulse' 
+                ? 'bg-red-500/20 text-red-300 border-red-500/40 motion-safe:animate-pulse' 
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700'
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>Simulate Email Outage: {isEmailFailing ? 'ACTIVE' : 'OFF'}</span>
+            <span>Simulate email outage: {isEmailFailing ? 'Active' : 'Off'}</span>
           </button>
 
           <button
             onClick={handleProcessNow}
             disabled={processing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-cyan-500/20"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:opacity-90 disabled:opacity-50 shadow-md shadow-cyan-500/20"
           >
             <RotateCcw className={`w-3.5 h-3.5 ${processing ? 'animate-spin' : ''}`} />
-            <span>Trigger Outbox Sweep</span>
+            <span>Trigger outbox sweep</span>
           </button>
         </div>
       </div>
 
       {/* Events Table */}
       <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-          Pending & Dispatched Outbox Messages ({events.length})
+        <h3 className="text-xs font-semibold text-slate-400">
+          Pending and dispatched outbox messages ({events.length})
         </h3>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-900/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-900/80 border-b border-slate-800 text-xs font-semibold text-slate-400">
               <tr>
                 <th className="p-3">Event ID</th>
                 <th className="p-3">Type</th>
@@ -129,14 +129,14 @@ export default function OutboxMonitor({ currentUser, showToast }) {
               ) : (
                 events.map(evt => (
                   <tr key={evt.event_id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-3 font-bold text-slate-300">
+                    <td className="p-3 font-mono font-bold text-slate-300">
                       {evt.event_id}
                     </td>
                     <td className="p-3 text-cyan-400">
                       {evt.event_type}
                     </td>
                     <td className="p-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                         evt.status === 'PROCESSED' ? 'bg-emerald-500/20 text-emerald-300' :
                         evt.status === 'FAILED' ? 'bg-red-500/20 text-red-300' : 'bg-amber-500/20 text-amber-300'
                       }`}>

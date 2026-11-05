@@ -43,9 +43,9 @@ export default function DiagnosticsView({ currentUser, showToast }) {
           <select
             value={eventTypeFilter}
             onChange={(e) => setEventTypeFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500 font-mono"
+            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500"
           >
-            <option value="">All Diagnostic Vocabulary</option>
+            <option value="">All diagnostic vocabulary</option>
             <option value="CAMPAIGN_SUBMITTED">CAMPAIGN_SUBMITTED</option>
             <option value="CAMPAIGN_APPROVED">CAMPAIGN_APPROVED</option>
             <option value="CHANGES_REQUESTED">CHANGES_REQUESTED</option>
@@ -62,7 +62,7 @@ export default function DiagnosticsView({ currentUser, showToast }) {
 
           <button
             onClick={fetchLogs}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -70,10 +70,10 @@ export default function DiagnosticsView({ currentUser, showToast }) {
       </div>
 
       {/* Logs Table */}
-      <div className="glass-panel p-5 rounded-2xl border border-slate-800 font-mono text-xs">
+      <div className="glass-panel p-5 rounded-2xl border border-slate-800 text-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-900/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400">
+            <thead className="bg-slate-900/80 border-b border-slate-800 text-xs font-semibold text-slate-400">
               <tr>
                 <th className="p-3">Time</th>
                 <th className="p-3">Outcome</th>
