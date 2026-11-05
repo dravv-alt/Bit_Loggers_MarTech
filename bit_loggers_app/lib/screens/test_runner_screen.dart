@@ -65,11 +65,14 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
     final allPassed = _report?['allPassed'] == true;
 
     return Scaffold(
+      backgroundColor: AppTheme.paper,
       appBar: AppBar(
         title: const Text('14/14 Architecture Tests (LLD Sec 14)'),
         actions: [
           IconButton(
-            icon: _running ? const CircularProgressIndicator() : const Icon(Icons.play_arrow, color: Color(0xFF10B981)),
+            icon: _running
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
+                : const Icon(Icons.play_arrow, color: AppTheme.forge),
             onPressed: _running ? null : _run,
           ),
         ],
@@ -79,16 +82,16 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
         children: [
           // Banner summary
           Card(
-            color: const Color(0xFF0C2A3D),
+            color: AppTheme.forge,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: Color(0xFF10B981), width: 1.5),
+              side: const BorderSide(color: AppTheme.verdictLime, width: 1.5),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const Icon(Icons.verified, color: Color(0xFF10B981), size: 32),
+                  const Icon(Icons.verified, color: AppTheme.verdictLime, size: 32),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -96,12 +99,12 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                       children: [
                         Text(
                           allPassed ? '100% ARCHITECTURE COMPLIANT' : 'EXECUTING TESTS...',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF10B981)),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.verdictLime),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'All 14 Acceptance Criteria verified across QA-01 Consistency, QA-02 Reliability, and QA-03 Security.',
-                          style: TextStyle(fontSize: 11, color: Colors.white70),
+                          style: TextStyle(fontSize: 11, color: AppTheme.leaf.withOpacity(0.85)),
                         ),
                       ],
                     ),
@@ -117,6 +120,11 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
             final passed = t['passed'] == true;
             return Card(
               margin: const EdgeInsets.only(bottom: 10),
+              color: AppTheme.leaf,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: const BorderSide(color: AppTheme.borderSage, width: 1),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
@@ -130,40 +138,41 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppTheme.surface,
+                                color: AppTheme.paper,
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppTheme.primary),
+                                border: Border.all(color: AppTheme.forge, width: 0.5),
                               ),
-                              child: Text(t['id'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                              child: Text(t['id'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge)),
                             ),
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppTheme.surface,
+                                color: AppTheme.paper,
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(t['qa'], style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                              child: Text(t['qa'], style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
                             ),
                           ],
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: passed ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                            color: passed ? AppTheme.verdictLime.withOpacity(0.25) : AppTheme.statusRejected.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: passed ? AppTheme.verdictLimeDark : AppTheme.statusRejected, width: 0.8),
                           ),
                           child: Text(
                             passed ? 'PASS' : 'FAIL',
-                            style: TextStyle(color: passed ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 11),
+                            style: TextStyle(color: passed ? AppTheme.verdictLimeDark : AppTheme.statusRejected, fontWeight: FontWeight.bold, fontSize: 10),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(t['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text(t['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary)),
                     const SizedBox(height: 4),
-                    Text(t['details'], style: const TextStyle(fontSize: 11, color: Colors.grey, fontFamily: 'monospace')),
+                    Text(t['details'], style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontFamily: 'monospace')),
                   ],
                 ),
               ),
