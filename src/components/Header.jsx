@@ -10,7 +10,8 @@ import {
   ShieldCheck, 
   RefreshCw,
   Mail,
-  Cpu
+  Cpu,
+  Zap
 } from 'lucide-react';
 
 export default function Header({ 
@@ -36,20 +37,20 @@ export default function Header({
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         {/* Logo and Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-xl tracking-tighter">
-            ⚡
+          <div className="w-9 h-9 rounded-xl bg-cyan-500 flex items-center justify-center text-slate-950 font-black">
+            <Zap className="w-5 h-5 fill-current" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              <span className="font-extrabold text-base sm:text-lg text-white">
                 Bit Loggers
               </span>
-              <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full uppercase tracking-wider">
-                MarTech Platform
+              <span className="hidden sm:inline-block px-2 py-0.5 text-[11px] font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-md">
+                MarTech platform
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
-              Intelligent, Auditable & Version-Aware Campaign Platform
+              Intelligent, auditable and version-aware campaign platform
             </p>
           </div>
         </div>
@@ -60,33 +61,33 @@ export default function Header({
           <button
             onClick={() => setIsMobileView(!isMobileView)}
             title={isMobileView ? "Switch to Desktop Responsive View" : "Simulate Mobile Device View"}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50 ${
               isMobileView 
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/20' 
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' 
                 : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 border border-slate-700'
             }`}
           >
             {isMobileView ? <Smartphone className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
-            <span className="hidden md:inline">{isMobileView ? 'Mobile Frame' : 'Desktop View'}</span>
+            <span className="hidden md:inline">{isMobileView ? 'Mobile frame' : 'Desktop view'}</span>
           </button>
 
           {/* Architecture QA Tests Button */}
           <button
             onClick={onOpenTests}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 active:opacity-90 disabled:opacity-50"
             title="View & Run All 14 LLD Automated Architecture Tests (T-01 to T-14)"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden md:inline">14/14 Tests</span>
+            <span className="hidden md:inline">14/14 tests</span>
           </button>
 
           {/* Fault Simulation Menu Toggle */}
           <div className="relative">
             <button
               onClick={() => setShowSimMenu(!showSimMenu)}
-              className={`p-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1 ${
+              className={`p-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50 ${
                 isEmailFailing || isGeminiFailing 
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse' 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 motion-safe:animate-pulse' 
                   : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 border-slate-700'
               }`}
               title="Resilience & Fault Injections (T-12, T-13)"
@@ -96,9 +97,9 @@ export default function Header({
             </button>
 
             {showSimMenu && (
-              <div className="absolute right-0 mt-2 w-64 glass-panel rounded-xl shadow-2xl p-3 border border-slate-700/80 z-50 animate-in fade-in zoom-in-95">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Fault Injection & Recovery
+              <div className="absolute right-0 mt-2 w-64 glass-panel rounded-xl p-3 border border-slate-700/80 z-50">
+                <div className="text-[11px] font-semibold text-slate-400 mb-2">
+                  Fault injection and recovery
                 </div>
                 
                 {/* Email Service Failure Toggle (T-12) */}
@@ -110,10 +111,10 @@ export default function Header({
                 >
                   <span className="flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5" />
-                    Simulate Email Outage
+                    Simulate email outage
                   </span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${isEmailFailing ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
-                    {isEmailFailing ? 'FAILING' : 'HEALTHY'}
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${isEmailFailing ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
+                    {isEmailFailing ? 'Failing' : 'Healthy'}
                   </span>
                 </button>
 
@@ -126,10 +127,10 @@ export default function Header({
                 >
                   <span className="flex items-center gap-2">
                     <Cpu className="w-3.5 h-3.5" />
-                    Simulate Gemini Outage
+                    Simulate Gemini outage
                   </span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${isGeminiFailing ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
-                    {isGeminiFailing ? 'FAILING' : 'HEALTHY'}
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${isGeminiFailing ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
+                    {isGeminiFailing ? 'Failing' : 'Healthy'}
                   </span>
                 </button>
               </div>
@@ -139,12 +140,12 @@ export default function Header({
           {/* Notifications Bell */}
           <button
             onClick={onOpenNotifications}
-            className="relative p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+            className="relative p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 active:opacity-90 disabled:opacity-50"
             title="Notifications & Outbox Alerts"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-cyan-500 text-slate-900 font-extrabold text-[10px] rounded-full flex items-center justify-center px-1 shadow-md shadow-cyan-500/50 animate-bounce">
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-cyan-500 text-slate-900 font-bold text-[10px] rounded-full flex items-center justify-center px-1">
                 {unreadCount}
               </span>
             )}
@@ -154,10 +155,12 @@ export default function Header({
           {currentUser?.role === 'marketer' && (
             <button
               onClick={onNewCampaign}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/25 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:opacity-90 disabled:opacity-50"
             >
               <PlusCircle className="w-3.5 h-3.5" />
-              <span>Create Proposal</span>
+              <span>Create proposal</span>
+            </button>
+          )}
             </button>
           )}
 

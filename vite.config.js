@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -8,6 +9,14 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:3000',
       '/campaigns': 'http://localhost:3000'
+    }
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        editorial: resolve(__dirname, 'editorial.html')
+      }
     }
   }
 });
