@@ -58,13 +58,13 @@ export class OutboxService {
         ? `
           SELECT * FROM outbox_events
           WHERE status IN ('PENDING', 'FAILED')
-          ORDER BY created_at ASC
+          ORDER BY created_at DESC
           LIMIT 20
         `
         : `
           SELECT * FROM outbox_events
           WHERE status IN ('PENDING', 'FAILED') AND next_retry_at <= NOW()
-          ORDER BY created_at ASC
+          ORDER BY created_at DESC
           LIMIT 20
         `;
       const res = await this.db.query(dueQuery);
@@ -150,7 +150,7 @@ export class OutboxService {
           });
 
           // If email outage is injected or max attempts reached, transition to FAILED for immediate operator visibility
-          const newStatus = (this.emailService.failing || nextAttempts >= this.maxAttempts) ? 'FAILED' : 'PENDING';
+          const newStatus = (this.isEmailServiceFailing || nextAttempts >= this.maxAttempts) ? 'FAILED' : 'PENDING';
           await this.db.query(
             `UPDATE outbox_events
              SET status = $1, attempts = $2, error_log = $3, next_retry_at = NOW() + ($4 || ' seconds')::INTERVAL

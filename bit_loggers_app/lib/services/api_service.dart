@@ -734,6 +734,60 @@ class ApiService {
     return true;
   }
 
+  Future<bool> resetOutbox() async {
+    try {
+      final res = await http.post(Uri.parse('$baseUrl/api/outbox/reset'), headers: _headers());
+      if (res.statusCode == 200) return true;
+    } catch (_) {}
+
+    _mockEmailFailing = false;
+    _mockOutboxEvents.clear();
+    _mockOutboxEvents.addAll([
+      OutboxEventItem(
+        eventId: 'outbox-clean-01',
+        eventType: 'CAMPAIGN_APPROVED',
+        payload: {
+          'recipients': ['marcus.reviewer@bitloggers.com'],
+          'title': 'Campaign "Nordic Summer Flash" Approved',
+          'message': 'Campaign proposal has been approved and moved to ready state.',
+        },
+        status: 'PROCESSED',
+        attempts: 1,
+        maxAttempts: 3,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 15)).toIso8601String(),
+        processedAt: DateTime.now().subtract(const Duration(minutes: 15)).toIso8601String(),
+      ),
+      OutboxEventItem(
+        eventId: 'outbox-clean-02',
+        eventType: 'FLIGHT_SCHEDULED',
+        payload: {
+          'recipients': ['alice.cooper@bitloggers.com'],
+          'title': 'Flight Scheduled: Social & Display',
+          'message': 'Campaign flight scheduled for Nov 10 - Nov 18 across omnichannel lanes.',
+        },
+        status: 'PROCESSED',
+        attempts: 1,
+        maxAttempts: 3,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 8)).toIso8601String(),
+        processedAt: DateTime.now().subtract(const Duration(minutes: 8)).toIso8601String(),
+      ),
+      OutboxEventItem(
+        eventId: 'outbox-clean-03',
+        eventType: 'BUDGET_REALLOCATION_ALERT',
+        payload: {
+          'recipients': ['finance-lead@bitloggers.com'],
+          'title': 'Budget Cap Reallocation Alert',
+          'message': 'Notice: Budget cap update pending dispatch confirmation.',
+        },
+        status: 'PENDING',
+        attempts: 0,
+        maxAttempts: 3,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 2)).toIso8601String(),
+      ),
+    ]);
+    return true;
+  }
+
   // Fallback initial demo campaigns
   List<Campaign> _fallbackCampaigns() {
     return [

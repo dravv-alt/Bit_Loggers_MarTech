@@ -328,6 +328,37 @@ export async function createApp() {
     res.json({ success: true, event_id: eventId });
   });
 
+  app.post('/api/outbox/reset', async (req, res) => {
+    await db.query('DELETE FROM outbox_events');
+    await db.query('DELETE FROM notifications');
+    outbox.setEmailFailing(false);
+
+    const now = new Date();
+    const m1 = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
+    const m2 = new Date(now.getTime() - 8 * 60 * 1000).toISOString();
+    const m3 = new Date(now.getTime() - 2 * 60 * 1000).toISOString();
+
+    await db.query(`
+      INSERT INTO outbox_events (event_id, event_type, payload, status, attempts, max_attempts, created_at, processed_at)
+      VALUES 
+      ($1, 'CAMPAIGN_APPROVED', $2, 'PROCESSED', 1, 3, $3, $3),
+      ($4, 'FLIGHT_SCHEDULED', $5, 'PROCESSED', 1, 3, $6, $6),
+      ($7, 'BUDGET_REALLOCATION_ALERT', $8, 'PENDING', 0, 3, $9, NULL)
+    `, [
+      'outbox-clean-01',
+      JSON.stringify({ recipients: ['marcus.reviewer@bitloggers.com'], title: 'Campaign "Nordic Summer Flash" Approved', message: 'Campaign proposal has been approved and moved to ready state.' }),
+      m1,
+      'outbox-clean-02',
+      JSON.stringify({ recipients: ['alice.cooper@bitloggers.com'], title: 'Flight Scheduled: Social & Display', message: 'Campaign flight scheduled for Nov 10 - Nov 18 across omnichannel lanes.' }),
+      m2,
+      'outbox-clean-03',
+      JSON.stringify({ recipients: ['finance-lead@bitloggers.com'], title: 'Budget Cap Reallocation Alert', message: 'Notice: Budget cap update pending dispatch confirmation.' }),
+      m3,
+    ]);
+
+    res.json({ success: true, message: 'Outbox reset to clean slate (3 events)' });
+  });
+
   // --- Offline Mobile Sync Queue Endpoint (FR-13, FR-14, ADR-005) ---
   app.post('/api/sync/queue', async (req, res) => {
     const { actions = [] } = req.body;

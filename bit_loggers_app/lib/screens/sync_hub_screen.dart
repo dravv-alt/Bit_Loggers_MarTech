@@ -190,6 +190,35 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     }
   }
 
+  Future<void> _resetOutboxToCleanSlate() async {
+    setState(() => _loadingOutbox = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      await widget.api.resetOutbox();
+      await _fetchOutbox();
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Outbox ledger reset to clean slate (3 curated enterprise events).'),
+          backgroundColor: AppTheme.forge,
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Failed to reset outbox: $e'),
+            backgroundColor: AppTheme.statusRejected,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loadingOutbox = false);
+    }
+  }
+
   void _simulateOfflineWrite() {
     final now = DateTime.now();
     final sampleTitle = 'Festive Flash Deal #${now.second}';
@@ -1167,23 +1196,48 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           ),
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: _queueTestOutboxEvent,
-            style: OutlinedButton.styleFrom(
-              backgroundColor: AppTheme.leaf,
-              foregroundColor: AppTheme.forge,
-              side: const BorderSide(color: AppTheme.borderSage),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: OutlinedButton.icon(
+                onPressed: _queueTestOutboxEvent,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppTheme.leaf,
+                  foregroundColor: AppTheme.forge,
+                  side: const BorderSide(color: AppTheme.borderSage),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.mark_email_unread_outlined, size: 16, color: AppTheme.forge),
+                label: const Text(
+                  'Queue Test Notification Event',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
-            icon: const Icon(Icons.mark_email_unread_outlined, size: 16, color: AppTheme.forge),
-            label: const Text(
-              'Queue Test Notification Event',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.forge),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: OutlinedButton.icon(
+                onPressed: _resetOutboxToCleanSlate,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppTheme.leaf,
+                  foregroundColor: AppTheme.textSecondary,
+                  side: const BorderSide(color: AppTheme.borderSage),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.restart_alt, size: 15, color: AppTheme.textSecondary),
+                label: const Text(
+                  'Clean Slate',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );

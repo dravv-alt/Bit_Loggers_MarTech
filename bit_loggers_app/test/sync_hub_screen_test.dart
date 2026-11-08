@@ -74,6 +74,33 @@ class MockSyncHubApiService extends ApiService {
   }
 
   @override
+  Future<bool> resetOutbox() async {
+    emailFailing = false;
+    outboxList = [
+      OutboxEventItem(
+        eventId: 'evt-test-outbox-001',
+        eventType: 'CAMPAIGN_SUBMITTED_EMAIL',
+        payload: {'recipient': 'marcus.reviewer@bitloggers.com', 'subject': 'Campaign V1 Ready For Review'},
+        status: 'PROCESSED',
+        attempts: 1,
+        maxAttempts: 5,
+        createdAt: '2026-11-03T10:00:00Z',
+        processedAt: '2026-11-03T10:00:04Z',
+      ),
+      OutboxEventItem(
+        eventId: 'evt-test-outbox-002',
+        eventType: 'CAMPAIGN_DECISION_EMAIL',
+        payload: {'recipient': 'alice.marketer@bitloggers.com', 'subject': 'Decision: APPROVED'},
+        status: 'PENDING',
+        attempts: 0,
+        maxAttempts: 5,
+        createdAt: '2026-11-03T10:05:00Z',
+      ),
+    ];
+    return true;
+  }
+
+  @override
   Future<Map<String, dynamic>> syncBatch(List<OfflineSyncAction> actions) async {
     return {
       'processed': actions.length,
