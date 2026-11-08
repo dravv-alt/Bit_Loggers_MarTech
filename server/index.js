@@ -593,7 +593,7 @@ export async function seedCalendarFlights(workflow, db, { force = false } = {}) 
   try {
     const countRes = await db.query('SELECT COUNT(*) as count FROM schedules');
     const existingCount = parseInt(countRes.rows[0].count, 10);
-    if (!force && existingCount >= 4) {
+    if (!force && existingCount >= 3) {
       console.log(`[CALENDAR] Found ${existingCount} existing scheduled flights in PostgreSQL.`);
       return;
     }
@@ -604,6 +604,64 @@ export async function seedCalendarFlights(workflow, db, { force = false } = {}) 
 
     const now = Date.now();
     const dayMs = 86400000;
+
+    // Check if we already have approved or enterprise campaigns in the database
+    const existingCamps = await db.query(
+      `SELECT c.campaign_id, c.title, c.status, c.current_version_id, v.channel, v.budget
+       FROM campaigns c
+       JOIN campaign_versions v ON c.current_version_id = v.version_id
+       ORDER BY c.created_at ASC`
+    );
+
+    if (existingCamps.rows.length >= 3) {
+      // Clear out old schedules if forcing
+      if (force) {
+        await db.query('DELETE FROM schedules');
+      }
+
+      // Schedule real existing campaigns across the current calendar timeframe (including today)
+      const flightPlans = [
+        { titleMatch: 'Cyber Week', channel: 'Social', startOffset: -2, endOffset: 12 },
+        { titleMatch: 'VIP Loyalty', channel: 'Email', startOffset: -1, endOffset: 3 },
+        { titleMatch: 'Summer Solar', channel: 'Search', startOffset: 4, endOffset: 11 },
+        { titleMatch: 'Weekend Flash', channel: 'Display', startOffset: 1, endOffset: 5 }
+      ];
+
+      for (const fp of flightPlans) {
+        const found = existingCamps.rows.find(c => c.title.toLowerCase().includes(fp.titleMatch.toLowerCase()));
+        if (found) {
+          const startsAt = new Date(now + fp.startOffset * dayMs);
+          const endsAt = new Date(now + fp.endOffset * dayMs);
+
+          // Ensure campaign has an approved decision before scheduling
+          const decCheck = await db.query(
+            "SELECT * FROM approval_decisions WHERE version_id = $1 AND decision_type = 'APPROVED'",
+            [found.current_version_id]
+          );
+          if (decCheck.rows.length === 0) {
+            await workflow.makeDecision(found.campaign_id, reviewer, {
+              versionId: found.current_version_id,
+              decision: 'APPROVED',
+              reason: 'Pre-flight executive calendar approval.'
+            });
+          }
+
+          // Check if schedule already exists for this campaign
+          const schedCheck = await db.query('SELECT * FROM schedules WHERE campaign_id = $1', [found.campaign_id]);
+          if (schedCheck.rows.length === 0) {
+            await workflow.scheduleCampaign(found.campaign_id, marketer, {
+              versionId: found.current_version_id,
+              channel: fp.channel,
+              startsAt: startsAt.toISOString(),
+              endsAt: endsAt.toISOString()
+            });
+          }
+        }
+      }
+
+      console.log(`✅ [CALENDAR] Aligned calendar schedules with existing home page enterprise campaigns.`);
+      return;
+    }
 
     const sampleFlights = [
       {

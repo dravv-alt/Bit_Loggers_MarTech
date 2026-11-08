@@ -58,7 +58,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     setState(() => _loading = true);
     try {
       var events = await widget.api.getCalendar();
-      final allCampaigns = await widget.api.getCampaigns(status: 'Approved');
+      final allCampaigns = await widget.api.getCampaigns();
 
       // If server calendar is empty, auto-seed sample flights
       if (events.isEmpty) {
@@ -1106,164 +1106,194 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final end = _parseDate(event.endsAt);
     final dateFormat = DateFormat('d MMM yyyy');
 
+    final matchedCampaign = _approvedCampaigns
+        .cast<Campaign?>()
+        .firstWhere((c) => c?.campaignId == event.campaignId, orElse: () => null);
+    final kpi = matchedCampaign?.currentVersion?.kpiProjected;
+    final burnRatePct = (matchedCampaign?.currentVersion?.financials?['burn_rate_pct'] as num?)?.toDouble() ?? 65.0;
+    final burnRatio = (burnRatePct / 100.0).clamp(0.0, 1.0);
+
+    final roiStr = kpi != null ? 'ROI ${kpi.roi.toStringAsFixed(1)}x' : 'ROI 4.2x';
+    final cpaStr = kpi != null ? 'CPA \$${kpi.cpa.toStringAsFixed(0)}' : 'CPA \$22';
+    final ctrStr = kpi != null ? 'CTR ${kpi.ctr.toStringAsFixed(1)}%' : 'CTR 4.8%';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.leaf,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppTheme.borderSage, width: 1),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              // Channel Tag + Version Tag
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppTheme.getChannelColor(event.channel).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      event.channel,
-                      style: TextStyle(
-                        color: AppTheme.getChannelColor(event.channel),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppTheme.forge.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Version v${event.versionNo}',
-                      style: const TextStyle(color: AppTheme.forge, fontWeight: FontWeight.bold, fontSize: 11),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Scheduled Status Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppTheme.verdictLime.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CampaignDetailScreen(
+                  campaignId: event.campaignId,
+                  api: widget.api,
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
+              ),
+            ).then((_) => _fetch());
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
-                    Icon(Icons.check_circle, size: 12, color: AppTheme.forge),
-                    SizedBox(width: 4),
-                    Text(
-                      'Scheduled',
-                      style: TextStyle(color: AppTheme.forge, fontWeight: FontWeight.bold, fontSize: 10),
+                    // Channel Tag + Version Tag
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getChannelColor(event.channel).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            event.channel,
+                            style: TextStyle(
+                              color: AppTheme.getChannelColor(event.channel),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppTheme.forge.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Version v${event.versionNo}',
+                            style: const TextStyle(color: AppTheme.forge, fontWeight: FontWeight.bold, fontSize: 11),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Scheduled Status Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.verdictLime.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle, size: 12, color: AppTheme.forge),
+                          SizedBox(width: 4),
+                          Text(
+                            'Scheduled',
+                            style: TextStyle(color: AppTheme.forge, fontWeight: FontWeight.bold, fontSize: 10),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-          // Campaign Title
-          Text(
-            event.title,
-            style: const TextStyle(
-              fontFamily: 'serif',
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Flight Span & Budget
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  '${dateFormat.format(start)} → ${dateFormat.format(end)}',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                // Campaign Title
+                Text(
+                  event.title,
+                  style: const TextStyle(
+                    fontFamily: 'serif',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '\$${event.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                style: const TextStyle(
-                  fontFamily: 'serif',
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.forge,
+                const SizedBox(height: 6),
+
+                // Flight Span & Budget
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${dateFormat.format(start)} → ${dateFormat.format(end)}',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '\$${event.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                      style: const TextStyle(
+                        fontFamily: 'serif',
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.forge,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-          // Spend Wave Burn Bar
-          _buildMiniSpendBar(event.budget, 0.65),
-          const SizedBox(height: 8),
+                // Spend Wave Burn Bar
+                _buildMiniSpendBar(event.budget, burnRatio),
+                const SizedBox(height: 8),
 
-          // Micro-KPI Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildMiniKpiTag('ROI 4.2x', isPrimary: true),
-                const SizedBox(width: 6),
-                _buildMiniKpiTag('CPA \$21.50'),
-                const SizedBox(width: 6),
-                _buildMiniKpiTag('CTR 4.8%'),
+                // Micro-KPI Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildMiniKpiTag(roiStr, isPrimary: true),
+                      const SizedBox(width: 6),
+                      _buildMiniKpiTag(cpaStr),
+                      const SizedBox(width: 6),
+                      _buildMiniKpiTag(ctrStr),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // View Full Dossier CTA
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CampaignDetailScreen(
+                            campaignId: event.campaignId,
+                            api: widget.api,
+                          ),
+                        ),
+                      ).then((_) => _fetch());
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppTheme.borderSage),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.north_east, size: 13, color: AppTheme.forge),
+                    label: const Text(
+                      'Inspect proposal dossier',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: AppTheme.forge, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-
-          // View Full Dossier CTA
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CampaignDetailScreen(
-                      campaignId: event.campaignId,
-                      api: widget.api,
-                    ),
-                  ),
-                ).then((_) => _fetch());
-              },
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppTheme.borderSage),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.north_east, size: 13, color: AppTheme.forge),
-              label: const Text(
-                'Inspect proposal dossier',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: AppTheme.forge, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
