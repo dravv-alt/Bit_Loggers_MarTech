@@ -112,29 +112,34 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       backgroundColor: AppTheme.paper,
       appBar: AppBar(
-        backgroundColor: AppTheme.paper,
+        backgroundColor: AppTheme.leaf,
         elevation: 0,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(color: AppTheme.borderSage, height: 1),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'campaigngrid',
               style: TextStyle(
-                fontFamily: 'serif',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary.withOpacity(0.9),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
                 letterSpacing: -0.3,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
             Text(
               formattedDate,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 color: AppTheme.textSecondary,
                 fontWeight: FontWeight.normal,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -350,49 +355,49 @@ class _MainShellState extends State<MainShell> {
         ],
       ),
       body: currentScreen,
-      // Floating Bottom Navigation in Dark Forge (#1B3029) matching the reference image!
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 12, top: 4),
-          child: Container(
-            height: 58,
-            decoration: BoxDecoration(
-              color: AppTheme.forge,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.forge.withOpacity(0.2),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+      // Modern Wireframe Bottom Navigation Bar (White surface, 1px top border, vertical icon+label)
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppTheme.leaf,
+          border: Border(top: BorderSide(color: AppTheme.borderSage, width: 1)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 52,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem(
-                  index: 0,
-                  label: 'Home',
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home,
+                Expanded(
+                  child: _buildNavItem(
+                    index: 0,
+                    label: 'Home',
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home,
+                  ),
                 ),
-                _buildNavItem(
-                  index: 1,
-                  label: isReviewer ? 'Review Queue' : 'Campaigns',
-                  icon: isReviewer ? Icons.fact_check_outlined : Icons.view_kanban_outlined,
-                  activeIcon: isReviewer ? Icons.fact_check : Icons.view_kanban,
+                Expanded(
+                  child: _buildNavItem(
+                    index: 1,
+                    label: isReviewer ? 'Review' : 'Campaigns',
+                    icon: isReviewer ? Icons.fact_check_outlined : Icons.view_kanban_outlined,
+                    activeIcon: isReviewer ? Icons.fact_check : Icons.view_kanban,
+                  ),
                 ),
-                _buildNavItem(
-                  index: 2,
-                  label: 'Calendar',
-                  icon: Icons.calendar_today_outlined,
-                  activeIcon: Icons.calendar_today,
+                Expanded(
+                  child: _buildNavItem(
+                    index: 2,
+                    label: 'Calendar',
+                    icon: Icons.calendar_today_outlined,
+                    activeIcon: Icons.calendar_today,
+                  ),
                 ),
-                _buildNavItem(
-                  index: 3,
-                  label: 'Insights',
-                  icon: Icons.insights_outlined,
-                  activeIcon: Icons.insights,
+                Expanded(
+                  child: _buildNavItem(
+                    index: 3,
+                    label: 'Insights',
+                    icon: Icons.insights_outlined,
+                    activeIcon: Icons.insights,
+                  ),
                 ),
               ],
             ),
@@ -411,33 +416,28 @@ class _MainShellState extends State<MainShell> {
     final active = _currentIndex == index;
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),
-      borderRadius: BorderRadius.circular(20),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: active ? AppTheme.leaf.withOpacity(0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               active ? activeIcon : icon,
-              size: 18,
-              color: active ? AppTheme.verdictLime : AppTheme.leaf.withOpacity(0.6),
+              size: 20,
+              color: active ? AppTheme.forge : AppTheme.textSecondary,
             ),
-            if (active) ...[
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.leaf,
-                ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                color: active ? AppTheme.forge : AppTheme.textSecondary,
               ),
-            ],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
