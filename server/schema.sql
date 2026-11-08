@@ -47,6 +47,13 @@ CREATE TABLE IF NOT EXISTS campaign_versions (
   kpi_projected JSONB NOT NULL,
   kpi_actual JSONB,
   ai_summary TEXT,
+  creatives JSONB DEFAULT '[]'::jsonb,
+  targeting JSONB DEFAULT '{}'::jsonb,
+  financials JSONB DEFAULT '{}'::jsonb,
+  compliance JSONB DEFAULT '{}'::jsonb,
+  ad_network JSONB DEFAULT '{}'::jsonb,
+  flight_phases JSONB DEFAULT '[]'::jsonb,
+  tracking JSONB DEFAULT '{}'::jsonb,
   created_by VARCHAR(64) NOT NULL REFERENCES users(user_id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT uq_campaign_version_no UNIQUE (campaign_id, version_no)
@@ -256,6 +263,11 @@ CREATE TABLE IF NOT EXISTS kpi_metric_snapshots (
   cpa NUMERIC(10, 2) NOT NULL,
   aov NUMERIC(10, 2) NOT NULL,
   is_actual BOOLEAN NOT NULL DEFAULT FALSE,
+  impressions INT DEFAULT 0,
+  clicks INT DEFAULT 0,
+  spend NUMERIC(12, 2) DEFAULT 0,
+  conversions INT DEFAULT 0,
+  revenue NUMERIC(12, 2) DEFAULT 0,
   PRIMARY KEY (snapshot_id, recorded_at)
 );
 

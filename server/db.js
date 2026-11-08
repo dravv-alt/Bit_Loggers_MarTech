@@ -70,7 +70,7 @@ export async function initDatabase(maxRetries = 6, retryDelay = 2500) {
       const sql = fs.readFileSync(schemaPath, 'utf8');
       await client.query(sql);
 
-      // Safe migration for FR-12 discussion enhancements
+      // Safe migration for FR-12 discussion enhancements and enriched enterprise data
       await client.query(`
         ALTER TABLE discussions ADD COLUMN IF NOT EXISTS parent_message_id VARCHAR(64) REFERENCES discussions(message_id) ON DELETE CASCADE;
         ALTER TABLE discussions ADD COLUMN IF NOT EXISTS version_id VARCHAR(64) REFERENCES campaign_versions(version_id) ON DELETE SET NULL;
@@ -80,6 +80,22 @@ export async function initDatabase(maxRetries = 6, retryDelay = 2500) {
         CREATE INDEX IF NOT EXISTS idx_discussions_campaign_id ON discussions(campaign_id);
         CREATE INDEX IF NOT EXISTS idx_discussions_parent_id ON discussions(parent_message_id);
         CREATE INDEX IF NOT EXISTS idx_discussions_version_id ON discussions(version_id);
+
+        -- Enriched Real-World Marketing Dimensions
+        ALTER TABLE campaign_versions ADD COLUMN IF NOT EXISTS creatives JSONB DEFAULT '[]'::jsonb;
+        ALTER TABLE campaign_versions ADD COLUMN IF NOT EXISTS targeting JSONB DEFAULT '{}'::jsonb;
+        ALTER TABLE campaign_versions ADD COLUMN IF NOT EXISTS financials JSONB DEFAULT '{}'::jsonb;
+        ALTER TABLE campaign_versions ADD COLUMN IF NOT EXISTS compliance JSONB DEFAULT '{}'::jsonb;
+        ALTER TABLE campaign_versions ADD COLUMN IF NOT EXISTS ad_network JSONB DEFAULT '{}'::jsonb;
+        ALTER TABLE campaign_versions ADD COLUMN IF NOT EXISTS flight_phases JSONB DEFAULT '[]'::jsonb;
+        ALTER TABLE campaign_versions ADD COLUMN IF NOT EXISTS tracking JSONB DEFAULT '{}'::jsonb;
+
+        -- Enriched Raw Volume Telemetry & Funnel Steps
+        ALTER TABLE kpi_metric_snapshots ADD COLUMN IF NOT EXISTS impressions INT DEFAULT 0;
+        ALTER TABLE kpi_metric_snapshots ADD COLUMN IF NOT EXISTS clicks INT DEFAULT 0;
+        ALTER TABLE kpi_metric_snapshots ADD COLUMN IF NOT EXISTS spend NUMERIC(12, 2) DEFAULT 0;
+        ALTER TABLE kpi_metric_snapshots ADD COLUMN IF NOT EXISTS conversions INT DEFAULT 0;
+        ALTER TABLE kpi_metric_snapshots ADD COLUMN IF NOT EXISTS revenue NUMERIC(12, 2) DEFAULT 0;
       `);
     }
 
