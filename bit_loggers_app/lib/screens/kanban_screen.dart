@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'campaign_detail_screen.dart';
 import 'campaign_wizard_screen.dart';
+import 'notifications_screen.dart';
 
 class KanbanScreen extends StatefulWidget {
   final ApiService api;
@@ -69,6 +71,34 @@ class _KanbanScreenState extends State<KanbanScreen> {
     }).toList();
   }
 
+  String _formatRelativeTime(String isoString) {
+    try {
+      final dt = DateTime.parse(isoString);
+      final diff = DateTime.now().difference(dt);
+      if (diff.inMinutes < 60) {
+        return '${diff.inMinutes.clamp(1, 59)}m ago';
+      } else if (diff.inHours < 24) {
+        return '${diff.inHours}h ago';
+      } else if (diff.inDays == 1) {
+        return 'Yesterday';
+      } else {
+        return DateFormat('d MMM').format(dt);
+      }
+    } catch (_) {
+      return 'Recently';
+    }
+  }
+
+  String _getInitials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+    }
+    return 'CG';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.isOverviewHub) {
@@ -77,15 +107,31 @@ class _KanbanScreenState extends State<KanbanScreen> {
     return _buildCampaignQueue();
   }
 
-  // SCREEN 02: Marketer Home Dashboard matching the reference image!
+  // ==========================================
+  // SCREEN 1: OVERVIEW / WORKSPACE HOME
+  // (Framer Wireframe: Overview Screen)
+  // ==========================================
   Widget _buildOverviewHub() {
-    final isMarketer = widget.api.currentUser.role == 'marketer';
-    final primaryCamp = _campaigns.isNotEmpty ? _campaigns.first : null;
-    final primaryVer = primaryCamp?.currentVersion;
-    final budgetFormatted = (primaryVer?.budget ?? 45000).toInt().toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
+    final userName = widget.api.currentUser.name.isNotEmpty
+        ? widget.api.currentUser.name.split(' ').first
+        : 'Maya';
+    final dateStr = DateFormat('EEEE, d MMMM').format(DateTime.now());
+
+    int awaitingCount = 0;
+    int dueTodayCount = 0;
+    int changesCount = 0;
+
+    for (final c in _campaigns) {
+      if (c.status == 'Submitted' || c.status == 'InReview') awaitingCount++;
+      if (c.status == 'ChangesRequested') changesCount++;
+      if (c.status == 'Scheduled') dueTodayCount++;
+    }
+    if (dueTodayCount == 0 && awaitingCount > 0) dueTodayCount = 1;
+
+    final attentionList = _campaigns.where((c) =>
+        c.status == 'Submitted' || c.status == 'InReview' || c.status == 'ChangesRequested'
+    ).toList();
+    final displayAttention = attentionList.isNotEmpty ? attentionList : _campaigns.take(3).toList();
 
     return Scaffold(
       backgroundColor: AppTheme.paper,
@@ -93,444 +139,551 @@ class _KanbanScreenState extends State<KanbanScreen> {
         onRefresh: _fetch,
         color: AppTheme.forge,
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           children: [
-            // Headline in high-contrast Editorial Serif
-            const Text(
-              'Make room\nfor reach.',
-              style: TextStyle(
-                fontFamily: 'serif',
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-                height: 1.15,
-                letterSpacing: -0.6,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // PRIMARY FORGE CARD (#1B3029 deep forest green surface)
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                color: AppTheme.forge,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppTheme.borderSage.withOpacity(0.25), width: 1),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Wireframe Brand Header
+            Row(
+              children: [
+                AppTheme.buildBrandMonogram(size: 24),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Flexible(
-                        child: Text(
-                          'Allocated budget',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: AppTheme.textInverseMuted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      const Text(
+                        'Campaign Grid',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppTheme.leaf.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Version v${primaryVer?.versionNo ?? 3}',
-                          style: const TextStyle(
-                            color: AppTheme.leaf,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      Text(
+                        'GROWTH WORKSPACE',
+                        style: AppTheme.wireframeEyebrow(fontSize: 8),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_none, size: 20, color: AppTheme.textPrimary),
+                  tooltip: 'Notifications',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => NotificationsScreen(api: widget.api)),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
 
-                  // Large Balance in Tabular Figures
-                  Text(
-                    '\$$budgetFormatted.00',
-                    style: const TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
+            // Greeting & Workspace Overview
+            Text(
+              'Good morning, $userName',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '$dateStr · Workspace overview',
+              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 20),
+
+            // BENTO GRID: WORKLOAD & VELOCITY
+            Text(
+              'REVIEW WORKLOAD',
+              style: AppTheme.wireframeEyebrow(),
+            ),
+            const SizedBox(height: 8),
+
+            // Bento Grid: Hero Tile (Left) + 2 Stacked Tiles (Right)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Hero Bento Tile (Awaiting Review & Quick Jump)
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    height: 148,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
                       color: AppTheme.leaf,
-                      letterSpacing: -0.5,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppTheme.borderSage, width: 1),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Action Row: Submit V3 (Lime) + Lock status + Revise
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      // Verdict Lime Action Button (consequential)
-                      InkWell(
-                        onTap: () async {
-                          if (primaryCamp != null) {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CampaignDetailScreen(
-                                  campaignId: primaryCamp.campaignId,
-                                  api: widget.api,
-                                ),
-                              ),
-                            );
-                            _fetch();
-                            widget.onRefresh();
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                          decoration: BoxDecoration(
-                            color: AppTheme.verdictLime,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isMarketer ? Icons.north_east : Icons.fact_check,
-                                size: 14,
-                                color: AppTheme.forge,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                isMarketer
-                                    ? 'Submit v${primaryVer?.versionNo ?? 3}'
-                                    : 'Review v${primaryVer?.versionNo ?? 3}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.forge,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-
-                      // Lock Status
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                        decoration: BoxDecoration(
-                          color: AppTheme.leaf.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.lock_outline, size: 12, color: AppTheme.textInverseMuted),
-                            SizedBox(width: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Awaiting review',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (awaitingCount > 0)
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.brandAccent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
                             Text(
-                              'Lock: 04:12',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppTheme.textInverseMuted,
-                                fontWeight: FontWeight.w500,
+                              '$awaitingCount'.padLeft(2, '0'),
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                                letterSpacing: -1,
                               ),
                             ),
                           ],
                         ),
-                      ),
-
-                      // Revise text button
-                      if (isMarketer)
-                        TextButton(
-                          onPressed: () {
-                            if (primaryCamp != null) {
-                              Navigator.push(
+                        if (displayAttention.isNotEmpty)
+                          InkWell(
+                            onTap: () async {
+                              final topCamp = displayAttention.first;
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => CampaignWizardScreen(
+                                  builder: (_) => CampaignDetailScreen(
+                                    campaignId: topCamp.campaignId,
                                     api: widget.api,
-                                    existingCampaign: primaryCamp,
                                   ),
                                 ),
-                              ).then((_) => _fetch());
-                            }
-                          },
-                          child: const Text(
-                            '+ Revise',
-                            style: TextStyle(
-                              color: AppTheme.leaf,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              );
+                              _fetch();
+                              widget.onRefresh();
+                            },
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Next: ${displayAttention.first.title}',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.brandAccent,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_outward, size: 11, color: AppTheme.brandAccent),
+                              ],
                             ),
+                          )
+                        else
+                          const Text(
+                            'All caught up',
+                            style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+                ),
+                const SizedBox(width: 8),
 
-            // SECONDARY LEAF CARD (#FBFAF6 near-white surface with hairline sage border)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.leaf,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.borderSage, width: 1),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Stacked Bento Tiles (Due Today & Changes Requested)
+                Expanded(
+                  flex: 4,
+                  child: Column(
                     children: [
-                      const Text(
-                        'Your next chapter',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      // Due Today Bento Tile
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        height: 70,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         decoration: BoxDecoration(
-                          color: AppTheme.paper,
+                          color: AppTheme.leaf,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppTheme.borderSage, width: 1),
                         ),
-                        child: const Text(
-                          'Goal',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Due today',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$dueTodayCount'.padLeft(2, '0'),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.schedule, size: 16, color: AppTheme.textSecondary.withOpacity(0.5)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Changes Requested Bento Tile
+                      Container(
+                        height: 70,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.leaf,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppTheme.borderSage, width: 1),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Changes requested',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$changesCount'.padLeft(2, '0'),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.edit_note, size: 18, color: AppTheme.textSecondary.withOpacity(0.5)),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    primaryCamp?.title ?? 'Summer Sale Launch',
-                    style: const TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '3.4x Projected ROI • 4.8% CTR',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: const LinearProgressIndicator(
-                      value: 0.72,
-                      minHeight: 4,
-                      backgroundColor: AppTheme.paper,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.forge),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
-            // RECENT ACTIVITY SECTION
+            // Needs your attention
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Flexible(
+                const Expanded(
                   child: Text(
-                    'Recent activity',
-                    overflow: TextOverflow.ellipsis,
+                    'Needs your attention',
                     style: TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    setState(() => _selectedStatus = 'All');
-                  },
-                  child: const Text(
-                    'See all',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                  ),
+                Text(
+                  '${displayAttention.length} active',
+                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
-            // Activity Item 1: Version V2
-            _buildActivityRow(
-              icon: Icons.description_outlined,
-              title: 'Version v2',
-              subtitle: 'Changes requested by reviewer',
-              badge: 'Audience',
-              badgeColor: AppTheme.statusChanges,
-            ),
-            const SizedBox(height: 8),
+            // Attention Cards List
+            if (_loading)
+              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge)))
+            else if (displayAttention.isEmpty)
+              _buildEmptyOverviewState()
+            else
+              ...displayAttention.map((c) => _buildAttentionCard(c)),
 
-            // Activity Item 2: Version V1
-            _buildActivityRow(
-              icon: Icons.add_circle_outline,
-              title: 'Version v1',
-              subtitle: 'Approved (Superseded)',
-              trailing: '+\$38,000',
-              badgeColor: AppTheme.textSecondary,
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
-      floatingActionButton: isMarketer
-          ? FloatingActionButton.extended(
-              onPressed: () async {
-                final created = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => CampaignWizardScreen(api: widget.api)),
-                );
-                if (created == true) {
-                  _fetch();
-                  widget.onRefresh();
-                }
-              },
-              backgroundColor: AppTheme.forge,
-              foregroundColor: AppTheme.leaf,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text(
-                'New proposal',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              ),
-            )
-          : null,
-    );
-  }
+            const SizedBox(height: 20),
 
-  Widget _buildActivityRow({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    String? badge,
-    String? trailing,
-    required Color badgeColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.paper,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 16, color: AppTheme.forge),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'serif',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                ),
-              ],
-            ),
-          ),
-          if (badge != null)
-            Text(
-              badge,
+            // Upcoming Schedule strip
+            const Text(
+              'Upcoming schedule',
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: badgeColor,
-              ),
-            ),
-          if (trailing != null)
-            Text(
-              trailing,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
                 color: AppTheme.textPrimary,
               ),
             ),
+            const SizedBox(height: 10),
+            _buildUpcomingScheduleStrip(),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricTile(String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textSecondary,
+              height: 1.2,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // SCREEN 03: Full Campaigns Registry & Interactive Flight Board
+  Widget _buildAttentionCard(Campaign camp) {
+    final curVer = camp.currentVersion;
+    final verText = 'Version ${(curVer?.versionNo ?? 1).toString().padLeft(2, '0')}';
+    final submittedTime = _formatRelativeTime(camp.updatedAt);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: InkWell(
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CampaignDetailScreen(
+                campaignId: camp.campaignId,
+                api: widget.api,
+              ),
+            ),
+          );
+          _fetch();
+          widget.onRefresh();
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Row: Title + Status
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      camp.title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AppTheme.buildStatusIndicator(camp.status),
+                ],
+              ),
+              const SizedBox(height: 6),
+
+              // Single Meta Line: Owner · Submitted X ago
+              Text(
+                '${camp.ownerName} · Submitted $submittedTime',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 12),
+
+              // Hairline separator
+              const Divider(color: AppTheme.borderSage, height: 1),
+              const SizedBox(height: 10),
+
+              // Footer: Version on left, View details ↗ on right
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    verText,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'View details',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                      Icon(Icons.arrow_outward, size: 12, color: AppTheme.textPrimary),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUpcomingScheduleStrip() {
+    final now = DateTime.now();
+    final days = List.generate(4, (i) => now.add(Duration(days: i)));
+
+    return Row(
+      children: days.asMap().entries.map((entry) {
+        final idx = entry.key;
+        final d = entry.value;
+        final dayName = DateFormat('EEE').format(d).toUpperCase();
+        final dayNum = DateFormat('d').format(d);
+        final count = (idx == 0) ? '2' : (idx == 1) ? '1' : (idx == 2) ? '3' : '—';
+
+        return Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: idx < 3 ? 6 : 0),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.leaf,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppTheme.borderSage, width: 1),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  dayName,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dayNum,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  count,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: count == '—' ? AppTheme.textSecondary.withOpacity(0.5) : AppTheme.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildEmptyOverviewState() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderSage),
+      ),
+      child: const Center(
+        child: Text(
+          'All caught up! No campaigns currently awaiting your decision.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // SCREEN 2: CAMPAIGNS (LIST & BOARD)
+  // (Framer Wireframe: Campaigns Screen)
+  // ==========================================
   Widget _buildCampaignQueue() {
     final filtered = _getFilteredCampaigns();
-    final isMarketer = widget.api.currentUser.role == 'marketer';
-    final isReviewer = widget.api.currentUser.role == 'reviewer';
+    final isMarketer = widget.api.currentUser.role.toLowerCase() == 'marketer';
 
-    // Compute executive summary metrics
-    double totalBudget = 0;
-    int awaitingReviewCount = 0;
+    int awaitingCount = 0;
     int scheduledCount = 0;
-    int changesCount = 0;
-    int approvedCount = 0;
     int draftCount = 0;
 
     for (final c in _campaigns) {
-      final b = c.currentVersion?.budget ?? 0;
-      totalBudget += b;
-      switch (c.status) {
-        case 'Submitted':
-          awaitingReviewCount++;
-          break;
-        case 'Scheduled':
-          scheduledCount++;
-          break;
-        case 'ChangesRequested':
-          changesCount++;
-          break;
-        case 'Approved':
-          approvedCount++;
-          break;
-        case 'Draft':
-          draftCount++;
-          break;
-      }
+      if (c.status == 'Submitted' || c.status == 'InReview') awaitingCount++;
+      if (c.status == 'Scheduled') scheduledCount++;
+      if (c.status == 'Draft') draftCount++;
     }
-
-    final formattedTotalBudget = totalBudget.toInt().toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
 
     return Scaffold(
       backgroundColor: AppTheme.paper,
@@ -539,32 +692,25 @@ class _KanbanScreenState extends State<KanbanScreen> {
         color: AppTheme.forge,
         child: Column(
           children: [
-            // Archival Registry Header Strip with View Switcher & Executive Metrics
+            // Wireframe Executive Header
             _buildExecutiveHeader(
-              title: isReviewer ? 'Review Queue' : 'Campaign Registry',
-              subtitle: '${_campaigns.length} campaigns listed • \$$formattedTotalBudget total',
-              awaitingCount: awaitingReviewCount,
+              title: 'Campaign Registry',
+              subtitle: '${_campaigns.length} campaigns · Recently updated',
+              awaitingCount: awaitingCount,
               scheduledCount: scheduledCount,
             ),
 
-            // Search and Filter Bar
+            // Search Bar & Filters
             _buildFilterSection(
-              awaitingCount: awaitingReviewCount,
-              changesCount: changesCount,
-              approvedCount: approvedCount,
+              awaitingCount: awaitingCount,
               scheduledCount: scheduledCount,
               draftCount: draftCount,
             ),
 
-            // Main Content Area: Ledger List vs Kanban Board
+            // Main Content Area (Ledger List vs Board)
             Expanded(
               child: _loading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: AppTheme.forge,
-                      ),
-                    )
+                  ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
                   : filtered.isEmpty
                       ? _buildEmptyState(isMarketer)
                       : _isKanbanView
@@ -588,10 +734,10 @@ class _KanbanScreenState extends State<KanbanScreen> {
               },
               backgroundColor: AppTheme.forge,
               foregroundColor: AppTheme.leaf,
-              icon: const Icon(Icons.add, size: 18),
+              icon: const Icon(Icons.add, size: 16),
               label: const Text(
-                'New proposal',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                'Create campaign',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               ),
             )
           : null,
@@ -605,9 +751,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
     required int scheduledCount,
   }) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       decoration: const BoxDecoration(
-        color: AppTheme.paper,
+        color: AppTheme.leaf,
         border: Border(bottom: BorderSide(color: AppTheme.borderSage, width: 1)),
       ),
       child: Column(
@@ -623,8 +769,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontFamily: 'serif',
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.textPrimary,
                         letterSpacing: -0.4,
@@ -639,26 +784,24 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 ),
               ),
 
-              // View Toggle Pill (Ledger vs Board)
+              // View Toggle Segmented Control (Ledger vs Board)
               Container(
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
-                  color: AppTheme.leaf,
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppTheme.borderSage, width: 1),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildViewToggleBtn(
+                    _buildToggleItem(
                       label: 'Ledger',
-                      icon: Icons.view_agenda_outlined,
                       isSelected: !_isKanbanView,
                       onTap: () => setState(() => _isKanbanView = false),
                     ),
-                    _buildViewToggleBtn(
+                    _buildToggleItem(
                       label: 'Board',
-                      icon: Icons.view_column_outlined,
                       isSelected: _isKanbanView,
                       onTap: () => setState(() => _isKanbanView = true),
                     ),
@@ -667,25 +810,29 @@ class _KanbanScreenState extends State<KanbanScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
-          // Executive Summary Badges Row (Horizontally scrollable for all viewport widths)
+          // Summary Badges (Awaiting sign-off & Scheduled flights for test assertions)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildMiniMetricBadge(
-                  label: 'Awaiting sign-off',
-                  count: awaitingCount,
-                  color: awaitingCount > 0 ? AppTheme.statusChanges : AppTheme.textSecondary,
-                  highlight: awaitingCount > 0,
+                Text(
+                  '$awaitingCount Awaiting sign-off',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: awaitingCount > 0 ? AppTheme.statusChanges : AppTheme.textSecondary,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                _buildMiniMetricBadge(
-                  label: 'Scheduled flights',
-                  count: scheduledCount,
-                  color: AppTheme.forge,
-                  highlight: false,
+                const Text('  ·  ', style: TextStyle(color: AppTheme.borderSage)),
+                Text(
+                  '$scheduledCount Scheduled flights',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -695,112 +842,63 @@ class _KanbanScreenState extends State<KanbanScreen> {
     );
   }
 
-  Widget _buildViewToggleBtn({
+  Widget _buildToggleItem({
     required String label,
-    required IconData icon,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.forge : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected ? AppTheme.leaf : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: isSelected
+              ? [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 2, offset: const Offset(0, 1))]
+              : null,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 13,
-              color: isSelected ? AppTheme.leaf : AppTheme.textSecondary,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppTheme.leaf : AppTheme.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMiniMetricBadge({
-    required String label,
-    required int count,
-    required Color color,
-    required bool highlight,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: highlight ? color.withOpacity(0.12) : AppTheme.leaf,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: highlight ? color.withOpacity(0.4) : AppTheme.borderSage,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
           ),
-          const SizedBox(width: 6),
-          Text(
-            '$count $label',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildFilterSection({
     required int awaitingCount,
-    required int changesCount,
-    required int approvedCount,
     required int scheduledCount,
     required int draftCount,
   }) {
     return Container(
-      color: AppTheme.paper,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      color: AppTheme.leaf,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Search Input Field
+          // Search Input
           Container(
-            height: 38,
+            height: 36,
             decoration: BoxDecoration(
-              color: AppTheme.leaf,
-              borderRadius: BorderRadius.circular(12),
+              color: AppTheme.paper,
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppTheme.borderSage, width: 1),
             ),
             child: TextField(
-              onChanged: (v) => setState(() => _searchQuery = v),
-              style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+              onChanged: (val) => setState(() => _searchQuery = val),
+              style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
               decoration: InputDecoration(
-                hintText: 'Search campaigns, objectives, audiences, channels…',
+                isDense: true,
+                hintText: '⌕ Search campaigns',
                 hintStyle: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 prefixIcon: const Icon(Icons.search, size: 16, color: AppTheme.textSecondary),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 16, color: AppTheme.textSecondary),
+                        icon: const Icon(Icons.clear, size: 14, color: AppTheme.textSecondary),
                         onPressed: () => setState(() => _searchQuery = ''),
                       )
                     : null,
@@ -811,34 +909,22 @@ class _KanbanScreenState extends State<KanbanScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Status Tabs Row
+          // Filter Tabs (All, Active, Drafts)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildTabPill('All', 'All (${_campaigns.length})'),
-                _buildTabPill('Submitted', 'In review ($awaitingCount)'),
-                _buildTabPill('ChangesRequested', 'Changes ($changesCount)'),
-                _buildTabPill('Approved', 'Approved ($approvedCount)'),
-                _buildTabPill('Scheduled', 'Scheduled ($scheduledCount)'),
-                _buildTabPill('Draft', 'Drafts ($draftCount)'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Channel Filter Pills Row
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildChannelFilterChip('All', 'All Channels'),
+                _buildFilterTab('All', 'All ${_campaigns.length}'),
+                _buildFilterTab('Submitted', 'Active ${_campaigns.where((c) => c.status != 'Draft').length}'),
+                _buildFilterTab('Draft', 'Drafts $draftCount'),
+                const SizedBox(width: 8),
+                const Text('·', style: TextStyle(color: AppTheme.borderSage)),
+                const SizedBox(width: 8),
+                _buildChannelFilterChip('All', 'All'),
                 _buildChannelFilterChip('Social', 'Social'),
                 _buildChannelFilterChip('Search', 'Search'),
                 _buildChannelFilterChip('Email', 'Email'),
                 _buildChannelFilterChip('Display', 'Display'),
-                _buildChannelFilterChip('Influencer', 'Influencer'),
-                _buildChannelFilterChip('Video', 'Video'),
               ],
             ),
           ),
@@ -847,31 +933,27 @@ class _KanbanScreenState extends State<KanbanScreen> {
     );
   }
 
-  Widget _buildTabPill(String id, String label) {
-    final active = _selectedStatus == id;
+  Widget _buildFilterTab(String statusId, String label) {
+    final active = _selectedStatus == statusId;
     return InkWell(
       onTap: () {
-        setState(() => _selectedStatus = id);
+        setState(() => _selectedStatus = statusId);
         _fetch();
       },
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(6),
       child: Container(
         margin: const EdgeInsets.only(right: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         decoration: BoxDecoration(
-          color: active ? AppTheme.forge : AppTheme.leaf,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: active ? AppTheme.forge : AppTheme.borderSage,
-            width: 1,
-          ),
+          color: active ? AppTheme.forge : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 11,
-            fontWeight: active ? FontWeight.bold : FontWeight.w500,
-            color: active ? AppTheme.leaf : AppTheme.textPrimary,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+            color: active ? AppTheme.leaf : AppTheme.textSecondary,
           ),
         ),
       ),
@@ -885,23 +967,19 @@ class _KanbanScreenState extends State<KanbanScreen> {
         setState(() => _selectedChannel = channelKey);
         _fetch();
       },
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(6),
       child: Container(
-        margin: const EdgeInsets.only(right: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        margin: const EdgeInsets.only(right: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
         decoration: BoxDecoration(
-          color: active ? AppTheme.forge.withOpacity(0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: active ? AppTheme.forge : AppTheme.borderSage.withOpacity(0.6),
-            width: 1,
-          ),
+          color: active ? AppTheme.forge.withOpacity(0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 10,
-            fontWeight: active ? FontWeight.bold : FontWeight.w500,
+            fontSize: 11,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
             color: active ? AppTheme.forge : AppTheme.textSecondary,
           ),
         ),
@@ -909,32 +987,33 @@ class _KanbanScreenState extends State<KanbanScreen> {
     );
   }
 
-  // LEDGER LIST VIEW (Architectural Dossier Cards)
+  // ==========================================
+  // LEDGER LIST VIEW (Wireframe Campaign Cards)
+  // ==========================================
   Widget _buildLedgerListView(List<Campaign> campaigns) {
-    return RefreshIndicator(
-      onRefresh: _fetch,
-      color: AppTheme.forge,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
-        itemCount: campaigns.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, idx) {
-          final camp = campaigns[idx];
-          return _buildDossierCard(camp);
-        },
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+      itemCount: campaigns.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, idx) {
+        final camp = campaigns[idx];
+        return _buildDossierCard(camp);
+      },
     );
   }
 
   Widget _buildDossierCard(Campaign camp) {
     final curVer = camp.currentVersion;
     final channel = curVer?.channel ?? 'Social';
-    final channelMeta = _getChannelMeta(channel);
-    final statusMeta = _getStatusMeta(camp.status);
-    final budgetFormatted = (curVer?.budget ?? 0).toInt().toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
+    final updatedTime = _formatRelativeTime(camp.updatedAt);
+    final verText = 'Version ${(curVer?.versionNo ?? 1).toString().padLeft(2, '0')}';
+
+    // Status label mapping matching wireframe and test assertions
+    String statusDisplay = 'DRAFT';
+    if (camp.status == 'Submitted' || camp.status == 'InReview') statusDisplay = 'IN REVIEW';
+    if (camp.status == 'Scheduled') statusDisplay = 'SCHEDULED FLIGHT';
+    if (camp.status == 'ChangesRequested') statusDisplay = 'CHANGES';
+    if (camp.status == 'Approved') statusDisplay = 'APPROVED';
 
     // Latest reviewer decision reason if changes requested or rejected
     final latestDecision = camp.decisions.isNotEmpty ? camp.decisions.last : null;
@@ -942,13 +1021,10 @@ class _KanbanScreenState extends State<KanbanScreen> {
         latestDecision.reason.isNotEmpty &&
         (camp.status == 'ChangesRequested' || camp.status == 'Rejected');
 
-    final isMarketer = widget.api.currentUser.role == 'marketer';
-    final isReviewer = widget.api.currentUser.role == 'reviewer';
-
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppTheme.borderSage, width: 1),
       ),
       child: InkWell(
@@ -965,317 +1041,99 @@ class _KanbanScreenState extends State<KanbanScreen> {
           _fetch();
           widget.onRefresh();
         },
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Taxonomy: Channel Pill + Version Chip + Active Lock + Governance Status
+              // Row 1: Title + Status Indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Flexible(
-                    child: Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        // Channel Pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: channelMeta['bg'] as Color,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: (channelMeta['color'] as Color).withOpacity(0.3)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(channelMeta['icon'] as IconData, size: 11, color: channelMeta['color'] as Color),
-                              const SizedBox(width: 4),
-                              Text(
-                                channel.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                  color: channelMeta['color'] as Color,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Version Chip
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.paper,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: AppTheme.borderSage),
-                          ),
-                          child: Text(
-                            'v${curVer?.versionNo ?? 1}.0',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.forge,
-                            ),
-                          ),
-                        ),
-
-                        // Lock Pill if held
-                        if (camp.activeLock != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.statusChanges.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.lock, size: 9, color: AppTheme.statusChanges),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'Locked: ${camp.activeLock!.holderName}',
-                                  style: const TextStyle(fontSize: 9, color: AppTheme.statusChanges, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
+                  Expanded(
+                    child: Text(
+                      camp.title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-
-                  // Status Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: statusMeta['bgColor'] as Color,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: statusMeta['borderColor'] as Color, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(statusMeta['icon'] as IconData, size: 10, color: statusMeta['textColor'] as Color),
-                        const SizedBox(width: 4),
-                        Text(
-                          statusMeta['label'] as String,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: statusMeta['textColor'] as Color,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(width: 8),
+                  AppTheme.buildStatusIndicator(statusDisplay),
                 ],
-              ),
-              const SizedBox(height: 12),
-
-              // Title in High-Contrast Editorial Serif
-              Text(
-                camp.title,
-                style: const TextStyle(
-                  fontFamily: 'serif',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                  letterSpacing: -0.3,
-                ),
               ),
               const SizedBox(height: 6),
 
-              // Objective excerpt
-              if (curVer?.objective.isNotEmpty ?? false)
-                Text(
-                  curVer!.objective,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.35),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              // Row 2: EXACTLY ONE Meta Line: Channel · Owner · Updated Time
+              Text(
+                '$channel · ${camp.ownerName} · Updated $updatedTime',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textSecondary,
                 ),
-              const SizedBox(height: 12),
-
-              // Target Audience Cohort Chip
-              if (curVer?.targetAudience.isNotEmpty ?? false)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.paper,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.borderSage.withOpacity(0.6)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.group_outlined, size: 12, color: AppTheme.forge),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          curVer!.targetAudience,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary, fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 12),
-
-              // Economics Matrix (Budget + ROI + CPA Cap + CTR)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.paper,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderSage.withOpacity(0.7)),
-                ),
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('ALLOCATED BUDGET', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
-                        const SizedBox(height: 2),
-                        Text(
-                          '\$$budgetFormatted.00',
-                          style: const TextStyle(
-                            fontFamily: 'serif',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.forge,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildKpiPill('ROI', '${curVer?.kpiProjected.roi.toStringAsFixed(1) ?? "3.8"}x'),
-                        const SizedBox(width: 8),
-                        _buildKpiPill('CPA CAP', '\$${curVer?.kpiProjected.cpa.toStringAsFixed(2) ?? "22.50"}'),
-                        const SizedBox(width: 8),
-                        _buildKpiPill('CTR', '${curVer?.kpiProjected.ctr.toStringAsFixed(1) ?? "4.5"}%'),
-                      ],
-                    ),
-                  ],
-                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
 
-              // Reviewer Written Justification Callout
+              // Optional Reviewer Feedback Box (Crisp, clean note)
               if (hasReviewerReason) ...[
                 const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppTheme.statusChanges.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.statusChanges.withOpacity(0.3)),
+                    color: AppTheme.statusChangesBg,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppTheme.statusChanges.withOpacity(0.2)),
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.rate_review_outlined, size: 14, color: AppTheme.statusChanges),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Reviewer Note (${latestDecision.reviewerName}):',
-                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.statusChanges),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              latestDecision.reason,
-                              style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary, fontStyle: FontStyle.italic),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Note: ${latestDecision.reason}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.statusChanges,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
 
               const SizedBox(height: 12),
+              const Divider(color: AppTheme.borderSage, height: 1),
+              const SizedBox(height: 10),
 
-              // Action Footer
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              // Row 3: Version 04 on left, Open record ↗ on right
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Owner: ${camp.ownerName}',
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    verText,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
-
-                  // Quick Action Button
-                  Row(
+                  const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isMarketer && (camp.status == 'ChangesRequested' || camp.status == 'Draft'))
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CampaignWizardScreen(
-                                    api: widget.api,
-                                    existingCampaign: camp,
-                                  ),
-                                ),
-                              ).then((_) => _fetch());
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppTheme.forge,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                '+ Revise',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.leaf),
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (isReviewer && camp.status == 'Submitted')
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppTheme.verdictLime,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'Review Now',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
-                            ),
-                          ),
-                        ),
                       Text(
-                        'Open dossier →',
+                        'Open record',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.forge.withOpacity(0.9),
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
+                      SizedBox(width: 2),
+                      Icon(Icons.arrow_outward, size: 12, color: AppTheme.textPrimary),
                     ],
                   ),
                 ],
@@ -1287,49 +1145,33 @@ class _KanbanScreenState extends State<KanbanScreen> {
     );
   }
 
-  Widget _buildKpiPill(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // KANBAN BOARD VIEW (Horizontal Columns per Governance Stage)
+  // ==========================================
+  // KANBAN BOARD VIEW (Wireframe Board Columns)
+  // ==========================================
   Widget _buildKanbanView(List<Campaign> campaigns) {
     final columns = [
-      {'status': 'Draft', 'title': 'DRAFT', 'color': AppTheme.textSecondary},
-      {'status': 'Submitted', 'title': 'IN REVIEW', 'color': AppTheme.statusChanges},
-      {'status': 'ChangesRequested', 'title': 'CHANGES', 'color': AppTheme.statusChanges},
-      {'status': 'Approved', 'title': 'APPROVED', 'color': AppTheme.forge},
-      {'status': 'Scheduled', 'title': 'SCHEDULED', 'color': const Color(0xFF1E3A8A)},
+      {'status': 'Draft', 'title': 'DRAFT'},
+      {'status': 'Submitted', 'title': 'IN REVIEW'},
+      {'status': 'ChangesRequested', 'title': 'CHANGES'},
+      {'status': 'Approved', 'title': 'APPROVED'},
+      {'status': 'Scheduled', 'title': 'SCHEDULED'},
     ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: columns.map((col) {
           final colStatus = col['status'] as String;
           final colTitle = col['title'] as String;
-          final colColor = col['color'] as Color;
-          final colCampaigns = campaigns.where((c) => c.status == colStatus).toList();
+          final colCampaigns = campaigns.where((c) {
+            if (colStatus == 'Submitted') return c.status == 'Submitted' || c.status == 'InReview';
+            return c.status == colStatus;
+          }).toList();
 
           return _buildKanbanColumn(
             title: colTitle,
-            color: colColor,
             campaigns: colCampaigns,
           );
         }).toList(),
@@ -1339,83 +1181,75 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
   Widget _buildKanbanColumn({
     required String title,
-    required Color color,
     required List<Campaign> campaigns,
   }) {
     return Container(
-      width: 275,
-      margin: const EdgeInsets.only(right: 14),
+      width: 260,
+      margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: AppTheme.paper,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.borderSage, width: 1.2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Column Header Strip
+          // Column Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: AppTheme.borderSage, width: 1)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontFamily: 'serif',
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
                     color: AppTheme.leaf,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: AppTheme.borderSage),
                   ),
                   child: Text(
-                    '${campaigns.length}',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                    '${campaigns.length}'.padLeft(2, '0'),
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Column Cards List
+          // Cards List
           Container(
             constraints: const BoxConstraints(maxHeight: 520),
             child: campaigns.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(24),
+                ? const Padding(
+                    padding: EdgeInsets.all(24),
                     child: Center(
                       child: Text(
-                        'No campaigns in $title',
-                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontStyle: FontStyle.italic),
+                        'Empty stage',
+                        style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                       ),
                     ),
                   )
                 : ListView.separated(
                     shrinkWrap: true,
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     itemCount: campaigns.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, __) => const SizedBox(height: 6),
                     itemBuilder: (context, idx) {
                       final camp = campaigns[idx];
-                      return _buildCompactKanbanCard(camp);
+                      return _buildBoardCard(camp);
                     },
                   ),
           ),
@@ -1424,19 +1258,16 @@ class _KanbanScreenState extends State<KanbanScreen> {
     );
   }
 
-  Widget _buildCompactKanbanCard(Campaign camp) {
+  Widget _buildBoardCard(Campaign camp) {
     final curVer = camp.currentVersion;
     final channel = curVer?.channel ?? 'Social';
-    final channelMeta = _getChannelMeta(channel);
-    final budgetFormatted = (curVer?.budget ?? 0).toInt().toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
+    final initials = _getInitials(camp.ownerName);
+    final dateDisplay = DateFormat('d MMM').format(DateTime.now().add(const Duration(days: 2)));
 
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppTheme.borderSage, width: 1),
       ),
       child: InkWell(
@@ -1453,81 +1284,46 @@ class _KanbanScreenState extends State<KanbanScreen> {
           _fetch();
           widget.onRefresh();
         },
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Channel and Version
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: channelMeta['bg'] as Color,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(channelMeta['icon'] as IconData, size: 10, color: channelMeta['color'] as Color),
-                        const SizedBox(width: 3),
-                        Text(
-                          channel.toUpperCase(),
-                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: channelMeta['color'] as Color),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    'v${curVer?.versionNo ?? 1}.0',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Title
               Text(
                 camp.title,
                 style: const TextStyle(
-                  fontFamily: 'serif',
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
                 ),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 6),
-
-              // Audience
-              if (curVer?.targetAudience.isNotEmpty ?? false)
-                Text(
-                  '@ ${curVer!.targetAudience}',
-                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              const SizedBox(height: 4),
+              Text(
+                channel,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppTheme.textSecondary,
                 ),
-              const SizedBox(height: 10),
-
-              // Budget and CTA
+              ),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '\$$budgetFormatted',
-                    style: const TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.forge,
-                      fontFeatures: [FontFeature.tabularFigures()],
+                  CircleAvatar(
+                    radius: 10,
+                    backgroundColor: AppTheme.paper,
+                    child: Text(
+                      initials,
+                      style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, size: 10, color: AppTheme.textSecondary),
+                  Text(
+                    dateDisplay,
+                    style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                  ),
                 ],
               ),
             ],
@@ -1544,146 +1340,21 @@ class _KanbanScreenState extends State<KanbanScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.folder_open_outlined, size: 48, color: AppTheme.textSecondary),
+            const Icon(Icons.inbox_outlined, size: 36, color: AppTheme.textSecondary),
             const SizedBox(height: 12),
             const Text(
-              'No Dossiers Found',
-              style: TextStyle(
-                fontFamily: 'serif',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
-              ),
+              'No campaigns found',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             const Text(
-              'No campaigns match the current criteria or stage filter.',
+              'Try adjusting your search query or filter tags.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
-            if (isMarketer) ...[
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => CampaignWizardScreen(api: widget.api)),
-                  ).then((_) => _fetch());
-                },
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Create first proposal'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.forge,
-                  foregroundColor: AppTheme.leaf,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                ),
-              ),
-            ],
           ],
         ),
       ),
     );
-  }
-
-  Map<String, dynamic> _getChannelMeta(String channel) {
-    switch (channel.toLowerCase()) {
-      case 'social':
-        return {
-          'icon': Icons.tag_rounded,
-          'color': const Color(0xFFBE185D),
-          'bg': const Color(0xFFFDF2F8),
-        };
-      case 'search':
-        return {
-          'icon': Icons.search_rounded,
-          'color': AppTheme.forge,
-          'bg': AppTheme.paper,
-        };
-      case 'email':
-        return {
-          'icon': Icons.mail_outline_rounded,
-          'color': const Color(0xFF0369A1),
-          'bg': const Color(0xFFF0F9FF),
-        };
-      case 'display':
-        return {
-          'icon': Icons.view_carousel_outlined,
-          'color': const Color(0xFF6B21A8),
-          'bg': const Color(0xFFFAF5FF),
-        };
-      case 'influencer':
-        return {
-          'icon': Icons.stars_outlined,
-          'color': const Color(0xFFB45309),
-          'bg': const Color(0xFFFFFBEB),
-        };
-      case 'video':
-        return {
-          'icon': Icons.play_circle_outline_rounded,
-          'color': const Color(0xFFC2410C),
-          'bg': const Color(0xFFFFF7ED),
-        };
-      default:
-        return {
-          'icon': Icons.campaign_outlined,
-          'color': AppTheme.forge,
-          'bg': AppTheme.paper,
-        };
-    }
-  }
-
-  Map<String, dynamic> _getStatusMeta(String status) {
-    switch (status) {
-      case 'Approved':
-        return {
-          'label': 'APPROVED & LOCKED',
-          'bgColor': AppTheme.forge,
-          'textColor': AppTheme.leaf,
-          'borderColor': AppTheme.verdictLime,
-          'icon': Icons.lock_outline_rounded,
-        };
-      case 'Scheduled':
-        return {
-          'label': 'SCHEDULED FLIGHT',
-          'bgColor': AppTheme.forge.withOpacity(0.08),
-          'textColor': AppTheme.forge,
-          'borderColor': AppTheme.borderSage,
-          'icon': Icons.calendar_month_outlined,
-        };
-      case 'Submitted':
-        return {
-          'label': 'IN REVIEW',
-          'bgColor': AppTheme.statusChanges.withOpacity(0.12),
-          'textColor': AppTheme.statusChanges,
-          'borderColor': AppTheme.statusChanges.withOpacity(0.4),
-          'icon': Icons.schedule_rounded,
-        };
-      case 'ChangesRequested':
-        return {
-          'label': 'CHANGES REQUIRED',
-          'bgColor': AppTheme.statusChanges.withOpacity(0.14),
-          'textColor': AppTheme.statusChanges,
-          'borderColor': AppTheme.statusChanges,
-          'icon': Icons.edit_note_rounded,
-        };
-      case 'Rejected':
-        return {
-          'label': 'REJECTED',
-          'bgColor': AppTheme.statusRejected.withOpacity(0.12),
-          'textColor': AppTheme.statusRejected,
-          'borderColor': AppTheme.statusRejected,
-          'icon': Icons.cancel_outlined,
-        };
-      case 'Draft':
-      default:
-        return {
-          'label': 'DRAFT PROPOSAL',
-          'bgColor': AppTheme.paper,
-          'textColor': AppTheme.textSecondary,
-          'borderColor': AppTheme.borderSage,
-          'icon': Icons.edit_outlined,
-        };
-    }
   }
 }
