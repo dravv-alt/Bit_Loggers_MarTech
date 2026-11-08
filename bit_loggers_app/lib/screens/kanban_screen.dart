@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -1645,25 +1646,36 @@ class _KanbanScreenState extends State<KanbanScreen> {
       {'status': 'Scheduled', 'title': 'SCHEDULED'},
     ];
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: columns.map((col) {
-          final colStatus = col['status'] as String;
-          final colTitle = col['title'] as String;
-          final colCampaigns = campaigns.where((c) {
-            if (colStatus == 'Submitted') return c.status == 'Submitted' || c.status == 'InReview';
-            return c.status == colStatus;
-          }).toList();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight.isFinite
+            ? math.max(200.0, constraints.maxHeight)
+            : 500.0;
 
-          return _buildKanbanColumn(
-            title: colTitle,
-            campaigns: colCampaigns,
-          );
-        }).toList(),
-      ),
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: SizedBox(
+            height: availableHeight - 28,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: columns.map((col) {
+                final colStatus = col['status'] as String;
+                final colTitle = col['title'] as String;
+                final colCampaigns = campaigns.where((c) {
+                  if (colStatus == 'Submitted') return c.status == 'Submitted' || c.status == 'InReview';
+                  return c.status == colStatus;
+                }).toList();
+
+                return _buildKanbanColumn(
+                  title: colTitle,
+                  campaigns: colCampaigns,
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1681,7 +1693,6 @@ class _KanbanScreenState extends State<KanbanScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Column Header
           Container(
@@ -1718,8 +1729,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           ),
 
           // Cards List
-          Container(
-            constraints: const BoxConstraints(maxHeight: 520),
+          Expanded(
             child: campaigns.isEmpty
                 ? const Padding(
                     padding: EdgeInsets.all(24),
@@ -1731,7 +1741,6 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     ),
                   )
                 : ListView.separated(
-                    shrinkWrap: true,
                     padding: const EdgeInsets.all(8),
                     itemCount: campaigns.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 6),
