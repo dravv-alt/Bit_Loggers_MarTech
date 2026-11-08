@@ -684,7 +684,13 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 children: channelShares.map((ch) {
                   return Expanded(
                     flex: (((ch['share'] as double) * 100).toInt()).clamp(1, 1000),
-                    child: Container(color: ch['color'] as Color),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 0.75),
+                      decoration: BoxDecoration(
+                        color: ch['color'] as Color,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   );
                 }).toList(),
               ),

@@ -56,24 +56,24 @@ class AppTheme {
   static const Color statusScheduled = Color(0xFF234C82); // Soft blue / Scheduled
   static const Color statusScheduledBg = Color(0xFFE5EDF7);
 
-  // Channel Palette (Clean, quiet tints)
+  // Channel Palette (Vibrant, distinct, high-contrast modern tones)
   static Color getChannelColor(String channel) {
-    switch (channel.toLowerCase()) {
+    switch (channel.toLowerCase().trim()) {
       case 'social':
       case 'paid social':
-        return const Color(0xFF2D55A2);
+        return const Color(0xFF2563EB); // Royal Blue
       case 'email':
-        return const Color(0xFF234C82);
+        return const Color(0xFF7C3AED); // Amethyst Purple
       case 'search':
-        return const Color(0xFF476044);
+        return const Color(0xFF059669); // Emerald Green
       case 'display':
-        return const Color(0xFF5B6941);
-      case 'influencer':
-        return const Color(0xFF8A542C);
+        return const Color(0xFFEA580C); // Warm Tangerine / Amber
       case 'video':
-        return const Color(0xFF384F45);
+        return const Color(0xFFE11D48); // Crimson Rose
+      case 'influencer':
+        return const Color(0xFF0891B2); // Cyan / Teal
       default:
-        return const Color(0xFF555950);
+        return const Color(0xFF64748B); // Cool Slate
     }
   }
 
