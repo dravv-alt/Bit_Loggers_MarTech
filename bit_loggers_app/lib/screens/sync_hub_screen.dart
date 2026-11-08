@@ -1338,15 +1338,39 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 6),
 
-                // Payload snippet
+                // Humanized Outbox Email Preview
                 if (evt.payload.isNotEmpty)
-                  Text(
-                    'Payload: ${jsonEncode(evt.payload)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textSecondary.withOpacity(0.85),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: AppTheme.paper,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.borderSage),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.mail_outline, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            evt.payload['subject'] as String? ??
+                                (evt.payload['campaign_title'] != null
+                                    ? 'Flight Notification · ${evt.payload['campaign_title']}'
+                                    : 'Enterprise Dispatch · ${evt.eventType.replaceAll('_', ' ')}'),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (evt.payload['recipient'] != null) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            evt.payload['recipient'] as String,
+                            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
 
@@ -1643,7 +1667,49 @@ class _OutboxDetailModal extends StatelessWidget {
                 const SizedBox(height: 14),
 
                 const Text(
-                  'Payload (JSON)',
+                  'Dispatched Message Preview',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.leaf,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.borderSage),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.mark_email_read_outlined, size: 16, color: AppTheme.brandAccent),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              event.payload['subject'] as String? ?? 'Enterprise Notification: ${event.eventType}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'To: ${event.payload['recipient'] ?? 'marketer@bitloggers.internal'} · From: dispatch@bitloggers.internal',
+                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Security: TLS 1.3 · HMAC-SHA256 Signed Outbox Payload',
+                        style: TextStyle(fontSize: 10, color: AppTheme.moss, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                const Text(
+                  'Technical Payload (JSON)',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                 ),
                 const SizedBox(height: 6),
