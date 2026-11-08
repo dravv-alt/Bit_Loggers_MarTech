@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/marketing_visuals.dart';
 import 'campaign_wizard_screen.dart';
 
 class CampaignDetailScreen extends StatefulWidget {
@@ -337,18 +338,11 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Reviewer Identity row (Sarah Jenkins · Marketer • Self-approval blocked)
+              // Reviewer Identity row & Creative Thumbnail
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppTheme.paper,
-                    child: Text(
-                      widget.api.currentUser.name.split(' ').map((n) => n[0]).take(2).join(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppTheme.forge),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
+                  MarketerAvatar(userId: widget.api.currentUser.id, size: 36),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,6 +361,16 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  CreativeAssetThumbnail(
+                    assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                        ? curVer.creatives[0]['asset_url'] as String?
+                        : null,
+                    channel: curVer?.channel ?? 'Social',
+                    width: 44,
+                    height: 44,
+                    borderRadius: 8,
                   ),
                 ],
               ),
@@ -746,33 +750,53 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title Row with Status Indicator
+        // Title Row with Creative Thumbnail & Marketer Info
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Text(
-                _campaign!.title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                  letterSpacing: -0.4,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _campaign!.title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      MarketerAvatar(userId: _campaign!.createdBy, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${_campaign!.ownerName} · $channel · CG-$idPrefix',
+                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AppTheme.buildStatusIndicator(_campaign!.status),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            AppTheme.buildStatusIndicator(_campaign!.status),
+            const SizedBox(width: 12),
+            CreativeAssetThumbnail(
+              assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                  ? curVer.creatives[0]['asset_url'] as String?
+                  : null,
+              channel: channel,
+              width: 68,
+              height: 68,
+              borderRadius: 10,
+            ),
           ],
-        ),
-        const SizedBox(height: 6),
-        // Unified scannable metadata line
-        Text(
-          'CG-$idPrefix · Owner: ${_campaign!.ownerName} • Current Status: ${_campaign!.status}',
-          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 16),
 
@@ -1304,130 +1328,20 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           ),
           const SizedBox(height: 10),
 
-          // The Framed Ad Mockup Frame
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.paper,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.borderSage, width: 1),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Simulated Ad Header
-                Row(
-                  children: [
-                    AppTheme.buildBrandMonogram(size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Campaign Grid Sponsor',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                          ),
-                          Text(
-                            'Sponsored · $channel Flight',
-                            style: const TextStyle(fontSize: 9, color: AppTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.more_horiz, size: 16, color: AppTheme.textSecondary),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Creative Visual Banner Frame
-                Container(
-                  height: 100,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppTheme.forge,
-                    borderRadius: BorderRadius.circular(8),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF20211F), Color(0xFF384F45)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('1:1 ASSET FRAME', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white)),
-                          ),
-                          const Icon(Icons.auto_awesome, size: 13, color: AppTheme.accentGold),
-                        ],
-                      ),
-                      Text(
-                        _campaign?.title ?? 'Campaign Grid Flight',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Strategic Objective
-                const Text(
-                  'Strategic objective',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  objective,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary, height: 1.3),
-                ),
-                const SizedBox(height: 10),
-
-                // Rendered Primary CTA Button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'campaigngrid.io',
-                      style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppTheme.forge,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Learn More', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.leaf)),
-                          SizedBox(width: 4),
-                          Icon(Icons.arrow_outward, size: 10, color: AppTheme.leaf),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          // Authentic Live Marketing Creative Mockup Studio
+          LiveCreativeMockupCanvas(
+            channel: channel,
+            title: _campaign?.title ?? 'Campaign Flight',
+            headline: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                ? curVer.creatives[0]['headline'] as String?
+                : null,
+            copy: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                ? curVer.creatives[0]['copy'] as String?
+                : null,
+            assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                ? curVer.creatives[0]['asset_url'] as String?
+                : null,
+            targetCpa: curVer?.kpiProjected?.cpa,
           ),
           const SizedBox(height: 12),
 
