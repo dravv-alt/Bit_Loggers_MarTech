@@ -158,6 +158,35 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     }
   }
 
+  Future<void> _queueTestOutboxEvent() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final ok = await widget.api.createTestOutboxEvent();
+    if (!mounted) return;
+    if (ok) {
+      await _fetchOutbox();
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEmailFailing
+                ? 'Queued test notification. With email failure injected, worker will encounter retry backoff!'
+                : 'Queued test notification. Outbox worker will dispatch successfully.',
+            style: const TextStyle(color: AppTheme.textInverse),
+          ),
+          backgroundColor: _isEmailFailing ? AppTheme.statusChanges : AppTheme.forge,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Failed to queue test notification.'),
+          backgroundColor: AppTheme.statusRejected,
+        ),
+      );
+    }
+  }
+
   void _simulateOfflineWrite() {
     final now = DateTime.now();
     final sampleTitle = 'Festive Flash Deal #${now.second}';
@@ -1107,27 +1136,53 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
   }
 
   Widget _buildOutboxActionButtons() {
-    return ElevatedButton.icon(
-      onPressed: _processingWorker ? null : _triggerOutboxWorker,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.forge,
-        foregroundColor: AppTheme.leaf,
-        disabledBackgroundColor: AppTheme.forge.withOpacity(0.4),
-        padding: const EdgeInsets.symmetric(vertical: 13),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 0,
-      ),
-      icon: _processingWorker
-          ? const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf),
-            )
-          : const Icon(Icons.bolt, size: 18),
-      label: Text(
-        _processingWorker ? 'Worker Running...' : 'Force Run Outbox Worker Now',
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-      ),
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _processingWorker ? null : _triggerOutboxWorker,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.forge,
+              foregroundColor: AppTheme.leaf,
+              disabledBackgroundColor: AppTheme.forge.withOpacity(0.4),
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            icon: _processingWorker
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf),
+                  )
+                : const Icon(Icons.bolt, size: 18),
+            label: Text(
+              _processingWorker ? 'Worker Running...' : 'Force Run Outbox Worker Now',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _queueTestOutboxEvent,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: AppTheme.leaf,
+              foregroundColor: AppTheme.forge,
+              side: const BorderSide(color: AppTheme.borderSage),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(Icons.mark_email_unread_outlined, size: 16, color: AppTheme.forge),
+            label: const Text(
+              'Queue Test Notification Event',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.forge),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

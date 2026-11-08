@@ -1,17 +1,53 @@
 import crypto from 'node:crypto';
 import { DIAGNOSTIC_EVENTS } from './diagnostics.js';
 
+export class EmailService {
+  constructor({ isFailing = false, providerName = 'MockSMTP' } = {}) {
+    this.isFailing = isFailing;
+    this.providerName = providerName;
+  }
+
+  setFailing(failing) {
+    this.isFailing = Boolean(failing);
+    console.log(`[EMAIL SERVICE] Provider ${this.providerName} failure simulation: ${this.isFailing ? 'ON' : 'OFF'}`);
+  }
+
+  async send({ to, subject, body, metadata = {} } = {}) {
+    if (this.isFailing) {
+      const err = new Error(`EmailProviderGatewayTimeout: ${this.providerName} unreachable`);
+      err.code = 'EMAIL_GATEWAY_TIMEOUT';
+      throw err;
+    }
+    return {
+      messageId: `msg-${crypto.randomUUID().slice(0, 8)}`,
+      provider: this.providerName,
+      deliveredAt: new Date().toISOString()
+    };
+  }
+}
+
 export class OutboxService {
-  constructor(db, diagnostics) {
+  constructor(db, diagnostics, emailService = null) {
     this.db = db;
     this.diagnostics = diagnostics;
-    this.isEmailServiceFailing = false;
+    this.emailService = emailService || new EmailService();
     this.maxAttempts = 3;
   }
 
+  get isEmailServiceFailing() {
+    return this.emailService.isFailing;
+  }
+
+  set isEmailServiceFailing(val) {
+    this.emailService.setFailing(val);
+  }
+
+  setEmailService(emailService) {
+    this.emailService = emailService;
+  }
+
   setEmailFailing(failing) {
-    this.isEmailServiceFailing = Boolean(failing);
-    console.log(`[OUTBOX] Email provider failure simulation: ${this.isEmailServiceFailing ? 'ON' : 'OFF'}`);
+    this.emailService.setFailing(failing);
   }
 
   // Poll and process due outbox events asynchronously
@@ -46,11 +82,20 @@ export class OutboxService {
 
         for (const recipientId of recipients) {
           for (const channel of channels) {
-            // Simulate external email gateway outage
-            if (channel === 'email' && this.isEmailServiceFailing) {
-              allChannelsSucceeded = false;
-              failureReason = 'EmailProviderGatewayTimeout: SMTP server unreachable';
-              continue;
+            // Dispatch via injected email service
+            if (channel === 'email') {
+              try {
+                await this.emailService.send({
+                  to: recipientId,
+                  subject: title || evt.event_type,
+                  body: message || '',
+                  metadata: { campaign_id, correlation_id }
+                });
+              } catch (emailErr) {
+                allChannelsSucceeded = false;
+                failureReason = emailErr.message || 'EmailProviderGatewayTimeout: SMTP server unreachable';
+                continue;
+              }
             }
 
             // Insert durable in-app notification

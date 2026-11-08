@@ -308,6 +308,23 @@ export async function createApp() {
     res.json({ isEmailServiceFailing: outbox.isEmailServiceFailing });
   });
 
+  app.post('/api/outbox/test-event', async (req, res) => {
+    const eventId = 'outbox-' + crypto.randomUUID().slice(0, 8);
+    const payload = {
+      recipients: [req.user.id],
+      campaign_id: null,
+      title: 'Manual Outbox Test Notification',
+      message: 'Testing transactional outbox notification delivery and retry resilience.',
+      correlation_id: req.correlationId
+    };
+    await db.query(
+      `INSERT INTO outbox_events (event_id, event_type, payload, status, created_at)
+       VALUES ($1, 'TEST_NOTIFICATION_EMAIL', $2, 'PENDING', NOW())`,
+      [eventId, JSON.stringify(payload)]
+    );
+    res.json({ success: true, event_id: eventId });
+  });
+
   // --- Offline Mobile Sync Queue Endpoint (FR-13, FR-14, ADR-005) ---
   app.post('/api/sync/queue', async (req, res) => {
     const { actions = [] } = req.body;

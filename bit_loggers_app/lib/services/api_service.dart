@@ -663,6 +663,17 @@ class ApiService {
     return false;
   }
 
+  Future<bool> createTestOutboxEvent() async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/api/outbox/test-event'),
+        headers: _headers(),
+      );
+      return res.statusCode == 200;
+    } catch (_) {}
+    return false;
+  }
+
   // Fallback initial demo campaigns
   List<Campaign> _fallbackCampaigns() {
     return [
