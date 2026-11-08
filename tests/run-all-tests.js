@@ -450,6 +450,22 @@ export async function runAllTests() {
     record('T-16', 'Offline Sync Queue, Batch Drain & Idempotency Replay (FR-13, FR-14)', 'FR-13', false, `Error: ${err.message}`);
   }
 
+  // Automatic teardown: Clean up all transient test campaigns so database stays clean
+  try {
+    await db.query(`
+      UPDATE campaigns SET current_version_id = NULL 
+      WHERE title LIKE 'T-%' 
+         OR title LIKE 'Camp %' 
+         OR title LIKE 'Manual %';
+      DELETE FROM campaigns 
+      WHERE title LIKE 'T-%' 
+         OR title LIKE 'Camp %' 
+         OR title LIKE 'Manual %';
+    `);
+  } catch (err) {
+    console.warn('[TEST TEARDOWN] Non-critical test cleanup warning:', err.message);
+  }
+
   console.log('\n========================================');
   const allPassed = results.every(r => r.passed);
   console.log(`TOTAL TESTS: ${results.length} | PASSED: ${results.filter(r => r.passed).length} | FAILED: ${results.filter(r => !r.passed).length}`);

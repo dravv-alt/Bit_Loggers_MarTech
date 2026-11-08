@@ -26,23 +26,10 @@ export async function generateEnterpriseSyntheticData(workflow, db, { force = tr
   }
 
   if (force) {
-    console.log('[SYNTHETIC DATA] Cleaning up existing demo/synthetic campaign flights to prevent schedule collisions...');
-    await db.query(`
-      DELETE FROM campaigns WHERE title IN (
-        'Cyber Week & Holiday Omnichannel Blitz 2026',
-        'Enterprise MarTech AI Platform Launch',
-        'VIP Loyalty Secret Vault Access',
-        'Weekend Flash Doorbuster Blitz',
-        'Creator Ambassador Seasonal Partnership',
-        'Crypto Cashback Loyalty Experiment',
-        'Q4 Festive Creator Blitz',
-        'High-Intent Holiday Search Surge',
-        'VIP Loyalty Early-Bird Pass',
-        'Omnichannel Cart Recovery Network',
-        'YouTube Prime Holiday Anthem',
-        'Weekend Flash Countdown Deals'
-      );
-    `);
+    console.log('[SYNTHETIC DATA] Performing clean purge of all prior demo/test campaigns...');
+    await db.query('UPDATE campaigns SET current_version_id = NULL');
+    await db.query('DELETE FROM campaigns');
+    await db.query("DELETE FROM kpi_metric_snapshots WHERE snapshot_id LIKE 'synth-%'");
   }
 
   const now = Date.now();
@@ -270,20 +257,6 @@ export async function generateEnterpriseSyntheticData(workflow, db, { force = tr
   });
 
   await workflow.submitCampaign(camp2.campaign_id, marketer, { idempotencyKey: `synth-submit-${camp2.campaign_id}` });
-  await workflow.makeDecision(camp2.campaign_id, reviewer1, {
-    versionId: camp2.current_version_id,
-    decision: 'APPROVED',
-    reason: 'Approved. Search keyword roster and negative keyword filters align with corporate B2B acquisition criteria.'
-  });
-
-  const camp2Start = new Date(now);
-  const camp2End = new Date(now + 10 * dayMs);
-  await workflow.scheduleCampaign(camp2.campaign_id, marketer, {
-    versionId: camp2.current_version_id,
-    channel: 'Search',
-    startsAt: camp2Start.toISOString(),
-    endsAt: camp2End.toISOString()
-  });
 
   // ------------------------------------------------------------------
   // 3. CAMPAIGN 3: VIP Loyalty Secret Vault Access (High CPA Watch)
@@ -492,6 +465,155 @@ export async function generateEnterpriseSyntheticData(workflow, db, { force = tr
   });
 
   // ------------------------------------------------------------------
+  // 7. CAMPAIGN 7: High-Intent Retargeting Wave
+  // Status: Submitted (Awaiting Review) | Social ($22,000)
+  // ------------------------------------------------------------------
+  console.log('[SYNTHETIC DATA] Generating Campaign 7: Retargeting Wave ($22,000 Submitted)...');
+  const camp7 = await workflow.createCampaign(marketer, {
+    title: 'High-Intent Retargeting Wave',
+    objective: 'Drive dynamic retargeting to abandoned cart shoppers with localized creative units and personalized checkout incentives.',
+    target_audience: 'Users who added items to cart in the past 72 hours without completing purchase (38,000 pixel tracked users).',
+    channel: 'Social',
+    budget: 22000.00,
+    kpi_projected: { conversionRate: 4.9, ctr: 5.5, roi: 5.0, cpa: 22.50, aov: 115.00 },
+    creatives: [
+      {
+        id: 'cr-retarget-01',
+        name: 'Saved Bag Reminder Carousel',
+        headline: 'Your Cart is Waiting — Enjoy Free Express Shipping',
+        primary_text: 'Complete your order within 24 hours to secure reserved inventory and complimentary priority fulfillment.',
+        cta_type: 'Complete Checkout',
+        preview_type: 'CAROUSEL_FEED'
+      }
+    ],
+    financials: {
+      total_budget: 22000.00,
+      daily_spend_cap: 1100.00,
+      spent_to_date: 0.00,
+      remaining_budget: 22000.00,
+      cost_center_code: 'CC-GL-PERF-RETARGET-2026'
+    }
+  });
+  await workflow.submitCampaign(camp7.campaign_id, marketer, { idempotencyKey: `synth-submit-${camp7.campaign_id}` });
+
+  // ------------------------------------------------------------------
+  // 8. CAMPAIGN 8: Black Friday Super Savings Pass
+  // Status: ChangesRequested | Display ($32,000)
+  // ------------------------------------------------------------------
+  console.log('[SYNTHETIC DATA] Generating Campaign 8: Black Friday Savings Pass ($32,000 Changes Requested)...');
+  const camp8 = await workflow.createCampaign(marketer, {
+    title: 'Black Friday Super Savings Pass',
+    objective: 'Promote an early-access holiday shopping pass guaranteed across programmatic display placements.',
+    target_audience: 'Broad international consumer audience with interest in tech accessories.',
+    channel: 'Display',
+    budget: 32000.00,
+    kpi_projected: { conversionRate: 3.9, ctr: 3.1, roi: 4.0, cpa: 31.00, aov: 125.00 }
+  });
+  await workflow.submitCampaign(camp8.campaign_id, marketer, { idempotencyKey: `synth-submit-${camp8.campaign_id}` });
+  await workflow.makeDecision(camp8.campaign_id, reviewer1, {
+    versionId: camp8.current_version_id,
+    decision: 'CHANGES_REQUESTED',
+    reason: 'The proposed international targeting lacks regional pricing disclaimers for EU VAT compliance. Please attach localized terms.'
+  });
+
+  // ------------------------------------------------------------------
+  // 9. CAMPAIGN 9: Q1 Global Brand Anthem
+  // Status: Draft | Video ($55,000)
+  // ------------------------------------------------------------------
+  console.log('[SYNTHETIC DATA] Generating Campaign 9: Q1 Global Brand Anthem ($55,000 Draft)...');
+  const camp9 = await workflow.createCampaign(marketer, {
+    title: 'Q1 Global Brand Anthem',
+    objective: 'Produce cinematic 60s and 30s anthem spots celebrating creator endurance stories for Q1 top-of-funnel brand awareness.',
+    target_audience: 'Broad digital video consumers aged 18-35 across YouTube and connected TV platforms.',
+    channel: 'Video',
+    budget: 55000.00,
+    kpi_projected: { conversionRate: 3.2, ctr: 3.8, roi: 4.1, cpa: 34.00, aov: 140.00 },
+    creatives: [
+      {
+        id: 'cr-video-01',
+        name: 'The Relentless Pursuit 60s Cut',
+        headline: 'Built for the Unbroken Journey',
+        primary_text: 'Discover the engineering philosophy that powers peak performance in every condition.',
+        cta_type: 'Watch Full Film',
+        preview_type: 'VIDEO_ANTHEM'
+      }
+    ],
+    financials: {
+      total_budget: 55000.00,
+      daily_spend_cap: 3500.00,
+      spent_to_date: 0.00,
+      remaining_budget: 55000.00,
+      cost_center_code: 'CC-GL-BRAND-MEDIA-2027'
+    }
+  });
+
+  // ------------------------------------------------------------------
+  // 10. CAMPAIGN 10: Affiliate Partner Spring Accelerator
+  // Status: Draft | Affiliate ($12,500)
+  // ------------------------------------------------------------------
+  console.log('[SYNTHETIC DATA] Generating Campaign 10: Affiliate Accelerator ($12,500 Draft)...');
+  const camp10 = await workflow.createCampaign(marketer, {
+    title: 'Affiliate Partner Spring Accelerator',
+    objective: 'Incentivize vetted affiliate blogs and review publications with elevated 18% tier commission rates for Spring product previews.',
+    target_audience: 'Affiliate publishers, coupon aggregators, and tech editorial review sites.',
+    channel: 'Affiliate',
+    budget: 12500.00,
+    kpi_projected: { conversionRate: 5.1, ctr: 4.6, roi: 5.4, cpa: 19.50, aov: 105.00 },
+    financials: {
+      total_budget: 12500.00,
+      daily_spend_cap: 800.00,
+      spent_to_date: 0.00,
+      remaining_budget: 12500.00,
+      cost_center_code: 'CC-GL-AFFILIATE-PARTNERS-2027'
+    }
+  });
+
+  // ------------------------------------------------------------------
+  // 11. CAMPAIGN 11: Summer Solar Eco Wave
+  // Status: Scheduled | Search ($25,000)
+  // ------------------------------------------------------------------
+  console.log('[SYNTHETIC DATA] Generating Campaign 11: Summer Solar Eco Wave ($25,000 Scheduled)...');
+  const camp11 = await workflow.createCampaign(marketer, {
+    title: 'Summer Solar Eco Wave',
+    objective: 'Drive commercial search intent adoption for clean outdoor solar charging systems and portable power storage.',
+    target_audience: 'High-intent searchers querying solar generators, portable power stations, and off-grid camping accessories.',
+    channel: 'Search',
+    budget: 25000.00,
+    kpi_projected: { conversionRate: 4.4, ctr: 5.1, roi: 4.5, cpa: 26.00, aov: 118.00 },
+    creatives: [
+      {
+        id: 'cr-solar-01',
+        name: 'Responsive Google Search Text Ad',
+        headline: 'Portable Solar Power Systems | Instant $50 Eco Rebate',
+        primary_text: 'Harness clean energy anywhere. Lightweight, rugged solar panels with rapid charge USB-C PD outputs.',
+        cta_type: 'Order With Free Shipping',
+        preview_type: 'SEARCH_TEXT_AD'
+      }
+    ],
+    financials: {
+      total_budget: 25000.00,
+      daily_spend_cap: 1800.00,
+      spent_to_date: 0.00,
+      remaining_budget: 25000.00,
+      cost_center_code: 'CC-GL-PERF-SEARCH-2026'
+    }
+  });
+  await workflow.submitCampaign(camp11.campaign_id, marketer, { idempotencyKey: `synth-submit-${camp11.campaign_id}` });
+  await workflow.makeDecision(camp11.campaign_id, reviewer1, {
+    versionId: camp11.current_version_id,
+    decision: 'APPROVED',
+    reason: 'Approved for early summer commercial search slot. High seasonal intent search queries backed by inventory reservation.'
+  });
+  const camp11Start = new Date(now + 4 * dayMs);
+  const camp11End = new Date(now + 11 * dayMs);
+  await workflow.scheduleCampaign(camp11.campaign_id, marketer, {
+    versionId: camp11.current_version_id,
+    channel: 'Search',
+    startsAt: camp11Start.toISOString(),
+    endsAt: camp11End.toISOString()
+  });
+
+  // ------------------------------------------------------------------
   // 7. SEED TIMESCALEDB HYPERTABLE: 30-DAY DAILY & 24-HOUR HOURLY TELEMETRY
   // Full conversion funnels: Impressions -> Clicks -> Visits -> Leads -> Purchases
   // ------------------------------------------------------------------
@@ -500,7 +622,8 @@ export async function generateEnterpriseSyntheticData(workflow, db, { force = tr
     { channel: 'Social', campId: camp1.campaign_id, baseImpr: 45000, convRate: 4.8, ctr: 5.4, roi: 4.9, cpa: 21.0, aov: 148.0 },
     { channel: 'Search', campId: camp2.campaign_id, baseImpr: 28000, convRate: 5.2, ctr: 6.8, roi: 6.2, cpa: 58.0, aov: 295.0 },
     { channel: 'Email', campId: camp3.campaign_id, baseImpr: 18000, convRate: 6.5, ctr: 7.9, roi: 5.5, cpa: 17.5, aov: 160.0 },
-    { channel: 'Display', campId: camp4.campaign_id, baseImpr: 65000, convRate: 2.1, ctr: 1.8, roi: 2.4, cpa: 38.0, aov: 82.0 }
+    { channel: 'Display', campId: camp4.campaign_id, baseImpr: 65000, convRate: 2.1, ctr: 1.8, roi: 2.4, cpa: 38.0, aov: 82.0 },
+    { channel: 'Video', campId: camp9.campaign_id, baseImpr: 36000, convRate: 3.2, ctr: 3.8, roi: 4.1, cpa: 34.0, aov: 140.0 }
   ];
 
   for (let dayOffset = 30; dayOffset >= 0; dayOffset--) {
@@ -591,8 +714,8 @@ export async function generateEnterpriseSyntheticData(workflow, db, { force = tr
 
   console.log('✅ [SYNTHETIC DATA] Enterprise MarTech synthetic data generation complete!');
   return {
-    campaignCount: 6,
-    activeCampaigns: [camp1.campaign_id, camp2.campaign_id, camp3.campaign_id],
+    campaignCount: 11,
+    activeCampaigns: [camp1.campaign_id, camp3.campaign_id, camp11.campaign_id],
     success: true
   };
 }

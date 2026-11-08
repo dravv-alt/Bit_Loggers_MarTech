@@ -514,100 +514,11 @@ export async function createApp() {
 }
 
 export async function seedDemoCampaigns(workflow, db) {
-  const marketer = await workflow.getUser('usr-marketer-1');
-  const reviewer = await workflow.getUser('usr-reviewer-1');
-  const complianceReviewer = await workflow.getUser('usr-reviewer-2');
-
   const countRes = await db.query('SELECT COUNT(*) as count FROM campaigns');
   if (parseInt(countRes.rows[0].count, 10) > 0) return;
 
-  console.log('[DATABASE] Seeding initial demo campaigns into PostgreSQL + TimescaleDB...');
-
-  // 1. Summer Surge 2026 (Scheduled)
-  const c1 = await workflow.createCampaign(marketer, {
-    title: 'Summer Solar Flash Sale',
-    objective: 'Drive summer consumer adoption for eco-friendly home solar accessories.',
-    target_audience: 'Homeowners aged 30-55 with interest in sustainability and renewable energy.',
-    channel: 'Social',
-    budget: 18500,
-    kpi_projected: { conversionRate: 4.2, ctr: 4.8, roi: 4.6, cpa: 21.50, aov: 145.00 },
-    ai_summary: 'Targeted Instagram & TikTok Reels campaign with high expected summer conversion.'
-  });
-  await workflow.submitCampaign(c1.campaign_id, marketer, { idempotencyKey: 'seed-key-1' });
-  await workflow.makeDecision(c1.campaign_id, reviewer, {
-    versionId: c1.current_version_id,
-    decision: 'APPROVED',
-    reason: 'Audience alignment is solid, budget is within Q2 limits, and projected ROI of 4.6x is well backed.'
-  });
-  const now = new Date();
-  const nextWeek = new Date(now.getTime() + 7 * 86400000);
-  await workflow.scheduleCampaign(c1.campaign_id, marketer, {
-    versionId: c1.current_version_id,
-    startsAt: now.toISOString(),
-    endsAt: nextWeek.toISOString(),
-    channel: 'Social'
-  });
-
-  // 2. Black Friday Alpha (Changes Requested -> Revised)
-  const c2 = await workflow.createCampaign(marketer, {
-    title: 'Black Friday Super Savings Pass',
-    objective: 'Pre-launch exclusive membership pass for holiday buyers.',
-    target_audience: 'Broad international consumer audience.',
-    channel: 'Email',
-    budget: 35000,
-    kpi_projected: { conversionRate: 3.1, ctr: 3.5, roi: 3.2, cpa: 34.00, aov: 85.00 },
-    ai_summary: 'Broad newsletter blitz across entire subscriber list.'
-  });
-  await workflow.submitCampaign(c2.campaign_id, marketer, { idempotencyKey: 'seed-key-2' });
-  await workflow.makeDecision(c2.campaign_id, reviewer, {
-    versionId: c2.current_version_id,
-    decision: 'CHANGES_REQUESTED',
-    reason: 'The proposed audience is too broad for the selected marketing channel. Narrow the audience to VIP segments and justify the $35,000 budget.'
-  });
-  // Marketer revises to Version 2
-  await workflow.updateCampaign(c2.campaign_id, marketer, {
-    target_audience: 'VIP tier past buyers with >$100 lifetime spend and loyalty engagement.',
-    budget: 22000,
-    kpi_projected: { conversionRate: 5.6, ctr: 6.2, roi: 5.1, cpa: 17.50, aov: 115.00 }
-  });
-
-  // 3. AI Copilot Launch (Submitted - Awaiting Review)
-  const c3 = await workflow.createCampaign(marketer, {
-    title: 'Enterprise AI Assistant Rollout',
-    objective: 'Drive enterprise B2B inbound demos for workflow intelligence.',
-    target_audience: 'VP Marketing, CMOs, and Marketing Ops directors at Mid-Market tech companies.',
-    channel: 'Search',
-    budget: 28000,
-    kpi_projected: { conversionRate: 4.8, ctr: 6.5, roi: 5.5, cpa: 42.00, aov: 240.00 },
-    ai_summary: 'High-intent search keyword campaign targeting corporate marketing leaders.'
-  });
-  await workflow.submitCampaign(c3.campaign_id, marketer, { idempotencyKey: 'seed-key-3' });
-
-  // 4. Crypto Rewards Pilot (Rejected)
-  const c4 = await workflow.createCampaign(marketer, {
-    title: 'Crypto Cashback Loyalty Boost',
-    objective: 'Incentivize checkout using digital token cashback.',
-    target_audience: 'Retail shoppers looking for speculative rewards.',
-    channel: 'Display',
-    budget: 15000,
-    kpi_projected: { conversionRate: 1.5, ctr: 1.2, roi: 1.8, cpa: 55.00, aov: 60.00 },
-    ai_summary: 'Display ad network blitz with crypto rebate hooks.'
-  });
-  await workflow.submitCampaign(c4.campaign_id, marketer, { idempotencyKey: 'seed-key-4' });
-  await workflow.makeDecision(c4.campaign_id, complianceReviewer, {
-    versionId: c4.current_version_id,
-    decision: 'REJECTED',
-    reason: 'Rejected because crypto cashback incentive violates organizational advertising standards and carries regulatory ambiguity in primary target regions.'
-  });
-
-  // Add discussions
-  await workflow.postDiscussionMessage(c2.campaign_id, reviewer, {
-    content: 'Please make sure to link the revised VIP cohort breakdown in your next submission.'
-  });
-  await workflow.postDiscussionMessage(c2.campaign_id, marketer, {
-    content: 'Updated! Cohort narrowed to top 15% spenders with trimmed budget of $22,000.'
-  });
-
+  console.log('[DATABASE] Seeding initial enterprise campaigns into PostgreSQL + TimescaleDB...');
+  await generateEnterpriseSyntheticData(workflow, db, { force: false });
   console.log('✅ [DATABASE] Seeding complete.');
 }
 

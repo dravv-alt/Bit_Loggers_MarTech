@@ -376,6 +376,24 @@ export async function runInteractiveTour() {
     step(11, 'Cryptographic Audit Trail (TimescaleDB Hypertable)', 'FAILED', err.message);
   }
 
+  // Automatic teardown: Clean up tour-created test campaigns
+  try {
+    await db.query(`
+      UPDATE campaigns SET current_version_id = NULL 
+      WHERE title LIKE 'Spring Audio%' 
+         OR title LIKE 'T-%' 
+         OR title LIKE 'Double Booking%' 
+         OR title LIKE 'Outbox Provider%';
+      DELETE FROM campaigns 
+      WHERE title LIKE 'Spring Audio%' 
+         OR title LIKE 'T-%' 
+         OR title LIKE 'Double Booking%' 
+         OR title LIKE 'Outbox Provider%';
+    `);
+  } catch (err) {
+    console.warn('[TOUR TEARDOWN] Non-critical cleanup warning:', err.message);
+  }
+
   console.log('\n===============================================================');
   const allSuccessful = tourLog.every(t => t.status === 'SUCCESS');
   const passCount = tourLog.filter(t => t.status === 'SUCCESS').length;
