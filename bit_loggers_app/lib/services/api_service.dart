@@ -576,6 +576,39 @@ class ApiService {
   }
 
   // --- Transactional Outbox (FR-14, ADR-004) ---
+  bool _mockEmailFailing = false;
+  late final List<OutboxEventItem> _mockOutboxEvents = [
+    OutboxEventItem(
+      eventId: 'evt-outbox-mock-1',
+      eventType: 'CAMPAIGN_SUBMITTED_EMAIL',
+      payload: {'recipient': 'marcus.reviewer@bitloggers.com', 'subject': 'Campaign V3 Needs Review'},
+      status: 'PROCESSED',
+      attempts: 1,
+      maxAttempts: 5,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 12)).toIso8601String(),
+      processedAt: DateTime.now().subtract(const Duration(minutes: 11)).toIso8601String(),
+    ),
+    OutboxEventItem(
+      eventId: 'evt-outbox-mock-2',
+      eventType: 'CAMPAIGN_DECISION_EMAIL',
+      payload: {'recipient': 'alice.marketer@bitloggers.com', 'subject': 'Decision: APPROVED'},
+      status: 'PROCESSED',
+      attempts: 1,
+      maxAttempts: 5,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
+      processedAt: DateTime.now().subtract(const Duration(minutes: 4)).toIso8601String(),
+    ),
+    OutboxEventItem(
+      eventId: 'evt-outbox-mock-3',
+      eventType: 'ANALYTICS_DATA_SYNC',
+      payload: {'metric': 'roi', 'campaign_id': 'camp-01'},
+      status: 'PENDING',
+      attempts: 0,
+      maxAttempts: 5,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 1)).toIso8601String(),
+    ),
+  ];
+
   Future<Map<String, dynamic>> getOutbox() async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/api/outbox'), headers: _headers());
@@ -593,47 +626,20 @@ class ApiService {
       }
     } catch (_) {}
 
-    // Fallback mock outbox data for offline presentation
+    // Fallback dynamic stateful mock outbox data for offline presentation
+    final pendingCount = _mockOutboxEvents.where((e) => e.status == 'PENDING').length;
+    final processedCount = _mockOutboxEvents.where((e) => e.status == 'PROCESSED').length;
+    final failedCount = _mockOutboxEvents.where((e) => e.status == 'FAILED').length;
     return {
-      'events': [
-        OutboxEventItem(
-          eventId: 'evt-outbox-mock-1',
-          eventType: 'CAMPAIGN_SUBMITTED_EMAIL',
-          payload: {'recipient': 'marcus.reviewer@bitloggers.com', 'subject': 'Campaign V3 Needs Review'},
-          status: 'PROCESSED',
-          attempts: 1,
-          maxAttempts: 5,
-          createdAt: DateTime.now().subtract(const Duration(minutes: 12)).toIso8601String(),
-          processedAt: DateTime.now().subtract(const Duration(minutes: 11)).toIso8601String(),
-        ),
-        OutboxEventItem(
-          eventId: 'evt-outbox-mock-2',
-          eventType: 'CAMPAIGN_DECISION_EMAIL',
-          payload: {'recipient': 'alice.marketer@bitloggers.com', 'subject': 'Decision: APPROVED'},
-          status: 'PROCESSED',
-          attempts: 1,
-          maxAttempts: 5,
-          createdAt: DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
-          processedAt: DateTime.now().subtract(const Duration(minutes: 4)).toIso8601String(),
-        ),
-        OutboxEventItem(
-          eventId: 'evt-outbox-mock-3',
-          eventType: 'ANALYTICS_DATA_SYNC',
-          payload: {'metric': 'roi', 'campaign_id': 'camp-01'},
-          status: 'PENDING',
-          attempts: 0,
-          maxAttempts: 5,
-          createdAt: DateTime.now().subtract(const Duration(minutes: 1)).toIso8601String(),
-        ),
-      ],
+      'events': List<OutboxEventItem>.from(_mockOutboxEvents),
       'stats': OutboxStats(
-        pending: 1,
-        processed: 2,
-        failed: 0,
-        total: 3,
-        isEmailServiceFailing: false,
+        pending: pendingCount,
+        processed: processedCount,
+        failed: failedCount,
+        total: _mockOutboxEvents.length,
+        isEmailServiceFailing: _mockEmailFailing,
       ),
-      'isEmailServiceFailing': false,
+      'isEmailServiceFailing': _mockEmailFailing,
     };
   }
 
@@ -645,7 +651,41 @@ class ApiService {
         return data['processed'] ?? [];
       }
     } catch (_) {}
-    return [];
+
+    // Fallback dynamic mock worker processing
+    final processedList = <dynamic>[];
+    for (int i = 0; i < _mockOutboxEvents.length; i++) {
+      final evt = _mockOutboxEvents[i];
+      if (evt.status == 'PENDING' || evt.status == 'FAILED') {
+        if (_mockEmailFailing) {
+          final nextAttempts = evt.attempts + 1;
+          _mockOutboxEvents[i] = OutboxEventItem(
+            eventId: evt.eventId,
+            eventType: evt.eventType,
+            payload: evt.payload,
+            status: 'FAILED',
+            attempts: nextAttempts,
+            maxAttempts: evt.maxAttempts,
+            createdAt: evt.createdAt,
+            errorLog: 'EmailProviderGatewayTimeout: MockSMTP unreachable (504)',
+          );
+          processedList.add({'event_id': evt.eventId, 'status': 'FAILED'});
+        } else {
+          _mockOutboxEvents[i] = OutboxEventItem(
+            eventId: evt.eventId,
+            eventType: evt.eventType,
+            payload: evt.payload,
+            status: 'PROCESSED',
+            attempts: evt.attempts == 0 ? 1 : evt.attempts,
+            maxAttempts: evt.maxAttempts,
+            createdAt: evt.createdAt,
+            processedAt: DateTime.now().toIso8601String(),
+          );
+          processedList.add({'event_id': evt.eventId, 'status': 'PROCESSED'});
+        }
+      }
+    }
+    return processedList;
   }
 
   Future<bool> toggleEmailFailure({bool? failing}) async {
@@ -657,10 +697,13 @@ class ApiService {
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        return data['isEmailServiceFailing'] == true;
+        final state = data['isEmailServiceFailing'] == true;
+        _mockEmailFailing = state;
+        return state;
       }
     } catch (_) {}
-    return false;
+    _mockEmailFailing = failing ?? !_mockEmailFailing;
+    return _mockEmailFailing;
   }
 
   Future<bool> createTestOutboxEvent() async {
@@ -669,9 +712,26 @@ class ApiService {
         Uri.parse('$baseUrl/api/outbox/test-event'),
         headers: _headers(),
       );
-      return res.statusCode == 200;
+      if (res.statusCode == 200) return true;
     } catch (_) {}
-    return false;
+
+    // Fallback dynamic mock test event injection
+    final id = 'evt-test-${DateTime.now().millisecondsSinceEpoch % 10000}';
+    final newEvt = OutboxEventItem(
+      eventId: id,
+      eventType: 'TEST_NOTIFICATION_EMAIL',
+      payload: {
+        'recipients': [currentUser.id],
+        'title': 'Manual Outbox Test Notification',
+        'message': 'Testing transactional outbox notification delivery and retry resilience.',
+      },
+      status: 'PENDING',
+      attempts: 0,
+      maxAttempts: 5,
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    _mockOutboxEvents.insert(0, newEvt);
+    return true;
   }
 
   // Fallback initial demo campaigns

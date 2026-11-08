@@ -115,11 +115,13 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(
-              'Outbox worker processed ${processed.length} pending events.',
+              _isEmailFailing
+                  ? 'Worker ran with outage injected: ${_outboxStats.failed} event(s) recorded as FAILED (EmailProviderGatewayTimeout).'
+                  : 'Worker ran: ${processed.length} event(s) dispatched successfully to recipients.',
               style: const TextStyle(color: AppTheme.textInverse),
             ),
-            backgroundColor: AppTheme.forge,
-            duration: const Duration(seconds: 2),
+            backgroundColor: _isEmailFailing ? AppTheme.statusRejected : AppTheme.forge,
+            duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -142,15 +144,16 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     final updated = await widget.api.toggleEmailFailure(failing: value);
     if (mounted) {
       setState(() => _isEmailFailing = updated);
+      await _fetchOutbox();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             updated
-                ? 'Email Provider Failure injected (worker will encounter retry backoff)'
-                : 'Email Provider restored to healthy state',
+                ? 'Email Provider Outage injected (worker will encounter retry backoff)'
+                : 'Email Provider restored to healthy state (worker ready to dispatch)',
             style: const TextStyle(color: AppTheme.textInverse),
           ),
-          backgroundColor: updated ? AppTheme.statusChanges : AppTheme.forge,
+          backgroundColor: updated ? AppTheme.statusRejected : AppTheme.forge,
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -168,8 +171,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         SnackBar(
           content: Text(
             _isEmailFailing
-                ? 'Queued test notification. With email failure injected, worker will encounter retry backoff!'
-                : 'Queued test notification. Outbox worker will dispatch successfully.',
+                ? 'Queued test notification (Pending: ${_outboxStats.pending}). With outage injected, worker will record failure.'
+                : 'Queued test notification (Pending: ${_outboxStats.pending}). Outbox worker will dispatch successfully.',
             style: const TextStyle(color: AppTheme.textInverse),
           ),
           backgroundColor: _isEmailFailing ? AppTheme.statusChanges : AppTheme.forge,

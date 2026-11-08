@@ -51,14 +51,22 @@ export class OutboxService {
   }
 
   // Poll and process due outbox events asynchronously
-  async processPendingEvents() {
+  async processPendingEvents(options = {}) {
     try {
-      const dueQuery = `
-        SELECT * FROM outbox_events
-        WHERE status IN ('PENDING', 'FAILED') AND next_retry_at <= NOW()
-        ORDER BY created_at ASC
-        LIMIT 20
-      `;
+      const force = options.force === true;
+      const dueQuery = force
+        ? `
+          SELECT * FROM outbox_events
+          WHERE status IN ('PENDING', 'FAILED')
+          ORDER BY created_at ASC
+          LIMIT 20
+        `
+        : `
+          SELECT * FROM outbox_events
+          WHERE status IN ('PENDING', 'FAILED') AND next_retry_at <= NOW()
+          ORDER BY created_at ASC
+          LIMIT 20
+        `;
       const res = await this.db.query(dueQuery);
       const events = res.rows;
       if (events.length === 0) return [];
@@ -141,7 +149,8 @@ export class OutboxService {
             message: `Notification delivery failed for event ${evt.event_id}. Attempt ${nextAttempts}/${this.maxAttempts}. Error: ${failureReason}. Retry scheduled in ${backoffSeconds}s`
           });
 
-          const newStatus = nextAttempts >= this.maxAttempts ? 'FAILED' : 'PENDING';
+          // If email outage is injected or max attempts reached, transition to FAILED for immediate operator visibility
+          const newStatus = (this.emailService.failing || nextAttempts >= this.maxAttempts) ? 'FAILED' : 'PENDING';
           await this.db.query(
             `UPDATE outbox_events
              SET status = $1, attempts = $2, error_log = $3, next_retry_at = NOW() + ($4 || ' seconds')::INTERVAL

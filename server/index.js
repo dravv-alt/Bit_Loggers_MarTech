@@ -283,7 +283,8 @@ export async function createApp() {
       SELECT 
         COUNT(*) FILTER (WHERE status = 'PENDING') AS pending,
         COUNT(*) FILTER (WHERE status = 'PROCESSED') AS processed,
-        COUNT(*) FILTER (WHERE status = 'FAILED') AS failed
+        COUNT(*) FILTER (WHERE status = 'FAILED') AS failed,
+        COUNT(*) AS total
       FROM outbox_events
     `);
     res.json({
@@ -292,13 +293,14 @@ export async function createApp() {
         pending: Number(statsRes.rows[0]?.pending || 0),
         processed: Number(statsRes.rows[0]?.processed || 0),
         failed: Number(statsRes.rows[0]?.failed || 0),
+        total: Number(statsRes.rows[0]?.total || 0),
       },
       isEmailServiceFailing: outbox.isEmailServiceFailing
     });
   });
 
   app.post('/api/outbox/process', async (req, res) => {
-    const results = await outbox.processPendingEvents();
+    const results = await outbox.processPendingEvents({ force: true });
     res.json({ processed: results });
   });
 
@@ -310,16 +312,17 @@ export async function createApp() {
 
   app.post('/api/outbox/test-event', async (req, res) => {
     const eventId = 'outbox-' + crypto.randomUUID().slice(0, 8);
+    const userId = req.user?.id || 'usr-marketer-1';
     const payload = {
-      recipients: [req.user.id],
+      recipients: [userId],
       campaign_id: null,
       title: 'Manual Outbox Test Notification',
       message: 'Testing transactional outbox notification delivery and retry resilience.',
-      correlation_id: req.correlationId
+      correlation_id: req.correlationId || ('c-' + crypto.randomUUID().slice(0, 8))
     };
     await db.query(
-      `INSERT INTO outbox_events (event_id, event_type, payload, status, created_at)
-       VALUES ($1, 'TEST_NOTIFICATION_EMAIL', $2, 'PENDING', NOW())`,
+      `INSERT INTO outbox_events (event_id, event_type, payload, status, created_at, next_retry_at)
+       VALUES ($1, 'TEST_NOTIFICATION_EMAIL', $2, 'PENDING', NOW(), NOW())`,
       [eventId, JSON.stringify(payload)]
     );
     res.json({ success: true, event_id: eventId });
