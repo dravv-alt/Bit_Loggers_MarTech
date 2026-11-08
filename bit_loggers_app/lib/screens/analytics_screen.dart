@@ -738,7 +738,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // 5 MANDATORY KPIS DISPLAY (SECTION 1.3 / FR-09)
+  // 5 MANDATORY KPIS DISPLAY (SECTION 1.3 / FR-09) — BENTO GRID TELEMETRY
   // ---------------------------------------------------------------------------
   Widget _buildKpiSection(Map<String, dynamic> kpis) {
     return Column(
@@ -752,7 +752,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           children: [
             const Text(
               '5 MANDATORY METRICS (PROJECTED VS ACTUAL)',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.1),
             ),
             Text(
               'Tap card to inspect telemetry',
@@ -761,156 +761,406 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        _kpiInteractiveCard('roi', kpis['roi']),
-        _kpiInteractiveCard('conversionRate', kpis['conversionRate']),
-        _kpiInteractiveCard('ctr', kpis['ctr']),
-        _kpiInteractiveCard('cpa', kpis['cpa']),
-        _kpiInteractiveCard('aov', kpis['aov']),
+
+        // Hero Tile for Cost Per Acquisition (with spend wave burn bar and 75% red needle)
+        _buildBentoHeroTile(kpis['cpa']),
+        const SizedBox(height: 10),
+
+        // 2x2 Bento Matrix for the other 4 metrics (ROI, Conv Rate, CTR, AOV)
+        _buildBentoKpiGrid(kpis),
+        const SizedBox(height: 14),
+
+        // Conversion Funnel Bento Card (4.9M Volume Rollup)
+        _buildConversionFunnelCard(),
       ],
     );
   }
 
-  Widget _kpiInteractiveCard(String metricKey, Map<String, dynamic>? data) {
+  Widget _buildBentoHeroTile(Map<String, dynamic>? cpaData) {
+    final info = _metrics['cpa']!;
+    final proj = (cpaData?['projected'] as num?)?.toDouble() ?? 24.5;
+    final act = (cpaData?['actual'] as num?)?.toDouble() ?? 21.0;
+    final diff = proj > 0 ? (((act - proj) / proj) * 100) : 0.0;
+    final isSelected = _selectedMetric == 'cpa';
+
+    return InkWell(
+      onTap: () => setState(() => _selectedMetric = 'cpa'),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.leaf,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppTheme.forge : AppTheme.borderSage,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          info.title, // 'Cost Per Acquisition'
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? AppTheme.forge : AppTheme.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isSelected) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppTheme.forge,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('ACTIVE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE6F4EA),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}% vs target',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF137333),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  info.formatValue(act),
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                    color: AppTheme.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Target: ${info.formatValue(proj)}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Spend wave burn bar with red needle at 75% ceiling
+            const Text(
+              'SPEND WAVE PACING · 75% BUDGET CEILING',
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.1,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 18,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  // Track background
+                  Container(
+                    height: 8,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppTheme.paper,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: AppTheme.borderSage, width: 0.5),
+                    ),
+                  ),
+                  // Filled progress (62% burn)
+                  FractionallySizedBox(
+                    widthFactor: 0.62,
+                    child: Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: AppTheme.forge,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  // Red needle at 75% ceiling
+                  Align(
+                    alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
+                    child: Container(
+                      width: 2,
+                      height: 18,
+                      color: const Color(0xFFB9301D),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Current flight: 62% burned',
+                    style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Ceiling: 75%',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFB9301D)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBentoKpiGrid(Map<String, dynamic> kpis) {
+    final keys = ['roi', 'conversionRate', 'ctr', 'aov'];
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: _buildBentoMetricCell(keys[0], kpis[keys[0]])),
+            const SizedBox(width: 8),
+            Expanded(child: _buildBentoMetricCell(keys[1], kpis[keys[1]])),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(child: _buildBentoMetricCell(keys[2], kpis[keys[2]])),
+            const SizedBox(width: 8),
+            Expanded(child: _buildBentoMetricCell(keys[3], kpis[keys[3]])),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBentoMetricCell(String metricKey, Map<String, dynamic>? data) {
     final info = _metrics[metricKey]!;
     final isSelected = _selectedMetric == metricKey;
-
     final proj = (data?['projected'] as num?)?.toDouble() ?? 0.0;
     final act = (data?['actual'] as num?)?.toDouble() ?? 0.0;
     final diff = proj > 0 ? (((act - proj) / proj) * 100) : 0.0;
     final isFavorable = info.isLowerBetter ? diff <= 0 : diff >= 0;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppTheme.paper : AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isSelected ? AppTheme.forge : AppTheme.borderSage,
-          width: isSelected ? 1.5 : 1.0,
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedMetric = metricKey;
+          _hoveredIndex = null;
+        });
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.paper : AppTheme.leaf,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppTheme.forge : AppTheme.borderSage,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    info.title, // 'Return on Investment', 'Conversion Rate', etc.
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? AppTheme.forge : AppTheme.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (isSelected) ...[
+                  const SizedBox(width: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: AppTheme.forge,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('ACTIVE', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              info.formatValue(act),
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
+                color: isSelected ? AppTheme.forge : AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Tgt: ${info.formatValue(proj)}',
+                  style: const TextStyle(fontSize: 9, color: AppTheme.textSecondary),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: isFavorable ? const Color(0xFFE6F4EA) : const Color(0xFFFDE8E4),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(
+                    '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: isFavorable ? const Color(0xFF137333) : const Color(0xFF9C3A27),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () {
-            setState(() {
-              _selectedMetric = metricKey;
-              _hoveredIndex = null;
-            });
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Metric Name & Actual Value
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _buildConversionFunnelCard() {
+    final stages = [
+      {'name': 'Impressions', 'volume': '4.9M', 'pct': '100%', 'bar': 1.0},
+      {'name': 'Clicks', 'volume': '245.0K', 'pct': '5.0%', 'bar': 0.72},
+      {'name': 'Leads / Adds', 'volume': '49.0K', 'pct': '20.0%', 'bar': 0.45},
+      {'name': 'Purchases', 'volume': '18.6K', 'pct': '3.8%', 'bar': 0.28},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'CONVERSION FUNNEL (4.9M VOLUME)',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.12,
+                    color: AppTheme.textSecondary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'TimescaleDB rollup',
+                style: TextStyle(fontSize: 9, color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...stages.map((st) {
+            final barVal = st['bar'] as double;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              info.title,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: isSelected ? AppTheme.forge : AppTheme.textSecondary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isSelected) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: AppTheme.forge,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text('ACTIVE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
-                            ),
-                          ],
-                        ],
+                      Expanded(
+                        child: Text(
+                          st['name'] as String,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8,
-                        runSpacing: 4,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            info.formatValue(act),
-                            style: TextStyle(
-                              fontSize: 20,
+                            st['volume'] as String,
+                            style: const TextStyle(
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? AppTheme.forge : AppTheme.textPrimary,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                              fontFamily: 'monospace',
+                              color: AppTheme.textPrimary,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: isFavorable ? AppTheme.verdictLime : AppTheme.statusRejected.withOpacity(0.18),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: isFavorable ? AppTheme.forge : AppTheme.statusRejected,
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isFavorable ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                                  size: 10,
-                                  color: isFavorable ? AppTheme.forge : AppTheme.statusRejected,
-                                ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}%',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: isFavorable ? AppTheme.forge : AppTheme.statusRejected,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '(${st['pct']})',
+                            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 8),
-
-                // Target Projected Value Column
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text(
-                      'TARGET PROJECTED',
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+                  const SizedBox(height: 3),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: barVal,
+                      minHeight: 4,
+                      backgroundColor: AppTheme.paper,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.forge),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      info.formatValue(proj),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
