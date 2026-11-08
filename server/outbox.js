@@ -103,6 +103,7 @@ export class OutboxService {
              WHERE event_id = $5`,
             [newStatus, nextAttempts, failureReason, backoffSeconds.toString(), evt.event_id]
           );
+          results.push({ event_id: evt.event_id, status: newStatus, error: failureReason, attempts: nextAttempts });
         }
       }
 

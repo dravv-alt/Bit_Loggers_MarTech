@@ -151,8 +151,8 @@ export class WorkflowService {
       // 2. Insert Initial Version Snapshot (Immutable)
       await client.query(
         `INSERT INTO campaign_versions 
-         (version_id, campaign_id, version_no, title, objective, target_audience, channel, budget, kpi_projected, ai_summary, created_by, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+         (version_id, campaign_id, version_no, title, objective, target_audience, channel, budget, kpi_projected, ai_summary, creatives, targeting, financials, compliance, ad_network, flight_phases, tracking, created_by, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
         [
           versionId,
           campaignId,
@@ -164,6 +164,13 @@ export class WorkflowService {
           data.budget || 10000.0,
           JSON.stringify(kpiProjected),
           data.ai_summary || null,
+          JSON.stringify(data.creatives || []),
+          JSON.stringify(data.targeting || {}),
+          JSON.stringify(data.financials || {}),
+          JSON.stringify(data.compliance || {}),
+          JSON.stringify(data.ad_network || {}),
+          JSON.stringify(data.flight_phases || []),
+          JSON.stringify(data.tracking || {}),
           user.id,
           now
         ]
@@ -282,12 +289,20 @@ export class WorkflowService {
     const kpiProjected = data.kpi_projected || (curVer?.kpi_projected ? (typeof curVer.kpi_projected === 'string' ? JSON.parse(curVer.kpi_projected) : curVer.kpi_projected) : { conversionRate: 3.5, ctr: 4.2, roi: 3.8, cpa: 25.0, aov: 95.0 });
     const aiSummary = data.ai_summary !== undefined ? data.ai_summary : curVer?.ai_summary;
 
+    const curCreatives = data.creatives || curVer?.creatives || [];
+    const curTargeting = data.targeting || curVer?.targeting || {};
+    const curFinancials = data.financials || curVer?.financials || {};
+    const curCompliance = data.compliance || curVer?.compliance || {};
+    const curAdNetwork = data.ad_network || curVer?.ad_network || {};
+    const curFlightPhases = data.flight_phases || curVer?.flight_phases || [];
+    const curTracking = data.tracking || curVer?.tracking || {};
+
     return await this.db.withTransaction(async (client) => {
       // 1. Insert New Immutable Version Snapshot
       await client.query(
         `INSERT INTO campaign_versions 
-         (version_id, campaign_id, version_no, title, objective, target_audience, channel, budget, kpi_projected, ai_summary, created_by, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+         (version_id, campaign_id, version_no, title, objective, target_audience, channel, budget, kpi_projected, ai_summary, creatives, targeting, financials, compliance, ad_network, flight_phases, tracking, created_by, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
         [
           newVersionId,
           campaignId,
@@ -299,6 +314,13 @@ export class WorkflowService {
           budget,
           JSON.stringify(kpiProjected),
           aiSummary,
+          JSON.stringify(typeof curCreatives === 'string' ? JSON.parse(curCreatives) : curCreatives),
+          JSON.stringify(typeof curTargeting === 'string' ? JSON.parse(curTargeting) : curTargeting),
+          JSON.stringify(typeof curFinancials === 'string' ? JSON.parse(curFinancials) : curFinancials),
+          JSON.stringify(typeof curCompliance === 'string' ? JSON.parse(curCompliance) : curCompliance),
+          JSON.stringify(typeof curAdNetwork === 'string' ? JSON.parse(curAdNetwork) : curAdNetwork),
+          JSON.stringify(typeof curFlightPhases === 'string' ? JSON.parse(curFlightPhases) : curFlightPhases),
+          JSON.stringify(typeof curTracking === 'string' ? JSON.parse(curTracking) : curTracking),
           user.id,
           now
         ]
@@ -856,6 +878,14 @@ export class WorkflowService {
     });
   }
 
+  parseJsonField(val, fallback) {
+    if (!val) return fallback;
+    if (typeof val === 'string') {
+      try { return JSON.parse(val); } catch (_) { return fallback; }
+    }
+    return val;
+  }
+
   // --- Campaign Details & Queries ---
   async getCampaignDetails(campaignId) {
     const campaignRes = await this.db.query(
@@ -874,13 +904,6 @@ export class WorkflowService {
     );
     const curVer = curVerRes.rows[0] || null;
 
-    if (curVer && typeof curVer.kpi_projected === 'string') {
-      try { curVer.kpi_projected = JSON.parse(curVer.kpi_projected); } catch (_) {}
-    }
-    if (curVer && typeof curVer.kpi_actual === 'string') {
-      try { curVer.kpi_actual = JSON.parse(curVer.kpi_actual); } catch (_) {}
-    }
-
     const versionsRes = await this.db.query(
       `SELECT v.*, d.decision_type, d.reason as decision_reason, d.created_at as decided_at, u.name as reviewer_name
        FROM campaign_versions v
@@ -898,11 +921,29 @@ export class WorkflowService {
 
     return {
       ...campaign,
-      currentVersion: curVer,
+      currentVersion: curVer ? {
+        ...curVer,
+        kpi_projected: this.parseJsonField(curVer.kpi_projected, {}),
+        kpi_actual: this.parseJsonField(curVer.kpi_actual, null),
+        creatives: this.parseJsonField(curVer.creatives, []),
+        targeting: this.parseJsonField(curVer.targeting, {}),
+        financials: this.parseJsonField(curVer.financials, {}),
+        compliance: this.parseJsonField(curVer.compliance, {}),
+        ad_network: this.parseJsonField(curVer.ad_network, {}),
+        flight_phases: this.parseJsonField(curVer.flight_phases, []),
+        tracking: this.parseJsonField(curVer.tracking, {})
+      } : null,
       versions: versionsRes.rows.map(v => ({
         ...v,
-        kpi_projected: typeof v.kpi_projected === 'string' ? JSON.parse(v.kpi_projected) : v.kpi_projected,
-        kpi_actual: v.kpi_actual && typeof v.kpi_actual === 'string' ? JSON.parse(v.kpi_actual) : v.kpi_actual
+        kpi_projected: this.parseJsonField(v.kpi_projected, {}),
+        kpi_actual: this.parseJsonField(v.kpi_actual, null),
+        creatives: this.parseJsonField(v.creatives, []),
+        targeting: this.parseJsonField(v.targeting, {}),
+        financials: this.parseJsonField(v.financials, {}),
+        compliance: this.parseJsonField(v.compliance, {}),
+        ad_network: this.parseJsonField(v.ad_network, {}),
+        flight_phases: this.parseJsonField(v.flight_phases, []),
+        tracking: this.parseJsonField(v.tracking, {})
       })),
       schedule: scheduleRes.rows[0] || null
     };
@@ -910,7 +951,8 @@ export class WorkflowService {
 
   async listCampaigns({ status, channel, owner_id } = {}) {
     let sql = `
-      SELECT c.*, u.name as owner_name, v.version_no, v.channel, v.budget, v.objective, v.target_audience, v.kpi_projected
+      SELECT c.*, u.name as owner_name, v.version_no, v.channel, v.budget, v.objective, v.target_audience, v.kpi_projected,
+             v.financials, v.compliance, v.ad_network, v.creatives, v.flight_phases
       FROM campaigns c
       JOIN users u ON c.owner_id = u.user_id
       LEFT JOIN campaign_versions v ON c.current_version_id = v.version_id
@@ -955,7 +997,12 @@ export class WorkflowService {
         budget: Number(row.budget),
         objective: row.objective,
         target_audience: row.target_audience,
-        kpi_projected: typeof row.kpi_projected === 'string' ? JSON.parse(row.kpi_projected) : row.kpi_projected
+        kpi_projected: this.parseJsonField(row.kpi_projected, {}),
+        financials: this.parseJsonField(row.financials, {}),
+        compliance: this.parseJsonField(row.compliance, {}),
+        ad_network: this.parseJsonField(row.ad_network, {}),
+        creatives: this.parseJsonField(row.creatives, []),
+        flight_phases: this.parseJsonField(row.flight_phases, [])
       } : null
     }));
   }
