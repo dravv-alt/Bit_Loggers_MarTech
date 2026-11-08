@@ -20,6 +20,7 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<AppNotification> _notifications = [];
   bool _loading = true;
+  String _filter = 'ALL'; // 'ALL', 'UNREAD', 'DECISIONS', 'FLIGHTS'
 
   @override
   void initState() {
@@ -50,6 +51,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   int get _unreadCount => _notifications.where((n) => !n.isRead).length;
+
+  List<AppNotification> get _filteredNotifications {
+    return _notifications.where((n) {
+      if (_filter == 'UNREAD') return !n.isRead;
+      final t = n.title.toLowerCase();
+      final m = n.message.toLowerCase();
+      if (_filter == 'DECISIONS') {
+        return t.contains('approved') || m.contains('approved') || t.contains('changes') || m.contains('changes') || t.contains('reject') || m.contains('reject');
+      }
+      if (_filter == 'FLIGHTS') {
+        return t.contains('flight') || m.contains('flight') || t.contains('schedule') || m.contains('schedule');
+      }
+      return true;
+    }).toList();
+  }
 
   String _formatRelative(String isoString) {
     try {
@@ -127,11 +143,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ),
 
+          // Category Filter Bar
+          Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _buildFilterChip('All', 'ALL', _notifications.length),
+                const SizedBox(width: 6),
+                _buildFilterChip('Unread', 'UNREAD', _unreadCount),
+                const SizedBox(width: 6),
+                _buildFilterChip('Decisions', 'DECISIONS', null),
+                const SizedBox(width: 6),
+                _buildFilterChip('Flights', 'FLIGHTS', null),
+              ],
+            ),
+          ),
+
           // Notifications List
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
-                : _notifications.isEmpty
+                : _filteredNotifications.isEmpty
                     ? Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32),
@@ -158,11 +193,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         onRefresh: _fetch,
                         color: AppTheme.forge,
                         child: ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                          itemCount: _notifications.length,
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+                          itemCount: _filteredNotifications.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
                           itemBuilder: (context, idx) {
-                            final notif = _notifications[idx];
+                            final notif = _filteredNotifications[idx];
                             return _buildNotificationCard(notif);
                           },
                         ),
@@ -173,17 +208,96 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  Widget _buildFilterChip(String label, String filterKey, int? count) {
+    final isSelected = _filter == filterKey;
+    return GestureDetector(
+      onTap: () => setState(() => _filter = filterKey),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.forge : AppTheme.leaf,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppTheme.forge : AppTheme.borderSage,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? AppTheme.leaf : AppTheme.textPrimary,
+              ),
+            ),
+            if (count != null && count > 0) ...[
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.leaf : AppTheme.forge,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? AppTheme.forge : AppTheme.leaf,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(AppNotification notif) {
+    final t = notif.title.toLowerCase();
+    final m = notif.message.toLowerCase();
+    if (t.contains('approved') || m.contains('approved')) return Icons.check_circle_outline_rounded;
+    if (t.contains('changes') || m.contains('changes') || t.contains('review') || m.contains('review')) return Icons.rate_review_outlined;
+    if (t.contains('reject') || m.contains('reject')) return Icons.cancel_outlined;
+    if (t.contains('flight') || m.contains('flight') || t.contains('schedule') || m.contains('schedule')) return Icons.rocket_launch_outlined;
+    if (t.contains('alert') || m.contains('alert') || t.contains('warning')) return Icons.warning_amber_rounded;
+    return Icons.notifications_none_rounded;
+  }
+
+  Color _getCategoryColor(AppNotification notif) {
+    final t = notif.title.toLowerCase();
+    final m = notif.message.toLowerCase();
+    if (t.contains('approved') || m.contains('approved')) return AppTheme.moss;
+    if (t.contains('changes') || m.contains('changes')) return AppTheme.warmAmber;
+    if (t.contains('reject') || m.contains('reject')) return AppTheme.statusRejected;
+    if (t.contains('flight') || m.contains('flight') || t.contains('schedule') || m.contains('schedule')) return AppTheme.brandAccent;
+    return AppTheme.forge;
+  }
+
   Widget _buildNotificationCard(AppNotification notif) {
     final relTime = _formatRelative(notif.createdAt);
+    final catColor = _getCategoryColor(notif);
+    final catIcon = _getCategoryIcon(notif);
 
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: notif.isRead ? AppTheme.borderSage : AppTheme.forge.withOpacity(0.3),
-          width: 1,
+          width: notif.isRead ? 1.0 : 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.forge.withOpacity(notif.isRead ? 0.02 : 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () {
@@ -199,52 +313,93 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             );
           }
         },
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
+          padding: const EdgeInsets.all(12),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      notif.title,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: notif.isRead ? FontWeight.w600 : FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                  ),
-                  if (!notif.isRead)
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.brandAccent,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                notif.message,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textSecondary,
-                  height: 1.35,
+              // Visual Icon Avatar
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: catColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                child: Icon(catIcon, size: 16, color: catColor),
               ),
-              const SizedBox(height: 8),
-              Text(
-                relTime,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppTheme.textSecondary.withOpacity(0.8),
-                  fontWeight: FontWeight.w500,
+              const SizedBox(width: 10),
+
+              // Content Column
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notif.title,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: notif.isRead ? FontWeight.w600 : FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                        if (!notif.isRead)
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppTheme.brandAccent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      notif.message,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          relTime,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppTheme.textSecondary.withOpacity(0.8),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (notif.campaignId != null)
+                          const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Inspect Flight',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.forge,
+                                ),
+                              ),
+                              SizedBox(width: 2),
+                              Icon(Icons.arrow_forward_rounded, size: 10, color: AppTheme.forge),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
