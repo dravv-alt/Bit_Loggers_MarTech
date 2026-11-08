@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
@@ -755,6 +756,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
       children: [
+        // Channel Occupancy & Booking Density Matrix (.pg7 Alignment)
+        _buildChannelOccupancyMatrix(),
+        const SizedBox(height: 12),
+
         // Week Days Header Bar
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -797,6 +802,91 @@ class _CalendarScreenState extends State<CalendarScreen> {
           const SizedBox(height: 12),
         ],
       ],
+    );
+  }
+
+  Widget _buildChannelOccupancyMatrix() {
+    final occupancy = [
+      {'name': 'Social', 'booked': 0.75, 'color': const Color(0xFF2D55A2)},
+      {'name': 'Search', 'booked': 0.50, 'color': const Color(0xFF476044)},
+      {'name': 'Email', 'booked': 0.40, 'color': const Color(0xFF234C82)},
+      {'name': 'Display', 'booked': 0.25, 'color': const Color(0xFF5B6941)},
+      {'name': 'Video', 'booked': 0.35, 'color': const Color(0xFF384F45)},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Text(
+                  'CHANNEL OCCUPANCY & DENSITY (.PG7)',
+                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.1, color: AppTheme.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6F4EA),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'HEALTHY CAPACITY',
+                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF137333)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: occupancy.map((ch) {
+              final pct = ((ch['booked'] as double) * 100).toInt();
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Column(
+                    children: [
+                      Text(
+                        ch['name'] as String,
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: SizedBox(
+                          height: 5,
+                          child: LinearProgressIndicator(
+                            value: ch['booked'] as double,
+                            backgroundColor: AppTheme.paper,
+                            valueColor: AlwaysStoppedAnimation<Color>(ch['color'] as Color),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$pct%',
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textPrimary, fontFeatures: [FontFeature.tabularFigures()]),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -907,63 +997,96 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return InkWell(
       onTap: () => _showFlightDetailModal(evt),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: hasConflict
               ? AppTheme.statusRejected.withOpacity(0.12)
               : AppTheme.forge,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: hasConflict ? AppTheme.statusRejected : AppTheme.forge,
             width: 1,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: hasConflict ? AppTheme.statusRejected : AppTheme.verdictLime,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                'v${evt.versionNo}',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: hasConflict ? AppTheme.leaf : AppTheme.forge,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: hasConflict ? AppTheme.statusRejected : AppTheme.verdictLime,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'v${evt.versionNo}',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: hasConflict ? AppTheme.leaf : AppTheme.forge,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                evt.title,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: hasConflict ? AppTheme.statusRejected : AppTheme.leaf,
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    evt.title,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: hasConflict ? AppTheme.statusRejected : AppTheme.leaf,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 6),
+                Text(
+                  '\$${evt.budget.toInt()}',
+                  style: TextStyle(
+                    fontFamily: 'serif',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: hasConflict ? AppTheme.statusRejected : AppTheme.leaf,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  hasConflict ? Icons.error_outline : Icons.chevron_right,
+                  size: 14,
+                  color: hasConflict ? AppTheme.statusRejected : AppTheme.textInverseMuted,
+                ),
+              ],
             ),
-            Text(
-              '\$${evt.budget.toInt()}',
-              style: TextStyle(
-                fontFamily: 'serif',
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: hasConflict ? AppTheme.statusRejected : AppTheme.verdictLime,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Icon(
-              hasConflict ? Icons.error_outline : Icons.chevron_right,
-              size: 14,
-              color: hasConflict ? AppTheme.statusRejected : AppTheme.textInverseMuted,
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.flight_takeoff, size: 11, color: hasConflict ? AppTheme.statusRejected : AppTheme.textInverseMuted),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    '${DateFormat('d MMM').format(start)} – ${DateFormat('d MMM').format(end)}',
+                    style: TextStyle(fontSize: 10, color: hasConflict ? AppTheme.statusRejected : AppTheme.textInverseMuted),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(
+                    '${end.difference(start).inDays.clamp(1, 30)}d flight',
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: hasConflict ? AppTheme.statusRejected : AppTheme.leaf),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1088,6 +1211,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+
+          // Spend Wave Burn Bar
+          _buildMiniSpendBar(event.budget, 0.65),
+          const SizedBox(height: 8),
+
+          // Micro-KPI Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildMiniKpiTag('ROI 4.2x', isPrimary: true),
+                const SizedBox(width: 6),
+                _buildMiniKpiTag('CPA \$21.50'),
+                const SizedBox(width: 6),
+                _buildMiniKpiTag('CTR 4.8%'),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
 
           // View Full Dossier CTA
@@ -1118,6 +1260,85 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMiniSpendBar(double budget, double burnRatio) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Expanded(
+              child: Text(
+                'SPEND BURN PACING',
+                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.1),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '${(burnRatio * 100).toInt()}% burned · 75% ceiling',
+              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 10,
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              Container(
+                height: 4,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: burnRatio,
+                child: Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.forge,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
+                child: Container(
+                  width: 1.5,
+                  height: 10,
+                  color: const Color(0xFFB9301D),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMiniKpiTag(String text, {bool isPrimary = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isPrimary ? AppTheme.forge : AppTheme.paper,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: isPrimary ? AppTheme.forge : AppTheme.borderSage, width: 0.5),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: isPrimary ? AppTheme.leaf : AppTheme.textPrimary,
+        ),
       ),
     );
   }
