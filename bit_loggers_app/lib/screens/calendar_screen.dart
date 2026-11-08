@@ -370,17 +370,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.verdictLime,
+                      color: AppTheme.forge,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.auto_awesome, size: 12, color: AppTheme.forge),
+                        Icon(Icons.auto_awesome, size: 12, color: AppTheme.leaf),
                         SizedBox(width: 4),
                         Text(
                           'Seed flights',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.leaf),
                         ),
                       ],
                     ),
@@ -721,14 +721,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     if (_events.isEmpty)
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.verdictLime,
-                          foregroundColor: AppTheme.forge,
+                          backgroundColor: AppTheme.forge,
+                          foregroundColor: AppTheme.leaf,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           visualDensity: VisualDensity.compact,
                         ),
-                        icon: const Icon(Icons.auto_awesome, size: 14),
-                        label: const Text('Seed Sample Flights', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.auto_awesome, size: 14, color: AppTheme.leaf),
+                        label: const Text(
+                          'Seed Sample Flights',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.leaf),
+                        ),
                         onPressed: _seedDemoFlights,
                       ),
                   ],

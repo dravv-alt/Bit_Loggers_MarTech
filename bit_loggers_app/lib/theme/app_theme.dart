@@ -16,8 +16,8 @@ class AppTheme {
   static const Color brandDark = Color(0xFF20211F);    // Charcoal brand mark
 
   // Action & Verdict Tokens
-  static const Color verdictLime = Color(0xFF20211F);  // Primary decisive action (solid black)
-  static const Color verdictLimeDark = Color(0xFF20211F);
+  static const Color verdictLime = Color(0xFFD7F46A);  // Architectural Lime highlight (#D7F46A)
+  static const Color verdictLimeDark = Color(0xFF2C5E43); // Dark forest green accent
   static const Color accentGold = Color(0xFFF0B323);   // Architectural ochre highlight
   static const Color moss = Color(0xFF137333);         // Visual growth telemetry
   static const Color warmAmber = Color(0xFFD97706);    // Visual pacing accent
