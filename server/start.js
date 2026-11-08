@@ -1,14 +1,18 @@
 import 'dotenv/config';
 import { createApp, seedDemoCampaigns, seedCalendarFlights } from './index.js';
+import { generateEnterpriseSyntheticData } from './synthetic-data.js';
 
 const PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
   const { app, db, workflow, outbox } = await createApp();
 
-  // Seed initial demo data and calendar flight schedules in PostgreSQL + TimescaleDB
-  await seedDemoCampaigns(workflow, db);
-  await seedCalendarFlights(workflow, db);
+  // Seed initial enterprise synthetic data and calendar flight schedules in PostgreSQL + TimescaleDB
+  try {
+    await generateEnterpriseSyntheticData(workflow, db);
+  } catch (err) {
+    console.warn('[BOOTSTRAP] Could not run synthetic data generation:', err.message);
+  }
 
   // Background worker polling transactional outbox every 4 seconds
   setInterval(async () => {

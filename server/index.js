@@ -9,6 +9,7 @@ import { Diagnostics, DIAGNOSTIC_EVENTS } from './diagnostics.js';
 import { OutboxService } from './outbox.js';
 import { WorkflowService } from './workflow.js';
 import { AIService } from './ai.js';
+import { generateEnterpriseSyntheticData } from './synthetic-data.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -404,11 +405,74 @@ export async function createApp() {
     res.json({ logs });
   });
 
-  // --- Seed Demo Data ---
+  // --- Funnel & Hourly Telemetry Endpoints ---
+  app.get('/api/analytics/funnel', async (req, res) => {
+    try {
+      const channel = req.query.channel;
+      const params = [];
+      let whereClause = '';
+      if (channel && channel !== 'All') {
+        params.push(channel);
+        whereClause = `WHERE channel = $1`;
+      }
+      const result = await db.query(`
+        SELECT 
+          COALESCE(SUM(impressions), 0) as total_impressions,
+          COALESCE(SUM(clicks), 0) as total_clicks,
+          COALESCE(SUM(spend), 0) as total_spend,
+          COALESCE(SUM(conversions), 0) as total_conversions,
+          COALESCE(SUM(revenue), 0) as total_revenue,
+          CASE WHEN SUM(impressions) > 0 THEN ROUND((SUM(clicks)::numeric / SUM(impressions)::numeric) * 100, 2) ELSE 0 END as overall_ctr,
+          CASE WHEN SUM(clicks) > 0 THEN ROUND((SUM(conversions)::numeric / SUM(clicks)::numeric) * 100, 2) ELSE 0 END as overall_cvr,
+          CASE WHEN SUM(conversions) > 0 THEN ROUND((SUM(spend)::numeric / SUM(conversions)::numeric), 2) ELSE 0 END as overall_cpa,
+          CASE WHEN SUM(spend) > 0 THEN ROUND(((SUM(revenue) - SUM(spend))::numeric / SUM(spend)::numeric), 2) ELSE 0 END as overall_roi
+        FROM kpi_metric_snapshots
+        ${whereClause}
+      `, params);
+      res.json({ funnel: result.rows[0] });
+    } catch (err) {
+      res.status(500).json({ error: { message: err.message } });
+    }
+  });
+
+  app.get('/api/analytics/hourly', async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          recorded_at,
+          channel,
+          impressions,
+          clicks,
+          spend,
+          conversions,
+          revenue,
+          conversion_rate,
+          ctr,
+          cpa,
+          roi
+        FROM kpi_metric_snapshots
+        WHERE snapshot_id LIKE 'synth-hourly-%'
+        ORDER BY recorded_at ASC
+      `);
+      res.json({ hourly: result.rows });
+    } catch (err) {
+      res.status(500).json({ error: { message: err.message } });
+    }
+  });
+
+  // --- Seed Enterprise Synthetic Data ---
   app.post('/api/seed', async (req, res) => {
-    await seedDemoCampaigns(workflow, db);
-    await seedCalendarFlights(workflow, db, { force: true });
-    res.json({ success: true, message: 'Demo campaigns and calendar flights seeded in PostgreSQL + TimescaleDB.' });
+    try {
+      const result = await generateEnterpriseSyntheticData(workflow, db, { force: true });
+      res.json({ 
+        success: true, 
+        message: 'Enterprise MarTech synthetic data successfully generated and seeded in PostgreSQL + TimescaleDB.',
+        result
+      });
+    } catch (err) {
+      console.error('[SEED] Error generating enterprise synthetic data:', err);
+      res.status(500).json({ error: { message: err.message } });
+    }
   });
 
   app.post('/api/seed/calendar', async (req, res) => {

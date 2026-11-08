@@ -21,6 +21,31 @@ export class Diagnostics {
     this.db = db;
   }
 
+  async getSystemStatus() {
+    try {
+      const start = Date.now();
+      await this.db.query('SELECT 1');
+      const latencyMs = Date.now() - start;
+      return {
+        status: 'HEALTHY',
+        database: {
+          status: 'CONNECTED',
+          engine: 'PostgreSQL + TimescaleDB',
+          latency_ms: latencyMs,
+          pool: {
+            totalCount: 1,
+            idleCount: 1
+          }
+        }
+      };
+    } catch (err) {
+      return {
+        status: 'UNHEALTHY',
+        database: { status: 'DISCONNECTED', error: err.message }
+      };
+    }
+  }
+
   async log({ correlationId, campaignId, versionId, eventType, actorId, outcome = 'INFO', errorCategory = null, message = '', latencyMs = null, details = null }) {
     const logId = 'log-' + crypto.randomUUID().slice(0, 8);
     const recordedAt = new Date().toISOString();
