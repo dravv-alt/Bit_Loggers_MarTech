@@ -709,28 +709,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
+                        backgroundColor: AppTheme.leaf,
                         foregroundColor: AppTheme.forge,
-                        side: const BorderSide(color: AppTheme.forge),
+                        side: const BorderSide(color: AppTheme.borderSage),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         visualDensity: VisualDensity.compact,
                       ),
-                      icon: const Icon(Icons.add, size: 14),
-                      label: const Text('Book for this date', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.add, size: 14, color: AppTheme.forge),
+                      label: const Text('Book for this date', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.forge)),
                       onPressed: () => _showScheduleDialog(initialDate: _selectedDay),
                     ),
                     if (_events.isEmpty)
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.forge,
-                          foregroundColor: AppTheme.leaf,
-                          elevation: 0,
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF0F4FF),
+                          foregroundColor: AppTheme.brandAccent,
+                          side: const BorderSide(color: Color(0xFFCCD9F5)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           visualDensity: VisualDensity.compact,
                         ),
-                        icon: const Icon(Icons.auto_awesome, size: 14, color: AppTheme.leaf),
+                        icon: const Icon(Icons.auto_awesome, size: 14, color: AppTheme.brandAccent),
                         label: const Text(
                           'Seed Sample Flights',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.leaf),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.brandAccent),
                         ),
                         onPressed: _seedDemoFlights,
                       ),
