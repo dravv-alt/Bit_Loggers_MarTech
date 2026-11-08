@@ -27,7 +27,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   String _mentionQuery = '';
   bool _submittingComment = false;
 
-  // Review Decision Form (SCREEN 08)
+  String _activeTab = 'Overview';
   final _reasonController = TextEditingController(text: 'Aligns with Q4 audience and budget policy');
   final _policyController = TextEditingController(text: 'MARTECH-POL-2026-Q4');
   bool _submittingDecision = false;
@@ -310,12 +310,12 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         ),
         const SizedBox(height: 18),
 
-        // LEAF CARD holding proposal summary and reviewer identity
+        // Wireframe Bento Card holding proposal summary and reviewer identity
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: AppTheme.leaf,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppTheme.borderSage, width: 1),
           ),
           child: Column(
@@ -325,21 +325,21 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               Row(
                 children: [
                   CircleAvatar(
-                    radius: 18,
+                    radius: 16,
                     backgroundColor: AppTheme.paper,
                     child: Text(
                       widget.api.currentUser.name.split(' ').map((n) => n[0]).take(2).join(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.forge),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppTheme.forge),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.api.currentUser.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.textPrimary),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
                         ),
                         Text(
                           isOwner ? 'Owner • Self-approval blocked' : 'Reviewer • Independent verification',
@@ -355,23 +355,23 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 ],
               ),
               const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 child: Divider(color: AppTheme.borderSage, height: 1),
               ),
 
               // Two-column tabular list
               _buildTwoColRow('Exact version', 'Version v${curVer?.versionNo ?? 3}', isForgeBadge: true),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildTwoColRow(
                 'Proposed budget',
                 '\$${(curVer?.budget ?? 45000).toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}.00',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildTwoColRow(
                 'Target KPI (CPA / AOV)',
                 '\$${kpis.cpa.toStringAsFixed(2)} / \$${kpis.aov.toStringAsFixed(2)}',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildTwoColRow(
                 'Mandatory reason',
                 '"${_reasonController.text.trim()}"',
@@ -386,12 +386,12 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Projected ROI', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                  const Text('Projected ROI', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                   Text(
                     '${kpis.roi}x',
                     style: const TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 22,
+                      fontFamily: 'monospace',
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
                     ),
@@ -401,20 +401,20 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
         // Immutability Notice
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: AppTheme.paper,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderSage, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.borderSage, width: 0.8),
           ),
           child: const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline, size: 15, color: AppTheme.textSecondary),
+              Icon(Icons.info_outline, size: 14, color: AppTheme.textSecondary),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -425,12 +425,12 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
-        // Primary Action: Approve Version V3 ↗ (Forge #1B3029)
+        // Primary Action: Approve Version V3 ↗ (Forge #20211F)
         SizedBox(
           width: double.infinity,
-          height: 52,
+          height: 48,
           child: ElevatedButton(
             onPressed: isOwner || _submittingDecision
                 ? null
@@ -439,12 +439,12 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               backgroundColor: AppTheme.forge,
               foregroundColor: AppTheme.leaf,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: _submittingDecision
                 ? const SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: 18,
+                    height: 18,
                     child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
                   )
                 : Row(
@@ -452,28 +452,35 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     children: [
                       Text(
                         'Approve version v${curVer?.versionNo ?? 3}',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.north_east, size: 16),
+                      const Icon(Icons.north_east, size: 15),
                     ],
                   ),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
 
         // Secondary Text Action: Request changes or reject
-        Center(
-          child: TextButton(
+        SizedBox(
+          width: double.infinity,
+          height: 44,
+          child: OutlinedButton(
             onPressed: isOwner || _submittingDecision
                 ? null
                 : () => _showRejectionDialog(),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.textPrimary,
+              side: const BorderSide(color: AppTheme.borderSage, width: 1),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             child: const Text(
               'Request changes or reject',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textPrimary,
               ),
             ),
           ),
@@ -597,13 +604,13 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         ),
         const SizedBox(height: 24),
 
-        // LEAF CARD: Version Guard & Ledger
+        // Wireframe Bento Card: Version Guard & Ledger
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: AppTheme.leaf,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppTheme.borderSage, width: 1),
           ),
           child: Column(
@@ -615,14 +622,13 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   children: [
                     Text(
                       'SCHEDULED SLOT',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.12),
                     ),
                     SizedBox(height: 4),
                     Text(
                       'Oct 24, 10:00',
                       style: TextStyle(
-                        fontFamily: 'serif',
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textPrimary,
                       ),
@@ -631,7 +637,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 child: Divider(color: AppTheme.borderSage, height: 1),
               ),
 
@@ -642,42 +648,42 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 textColor: AppTheme.statusRejected,
                 badgeBg: AppTheme.paper,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildLedgerRow(
                 'Version v2',
                 'Changes requested',
                 textColor: AppTheme.statusChanges,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildLedgerRow(
                 'Version v${curVer?.versionNo ?? 3}',
                 'Approved & Current',
                 textColor: AppTheme.forge,
                 isBold: true,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildLedgerRow(
                 'Outbox status',
                 'Email Retry #2 (Approval Safe)',
                 textColor: AppTheme.textSecondary,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Status', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                  const Text('Status', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppTheme.verdictLime,
-                      borderRadius: BorderRadius.circular(12),
+                      color: isScheduled ? const Color(0xFFE5EDF7) : const Color(0xFFE6F4EA),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       isScheduled ? 'Scheduled' : 'Approved',
-                      style: const TextStyle(
-                        fontSize: 11,
+                      style: TextStyle(
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.forge,
+                        color: isScheduled ? const Color(0xFF234C82) : const Color(0xFF137333),
                       ),
                     ),
                   ),
@@ -686,24 +692,25 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
         // Marketer Schedule CTA if approved but not yet scheduled
         if (!isScheduled && widget.api.currentUser.role == 'marketer') ...[
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 46,
             child: ElevatedButton(
               onPressed: _submittingSchedule ? null : _confirmSchedule,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.forge,
                 foregroundColor: AppTheme.leaf,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: _submittingSchedule
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
                     )
                   : const Text('Confirm flight launch', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
@@ -718,96 +725,512 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   Widget _buildStandardDossierView() {
     final curVer = _campaign!.currentVersion;
     final kpis = curVer?.kpiProjected ?? KpiMetrics(conversionRate: 3.5, ctr: 4.2, roi: 3.4, cpa: 14.2, aov: 88.5);
+    final idPrefix = _campaign!.campaignId.length >= 4 ? _campaign!.campaignId.substring(0, 4).toUpperCase() : _campaign!.campaignId;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Headline
-        Text(
-          _campaign!.title,
-          style: const TextStyle(
-            fontFamily: 'serif',
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary,
-          ),
+        // Title Row with Status Indicator
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                _campaign!.title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.4,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            AppTheme.buildStatusIndicator(_campaign!.status),
+          ],
         ),
         const SizedBox(height: 6),
+        // Unified scannable metadata line
         Text(
-          'Owner: ${_campaign!.ownerName} • Current Status: ${_campaign!.status}',
-          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-        ),
-        const SizedBox(height: 18),
-
-        // Working Document Leaf Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppTheme.leaf,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppTheme.borderSage, width: 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Strategic objective',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                curVer?.objective ?? '',
-                style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary, height: 1.4),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'Target audience persona',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                curVer?.targetAudience ?? '',
-                style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary, height: 1.4),
-              ),
-            ],
-          ),
+          'CG-$idPrefix · Owner: ${_campaign!.ownerName} • Current Status: ${_campaign!.status}',
+          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 16),
 
-        // The 5 Mandatory KPIs in clean tabular list
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppTheme.leaf,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppTheme.borderSage, width: 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '5 Projected campaign KPIs',
-                style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-              ),
-              const SizedBox(height: 14),
-              _buildTwoColRow('Conversion Rate', '${kpis.conversionRate}%'),
-              const SizedBox(height: 10),
-              _buildTwoColRow('Click-Through Rate (CTR)', '${kpis.ctr}%'),
-              const SizedBox(height: 10),
-              _buildTwoColRow('Return on Investment (ROI)', '${kpis.roi}x'),
-              const SizedBox(height: 10),
-              _buildTwoColRow('Cost Per Acquisition (CPA)', '\$${kpis.cpa.toStringAsFixed(2)}'),
-              const SizedBox(height: 10),
-              _buildTwoColRow('Average Order Value (AOV)', '\$${kpis.aov.toStringAsFixed(2)}'),
-            ],
-          ),
-        ),
+        // Wireframe Segmented Tabs (Overview | Versions | Discussion | Activity)
+        _buildSegmentedTabBar(),
+        const SizedBox(height: 16),
+
+        // Bento 1: Campaign Details Spec Matrix
+        _buildBentoSpecMatrix(curVer),
+        const SizedBox(height: 14),
+
+        // Bento 2: Version Lineage Stepper
+        _buildVersionHistoryStepper(curVer),
+        const SizedBox(height: 14),
+
+        // Bento 3: Changes Diff & Creative Strategy
+        _buildDiffBentoTile(curVer),
+        const SizedBox(height: 14),
+
+        // Bento 4: 5 Projected Campaign KPIs Economics Matrix
+        _buildEconomicsBentoMatrix(kpis),
+        const SizedBox(height: 16),
+
+        // Bento 5: Decision Actions Bar
+        _buildDecisionActionsBar(curVer),
         const SizedBox(height: 20),
 
         // Discussions (FR-12 Collaboration & Version Anchoring)
         _buildDiscussionsCard(),
         const SizedBox(height: 30),
       ],
+    );
+  }
+
+  Widget _buildSegmentedTabBar() {
+    final tabs = ['Overview', 'Versions', 'Discussion', 'Activity'];
+
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: AppTheme.paper,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSage, width: 0.8),
+      ),
+      child: Row(
+        children: tabs.map((tab) {
+          final isSelected = _activeTab == tab;
+          return Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _activeTab = tab),
+              borderRadius: BorderRadius.circular(7),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.leaf : Colors.transparent,
+                  borderRadius: BorderRadius.circular(7),
+                  border: isSelected ? Border.all(color: AppTheme.borderSage, width: 0.8) : null,
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  tab,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildBentoSpecMatrix(CampaignVersion? curVer) {
+    final budgetStr = (curVer?.budget ?? 45000).toInt().toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'CAMPAIGN DETAILS',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.12,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildBentoCell('Channel', curVer?.channel ?? 'Paid social'),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildBentoCell('Budget cap', '\$$budgetStr · configured'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildBentoCell('Flight', '12–26 Nov'),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildBentoCell('Current version', '0${curVer?.versionNo ?? 1} · ${_campaign!.status}'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBentoCell(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.paper,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSage, width: 0.8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVersionHistoryStepper(CampaignVersion? curVer) {
+    final curNo = curVer?.versionNo ?? 1;
+
+    final steps = [
+      {'num': '01', 'label': 'Created', 'active': true},
+      {'num': '02', 'label': 'Review', 'active': curNo >= 2},
+      {'num': '03', 'label': 'Edited', 'active': curNo >= 3},
+      {'num': '04', 'label': 'Current', 'active': curNo >= 4},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Version history',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              InkWell(
+                onTap: () => setState(() => _activeTab = 'Versions'),
+                child: const Row(
+                  children: [
+                    Text(
+                      'View all',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    SizedBox(width: 2),
+                    Icon(Icons.north_east, size: 11, color: AppTheme.textSecondary),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(steps.length, (idx) {
+              final s = steps[idx];
+              final isCurrent = idx == steps.length - 1 || s['num'] == '0$curNo';
+              final isActive = s['active'] as bool;
+              return Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(right: idx < steps.length - 1 ? 6 : 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isCurrent ? AppTheme.forge : (isActive ? AppTheme.paper : AppTheme.canvas),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isCurrent ? AppTheme.forge : AppTheme.borderSage,
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        s['num'] as String,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace',
+                          color: isCurrent ? AppTheme.leaf : (isActive ? AppTheme.textPrimary : AppTheme.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        s['label'] as String,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: isCurrent ? AppTheme.leaf.withOpacity(0.9) : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiffBentoTile(CampaignVersion? curVer) {
+    final verNo = curVer?.versionNo ?? 1;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Changes in version 0$verNo',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildDiffRow('Audience exclusions', 'Updated', isUpdated: true),
+          const SizedBox(height: 8),
+          _buildDiffRow('Primary CTA', 'Changed', isChanged: true),
+          const SizedBox(height: 8),
+          _buildDiffRow('Budget cap', 'Unchanged', isUnchanged: true),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: AppTheme.borderSage),
+          const SizedBox(height: 12),
+          const Text(
+            'Strategic objective',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            curVer?.objective ?? '',
+            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Target audience persona',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            curVer?.targetAudience ?? '',
+            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiffRow(String label, String status, {bool isUpdated = false, bool isChanged = false, bool isUnchanged = false}) {
+    Color textColor = AppTheme.textSecondary;
+    Color bgColor = AppTheme.paper;
+    if (isUpdated) {
+      textColor = const Color(0xFF137333);
+      bgColor = const Color(0xFFE6F4EA);
+    } else if (isChanged) {
+      textColor = const Color(0xFF8A542C);
+      bgColor = const Color(0xFFF8EBDD);
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: AppTheme.borderSage, width: 0.5),
+          ),
+          child: Text(
+            status,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEconomicsBentoMatrix(KpiMetrics kpis) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '5 Projected campaign KPIs',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildTwoColRow('Conversion Rate', '${kpis.conversionRate}%'),
+          const SizedBox(height: 8),
+          _buildTwoColRow('Click-Through Rate (CTR)', '${kpis.ctr}%'),
+          const SizedBox(height: 8),
+          _buildTwoColRow('Return on Investment (ROI)', '${kpis.roi}x'),
+          const SizedBox(height: 8),
+          _buildTwoColRow('Cost Per Acquisition (CPA)', '\$${kpis.cpa.toStringAsFixed(2)}'),
+          const SizedBox(height: 8),
+          _buildTwoColRow('Average Order Value (AOV)', '\$${kpis.aov.toStringAsFixed(2)}'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDecisionActionsBar(CampaignVersion? curVer) {
+    final isOwner = _campaign!.ownerId == widget.api.currentUser.id;
+    final verNo = curVer?.versionNo ?? 1;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'REVIEW DECISION  ·  VERSION 0$verNo',
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.12,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 42,
+                  child: ElevatedButton(
+                    onPressed: isOwner || _submittingDecision
+                        ? null
+                        : () => _submitReviewDecision('APPROVED'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.forge,
+                      foregroundColor: AppTheme.leaf,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: _submittingDecision
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Approve',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SizedBox(
+                  height: 42,
+                  child: OutlinedButton(
+                    onPressed: isOwner || _submittingDecision
+                        ? null
+                        : () => _showRejectionDialog(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.textPrimary,
+                      side: const BorderSide(color: AppTheme.borderSage, width: 1),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text(
+                      'Request changes',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
