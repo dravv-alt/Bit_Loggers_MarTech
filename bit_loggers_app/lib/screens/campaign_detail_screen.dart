@@ -889,8 +889,185 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: AppTheme.borderSage),
+          const SizedBox(height: 12),
+
+          // Visual Spend Wave Burn Bar with 75% red needle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'SPEND WAVE PACING · 75% CEILING',
+                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.1, color: AppTheme.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'ACTIVE FLIGHT',
+                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.statusApproved),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 16,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                Container(
+                  height: 6,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppTheme.paper,
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(color: AppTheme.borderSage, width: 0.5),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: 0.62,
+                  child: Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: AppTheme.forge,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
+                  child: Container(
+                    width: 2,
+                    height: 16,
+                    color: const Color(0xFFB9301D),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Current flight: 62% burned',
+                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'Ceiling: 75%',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFB9301D)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: AppTheme.borderSage),
+          const SizedBox(height: 12),
+
+          // Visual Flight Gantt Timeline Track
+          _buildFlightTimelineTrack(),
         ],
       ),
+    );
+  }
+
+  Widget _buildFlightTimelineTrack() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Expanded(
+              child: Text(
+                'FLIGHT TIMELINE · 14 DAYS',
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.1, color: AppTheme.textSecondary),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(color: Color(0xFF137333), shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'Conflict-free',
+                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF137333)),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Text(
+              '12 Nov',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.paper,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: 0.55,
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppTheme.forge,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: const Alignment(-0.5 + (0.55 * 2) - 1.0, 0),
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.forge,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              '26 Nov',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Start: 12 Nov', style: TextStyle(fontSize: 9, color: AppTheme.textSecondary)),
+            Text('Mid-flight', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.forge)),
+            Text('End: 26 Nov', style: TextStyle(fontSize: 9, color: AppTheme.textSecondary)),
+          ],
+        ),
+      ],
     );
   }
 
@@ -1031,6 +1208,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
 
   Widget _buildDiffBentoTile(CampaignVersion? curVer) {
     final verNo = curVer?.versionNo ?? 1;
+    final channel = curVer?.channel ?? 'Social';
+    final objective = curVer?.objective ?? 'Expand Q4 market reach and customer acquisition.';
+    final audience = curVer?.targetAudience ?? 'Growth-oriented consumer demographic.';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1042,13 +1222,33 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Changes in version 0$verNo',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-            ),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              Text(
+                'Changes in version 0$verNo',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppTheme.borderSage),
+                ),
+                child: Text(
+                  'AUDITED v$verNo',
+                  style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           _buildDiffRow('Audience exclusions', 'Updated', isUpdated: true),
@@ -1058,27 +1258,199 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           _buildDiffRow('Budget cap', 'Unchanged', isUnchanged: true),
           const SizedBox(height: 14),
           const Divider(height: 1, color: AppTheme.borderSage),
-          const SizedBox(height: 12),
-          const Text(
-            'Strategic objective',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+          const SizedBox(height: 14),
+
+          // AD CREATIVE CANVAS PREVIEW (Visually striking ad mockup)
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Icon(
+                  AppTheme.getChannelIcon(channel),
+                  size: 13,
+                  color: AppTheme.getChannelColor(channel),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'AD CREATIVE CANVAS · ${channel.toUpperCase()}',
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.1, color: AppTheme.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            curVer?.objective ?? '',
-            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.4),
+          const SizedBox(height: 10),
+
+          // The Framed Ad Mockup Frame
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.paper,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.borderSage, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Simulated Ad Header
+                Row(
+                  children: [
+                    AppTheme.buildBrandMonogram(size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Campaign Grid Sponsor',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                          ),
+                          Text(
+                            'Sponsored · $channel Flight',
+                            style: const TextStyle(fontSize: 9, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.more_horiz, size: 16, color: AppTheme.textSecondary),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Creative Visual Banner Frame
+                Container(
+                  height: 100,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppTheme.forge,
+                    borderRadius: BorderRadius.circular(8),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF20211F), Color(0xFF384F45)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('1:1 ASSET FRAME', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white)),
+                          ),
+                          const Icon(Icons.auto_awesome, size: 13, color: AppTheme.accentGold),
+                        ],
+                      ),
+                      Text(
+                        _campaign?.title ?? 'Campaign Grid Flight',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Strategic Objective
+                const Text(
+                  'Strategic objective',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  objective,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary, height: 1.3),
+                ),
+                const SizedBox(height: 10),
+
+                // Rendered Primary CTA Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'campaigngrid.io',
+                      style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppTheme.forge,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Learn More', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.leaf)),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_outward, size: 10, color: AppTheme.leaf),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
+
+          // Target Audience Persona Chips
           const Text(
             'Target audience persona',
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 4),
           Text(
-            curVer?.targetAudience ?? '',
-            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.4),
+            audience,
+            style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary, height: 1.3),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _buildAudienceChip('🎯 Prime Persona', audience.split(' ').take(3).join(' ')),
+              _buildAudienceChip('📍 Reach', 'Tier 1 Demographics'),
+              _buildAudienceChip('⚡ Placement', '$channel Feed'),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAudienceChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppTheme.paper,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppTheme.borderSage, width: 0.8),
+      ),
+      child: Text(
+        '$label: $value',
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
       ),
     );
   }
@@ -1132,26 +1504,111 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '5 Projected campaign KPIs',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-            ),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              const Text(
+                '5 Projected campaign KPIs',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppTheme.borderSage),
+                ),
+                child: const Text(
+                  'PROJECTED VS BENCHMARK',
+                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          _buildTwoColRow('Conversion Rate', '${kpis.conversionRate}%'),
-          const SizedBox(height: 8),
-          _buildTwoColRow('Click-Through Rate (CTR)', '${kpis.ctr}%'),
-          const SizedBox(height: 8),
-          _buildTwoColRow('Return on Investment (ROI)', '${kpis.roi}x'),
-          const SizedBox(height: 8),
-          _buildTwoColRow('Cost Per Acquisition (CPA)', '\$${kpis.cpa.toStringAsFixed(2)}'),
-          const SizedBox(height: 8),
-          _buildTwoColRow('Average Order Value (AOV)', '\$${kpis.aov.toStringAsFixed(2)}'),
+          const SizedBox(height: 14),
+          _buildKpiGaugeRow('Conversion Rate', '${kpis.conversionRate}%', (kpis.conversionRate / 6.0).clamp(0.0, 1.0), '+0.8% vs avg', isPositive: true),
+          const SizedBox(height: 10),
+          _buildKpiGaugeRow('Click-Through Rate (CTR)', '${kpis.ctr}%', (kpis.ctr / 8.0).clamp(0.0, 1.0), '+1.2% strong', isPositive: true),
+          const SizedBox(height: 10),
+          _buildKpiGaugeRow('Return on Investment (ROI)', '${kpis.roi}x', (kpis.roi / 6.0).clamp(0.0, 1.0), 'Top quartile', isPositive: true),
+          const SizedBox(height: 10),
+          _buildKpiGaugeRow('Cost Per Acquisition (CPA)', '\$${kpis.cpa.toStringAsFixed(2)}', (kpis.cpa / 50.0).clamp(0.0, 1.0), 'Below ceiling', isPositive: true),
+          const SizedBox(height: 10),
+          _buildKpiGaugeRow('Average Order Value (AOV)', '\$${kpis.aov.toStringAsFixed(2)}', (kpis.aov / 150.0).clamp(0.0, 1.0), 'High basket', isPositive: true),
         ],
       ),
+    );
+  }
+
+  Widget _buildKpiGaugeRow(String label, String value, double progress, String badgeText, {bool isPositive = true}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: isPositive ? const Color(0xFFE6F4EA) : const Color(0xFFFBDDD7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    badgeText,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: isPositive ? const Color(0xFF137333) : const Color(0xFFB9301D),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(2),
+          child: SizedBox(
+            height: 4,
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppTheme.paper,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isPositive ? AppTheme.forge : const Color(0xFFB9301D),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
