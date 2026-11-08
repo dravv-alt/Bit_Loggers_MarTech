@@ -30,6 +30,43 @@ class AppTheme {
   static const Color surface = leaf;
   static const Color cardBorder = borderSage;
 
+  // Apple HIG Semantic Palette
+  static const Color systemBackground = Color(0xFFF2F2F7);          // Inset grouped canvas
+  static const Color secondarySystemBackground = Color(0xFFFFFFFF); // Grouped card surface
+  static const Color tertiarySystemBackground = Color(0xFFE5E5EA);  // Search wells & track fields
+  static const Color label = Color(0xFF1C1C1E);                      // Primary ink (high contrast)
+  static const Color secondaryLabel = Color(0xFF6C6C70);             // Muted subtext & captions
+  static const Color tertiaryLabel = Color(0xFF8E8E93);              // Subtle timestamps / badges
+  static const Color quaternaryLabel = Color(0xFFAEAEB2);            // Inactive placeholders
+  static const Color separator = Color(0x1F000000);                  // 0.5pt Apple hairline divider
+
+  // Apple HIG Dual-Layer Ambient Depth (Physical Lighting Simulation)
+  static const List<BoxShadow> appleCardShadow = [
+    BoxShadow(
+      color: Color(0x06000000), // 2.5% black tight ambient occlusion
+      blurRadius: 4,
+      offset: Offset(0, 1),
+    ),
+    BoxShadow(
+      color: Color(0x0A000000), // 4% black soft diffuse key light
+      blurRadius: 16,
+      offset: Offset(0, 6),
+    ),
+  ];
+
+  static const List<BoxShadow> appleFloatingShadow = [
+    BoxShadow(
+      color: Color(0x08000000),
+      blurRadius: 6,
+      offset: Offset(0, 2),
+    ),
+    BoxShadow(
+      color: Color(0x14000000),
+      blurRadius: 24,
+      offset: Offset(0, 10),
+    ),
+  ];
+
   // Text Colors
   static const Color textPrimary = Color(0xFF20211F);   // Deep graphite ink
   static const Color textSecondary = Color(0xFF777972); // Muted slate (readable neutral)
@@ -256,6 +293,134 @@ class AppTheme {
       color: color,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
+  }
+
+  // --- Apple HIG SF Pro Dynamic Typography Scale ---
+  static const TextStyle largeTitle = TextStyle(
+    fontSize: 34,
+    height: 41 / 34,
+    letterSpacing: -1.05,
+    fontWeight: FontWeight.w700,
+    color: label,
+  );
+
+  static const TextStyle title1 = TextStyle(
+    fontSize: 28,
+    height: 34 / 28,
+    letterSpacing: -0.80,
+    fontWeight: FontWeight.w700,
+    color: label,
+  );
+
+  static const TextStyle title2 = TextStyle(
+    fontSize: 22,
+    height: 28 / 22,
+    letterSpacing: -0.70,
+    fontWeight: FontWeight.w600,
+    color: label,
+  );
+
+  static const TextStyle title3 = TextStyle(
+    fontSize: 20,
+    height: 25 / 20,
+    letterSpacing: -0.60,
+    fontWeight: FontWeight.w600,
+    color: label,
+  );
+
+  static const TextStyle headline = TextStyle(
+    fontSize: 17,
+    height: 22 / 17,
+    letterSpacing: -0.43,
+    fontWeight: FontWeight.w600,
+    color: label,
+  );
+
+  static const TextStyle body = TextStyle(
+    fontSize: 17,
+    height: 22 / 17,
+    letterSpacing: -0.43,
+    fontWeight: FontWeight.w400,
+    color: label,
+  );
+
+  static const TextStyle callout = TextStyle(
+    fontSize: 16,
+    height: 20 / 16,
+    letterSpacing: -0.32,
+    fontWeight: FontWeight.w400,
+    color: label,
+  );
+
+  static const TextStyle subhead = TextStyle(
+    fontSize: 15,
+    height: 19 / 15,
+    letterSpacing: 0.0,
+    fontWeight: FontWeight.w400,
+    color: secondaryLabel,
+  );
+
+  static const TextStyle footnote = TextStyle(
+    fontSize: 13,
+    height: 16 / 13,
+    letterSpacing: 0.03,
+    fontWeight: FontWeight.w400,
+    color: secondaryLabel,
+  );
+
+  static const TextStyle caption1 = TextStyle(
+    fontSize: 12,
+    height: 15 / 12,
+    letterSpacing: 0.12,
+    fontWeight: FontWeight.w500,
+    color: secondaryLabel,
+  );
+
+  static const TextStyle caption2 = TextStyle(
+    fontSize: 11,
+    height: 14 / 11,
+    letterSpacing: 0.15,
+    fontWeight: FontWeight.w500,
+    color: tertiaryLabel,
+  );
+
+  // --- Apple HIG Grouped List & Surface Containers ---
+  static Widget buildAppleGroupedCard({
+    required List<Widget> children,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    VoidCallback? onTap,
+  }) {
+    final cardContent = Container(
+      decoration: BoxDecoration(
+        color: secondarySystemBackground,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: appleCardShadow,
+        border: Border.all(color: borderSage.withOpacity(0.4), width: 0.5),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: padding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
+        ),
+      ),
+    );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: cardContent,
+        ),
+      );
+    }
+    return cardContent;
   }
 
   static ThemeData get campaignGridTheme {
