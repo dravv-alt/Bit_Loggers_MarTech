@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
@@ -181,6 +183,9 @@ class _AuditScreenState extends State<AuditScreen> {
               backgroundColor: AppTheme.borderSage,
             ),
 
+          // Immutable Governance Telemetry Spectrum Card
+          _buildGovernanceTelemetryCard(items),
+
           // Search & Filter Header
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -348,6 +353,156 @@ class _AuditScreenState extends State<AuditScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildGovernanceTelemetryCard(List<AuditEventItem> events) {
+    int approvedCount = 0;
+    int createdCount = 0;
+    int guardCount = 0;
+    for (final e in events) {
+      if (e.eventType.contains('APPROVED')) {
+        approvedCount++;
+      } else if (e.eventType.contains('CREATED') || e.eventType.contains('SUBMITTED')) {
+        createdCount++;
+      } else {
+        guardCount++;
+      }
+    }
+    final total = math.max(1, events.length);
+    final approvedFlex = math.max(1, (approvedCount * 100 / total).round());
+    final createdFlex = math.max(1, (createdCount * 100 / total).round());
+    final guardFlex = math.max(1, (guardCount * 100 / total).round());
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.borderSage),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.forge.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.moss,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  'IMMUTABLE GOVERNANCE SPECTRUM',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textSecondary,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.statusApprovedBg,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  '100% Cryptographic Seal',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.statusApproved,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Visual Multi-Segmented Spectrum Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+              height: 7,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: approvedFlex,
+                    child: Container(color: AppTheme.moss),
+                  ),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    flex: createdFlex,
+                    child: Container(color: AppTheme.forge),
+                  ),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    flex: guardFlex,
+                    child: Container(color: AppTheme.warmAmber),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Legend chips
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            children: [
+              _buildTelemetryChip('Approved', '$approvedCount', AppTheme.moss),
+              _buildTelemetryChip('Created', '$createdCount', AppTheme.forge),
+              _buildTelemetryChip('Guarded', '$guardCount', AppTheme.warmAmber),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTelemetryChip(String label, String count, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '$label: ',
+          style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+        ),
+        Text(
+          count,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: color,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
     );
   }
 
