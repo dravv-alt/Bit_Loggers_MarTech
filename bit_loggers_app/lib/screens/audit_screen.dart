@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/marketing_visuals.dart';
 import 'campaign_detail_screen.dart';
 
 /// FR-10: Audit Trail & Historical Governance Log Viewer (ADR-008)
@@ -629,14 +630,7 @@ class _AuditScreenState extends State<AuditScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircleAvatar(
-                        radius: 9,
-                        backgroundColor: AppTheme.forge.withOpacity(0.12),
-                        child: Text(
-                          evt.actorName.isNotEmpty ? evt.actorName[0].toUpperCase() : 'S',
-                          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.forge),
-                        ),
-                      ),
+                      MarketerAvatar(userId: evt.actorId, size: 20),
                       const SizedBox(width: 6),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 130),
