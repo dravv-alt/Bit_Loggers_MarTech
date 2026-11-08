@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/marketing_visuals.dart';
 import 'campaign_detail_screen.dart';
 import 'campaign_wizard_screen.dart';
 import 'notifications_screen.dart';
@@ -961,57 +962,94 @@ class _KanbanScreenState extends State<KanbanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Row: Channel Icon + Title + Status
+              // Top Section: Title & Marketer Info on Left, Creative Preview on Right
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 22,
-                          height: 22,
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.getChannelColor(channel).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Icon(
-                            AppTheme.getChannelIcon(channel),
-                            size: 13,
-                            color: AppTheme.getChannelColor(channel),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            camp.title,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
+                        Row(
+                          children: [
+                            Container(
+                              width: 22,
+                              height: 22,
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Icon(
+                                AppTheme.getChannelIcon(channel),
+                                size: 13,
+                                color: AppTheme.getChannelColor(channel),
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            Expanded(
+                              child: Text(
+                                camp.title,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        // Owner Attribution with Avatar
+                        Row(
+                          children: [
+                            MarketerAvatar(userId: camp.createdBy, size: 18),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '${camp.ownerName} · $channel · $submittedTime',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  AppTheme.buildStatusIndicator(camp.status),
+                  const SizedBox(width: 10),
+                  CreativeAssetThumbnail(
+                    assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                        ? curVer.creatives[0]['asset_url'] as String?
+                        : null,
+                    channel: channel,
+                    width: 54,
+                    height: 54,
+                    borderRadius: 8,
+                  ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
 
-              // Single Meta Line: Owner · Submitted X ago
-              Text(
-                '${camp.ownerName} · Submitted $submittedTime',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.textSecondary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppTheme.buildStatusIndicator(camp.status),
+                  const Text(
+                    'Needs review',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.verdictAmber,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
 
@@ -1573,58 +1611,98 @@ class _KanbanScreenState extends State<KanbanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Row 1: Channel Icon + Title + Status Indicator
+              // Top Section: Title & Marketer Info on Left, Creative Thumbnail on Right
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 22,
-                          height: 22,
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.getChannelColor(channel).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Icon(
-                            AppTheme.getChannelIcon(channel),
-                            size: 13,
-                            color: AppTheme.getChannelColor(channel),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            camp.title,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
-                              letterSpacing: -0.2,
+                        Row(
+                          children: [
+                            Container(
+                              width: 22,
+                              height: 22,
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Icon(
+                                AppTheme.getChannelIcon(channel),
+                                size: 13,
+                                color: AppTheme.getChannelColor(channel),
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            Expanded(
+                              child: Text(
+                                camp.title,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                  letterSpacing: -0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        // Owner Avatar & Attribution
+                        Row(
+                          children: [
+                            MarketerAvatar(userId: camp.createdBy, size: 18),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '$channel · ${camp.ownerName} · Updated $updatedTime',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  AppTheme.buildStatusIndicator(statusDisplay),
+                  const SizedBox(width: 10),
+                  // Creative Asset Thumbnail
+                  CreativeAssetThumbnail(
+                    assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                        ? curVer.creatives[0]['asset_url'] as String?
+                        : null,
+                    channel: channel,
+                    width: 56,
+                    height: 56,
+                    borderRadius: 8,
+                  ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
 
-              // Row 2: EXACTLY ONE Meta Line: Channel · Owner · Updated Time
-              Text(
-                '$channel · ${camp.ownerName} · Updated $updatedTime',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.textSecondary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppTheme.buildStatusIndicator(statusDisplay),
+                  if (curVer?.budget != null && curVer!.budget > 0)
+                    Text(
+                      '\$${curVer.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'serif',
+                        color: AppTheme.forge,
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 10),
 
@@ -1894,32 +1972,64 @@ class _KanbanScreenState extends State<KanbanScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 20,
-                    height: 20,
-                    margin: const EdgeInsets.only(right: 6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.getChannelColor(channel).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Icon(
-                      AppTheme.getChannelIcon(channel),
-                      size: 11,
-                      color: AppTheme.getChannelColor(channel),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 18,
+                              height: 18,
+                              margin: const EdgeInsets.only(right: 5),
+                              decoration: BoxDecoration(
+                                color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Icon(
+                                AppTheme.getChannelIcon(channel),
+                                size: 10,
+                                color: AppTheme.getChannelColor(channel),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                camp.title,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          kpiChip.isNotEmpty ? '$channel · $kpiChip' : channel,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                  Expanded(
-                    child: Text(
-                      camp.title,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  const SizedBox(width: 6),
+                  CreativeAssetThumbnail(
+                    assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                        ? curVer.creatives[0]['asset_url'] as String?
+                        : null,
+                    channel: channel,
+                    width: 38,
+                    height: 38,
+                    borderRadius: 6,
                   ),
                 ],
               ),
@@ -1927,18 +2037,6 @@ class _KanbanScreenState extends State<KanbanScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      kpiChip.isNotEmpty ? '$channel · $kpiChip' : channel,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textSecondary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
                   Text(
                     budgetStr,
                     style: const TextStyle(
@@ -1946,6 +2044,13 @@ class _KanbanScreenState extends State<KanbanScreen> {
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
                       fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  Text(
+                    dateDisplay,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
