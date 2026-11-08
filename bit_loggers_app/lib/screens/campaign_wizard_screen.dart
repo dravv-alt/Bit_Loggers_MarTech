@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
@@ -34,6 +35,10 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
   @override
   void initState() {
     super.initState();
+    _titleController.addListener(_onFieldChanged);
+    _objectiveController.addListener(_onFieldChanged);
+    _audienceController.addListener(_onFieldChanged);
+    _budgetController.addListener(_onFieldChanged);
     if (widget.existingCampaign != null) {
       final c = widget.existingCampaign!;
       final v = c.currentVersion;
@@ -51,6 +56,24 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
       }
       _aiSummary = v?.aiSummary;
     }
+  }
+
+  @override
+  void dispose() {
+    _titleController.removeListener(_onFieldChanged);
+    _objectiveController.removeListener(_onFieldChanged);
+    _audienceController.removeListener(_onFieldChanged);
+    _budgetController.removeListener(_onFieldChanged);
+    _titleController.dispose();
+    _objectiveController.dispose();
+    _audienceController.dispose();
+    _budgetController.dispose();
+    _aiPromptController.dispose();
+    super.dispose();
+  }
+
+  void _onFieldChanged() {
+    if (mounted) setState(() {});
   }
 
   void _showSnack(String msg, {bool isError = false}) {
@@ -168,9 +191,11 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
       appBar: AppBar(
         title: Text(isEditing ? 'Revise Proposal' : 'Author Campaign Proposal'),
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           // Gemini Argon AI Assistant Card
           Container(
             padding: const EdgeInsets.all(16),
@@ -260,6 +285,15 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           TextField(controller: _titleController, decoration: const InputDecoration(hintText: 'e.g. Summer Solar Flash Sale')),
           const SizedBox(height: 16),
 
+          // Visual Channel Selector
+          const Text(
+            'SELECT CHANNEL DESTINATION',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+          ),
+          const SizedBox(height: 8),
+          _buildVisualChannelSelector(),
+          const SizedBox(height: 14),
+
           // Channel & Budget
           Row(
             children: [
@@ -307,6 +341,10 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+
+          // Vitruvian Budget Controls & Spend Pacing Dial
+          _buildVitruvianBudgetControls(),
           const SizedBox(height: 16),
 
           // Objective
@@ -325,6 +363,10 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           ),
           const SizedBox(height: 6),
           TextField(controller: _audienceController, maxLines: 2, decoration: const InputDecoration(hintText: 'Target segment, persona...')),
+          const SizedBox(height: 16),
+
+          // Live Ad Mockup Preview
+          _buildLiveAdMockupPreview(),
           const SizedBox(height: 20),
 
           // 5 Projected KPIs (Pillar 2)
@@ -356,68 +398,87 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                     _kpiInput('AOV (\$)', _aov, (v) => setState(() => _aov = v)),
                   ],
                 ),
+                const SizedBox(height: 12),
+                const Divider(height: 1, color: AppTheme.borderSage),
+                const SizedBox(height: 10),
+                _buildKpiSummaryBenchmark(),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _submitting ? null : () => _save(false),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: AppTheme.leaf,
-                    foregroundColor: AppTheme.forge,
-                    elevation: 0,
-                    side: const BorderSide(color: AppTheme.borderSage, width: 1.5),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text(
-                    'Save Draft',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.forge,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _submitting ? null : () => _save(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.forge,
-                    foregroundColor: AppTheme.leaf,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: _submitting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
-                        )
-                      : Text(
-                          isEditing ? 'Submit Revision' : 'Submit for Review',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.leaf,
-                          ),
-                        ),
-                ),
-              ),
-            ],
+          const SizedBox(height: 32),
+        ],
+      ),
+    ),
+    bottomNavigationBar: Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        border: const Border(top: BorderSide(color: AppTheme.borderSage, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.forge.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
-    );
-  }
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _submitting ? null : () => _save(false),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppTheme.leaf,
+                  foregroundColor: AppTheme.forge,
+                  elevation: 0,
+                  side: const BorderSide(color: AppTheme.borderSage, width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text(
+                  'Save Draft',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.forge,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _submitting ? null : () => _save(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.forge,
+                  foregroundColor: AppTheme.leaf,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: _submitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
+                      )
+                    : Text(
+                        isEditing ? 'Submit Revision' : 'Submit for Review',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.leaf,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
   Widget _kpiInput(String label, double val, Function(double) onChanged) {
     return Expanded(
@@ -461,6 +522,664 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVisualChannelSelector() {
+    final channels = [
+      {'id': 'Social', 'label': 'Social Feed', 'icon': Icons.share_rounded, 'tag': 'Reach · Virality'},
+      {'id': 'Search', 'label': 'Search SEM', 'icon': Icons.search_rounded, 'tag': 'Intent · Direct'},
+      {'id': 'Email', 'label': 'Email CRM', 'icon': Icons.mail_outline_rounded, 'tag': 'Retention · LTV'},
+      {'id': 'Display', 'label': 'Display Ads', 'icon': Icons.web_rounded, 'tag': 'Awareness · Scale'},
+      {'id': 'Video', 'label': 'Video Pre-Roll', 'icon': Icons.play_circle_outline_rounded, 'tag': 'Engagement'},
+      {'id': 'Influencer', 'label': 'Creator Hub', 'icon': Icons.star_outline_rounded, 'tag': 'Affinity'},
+    ];
+
+    return SizedBox(
+      height: 78,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: channels.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final ch = channels[index];
+          final isSelected = _channel == ch['id'];
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _channel = ch['id'] as String;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 125,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.forge : AppTheme.paper,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? AppTheme.warmAmber : AppTheme.borderSage,
+                  width: isSelected ? 1.5 : 1.0,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.forge.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        ch['icon'] as IconData,
+                        size: 16,
+                        color: isSelected ? AppTheme.leaf : AppTheme.forge,
+                      ),
+                      const Spacer(),
+                      if (isSelected)
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.warmAmber,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    ch['label'] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? AppTheme.leaf : AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    ch['tag'] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                      color: isSelected ? AppTheme.leaf.withOpacity(0.7) : AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildVitruvianBudgetControls() {
+    final presets = [5000.0, 10000.0, 25000.0, 50000.0, 100000.0];
+    final currentBudget = double.tryParse(_budgetController.text) ?? 10000.0;
+    final dailyRate = currentBudget / 14.0;
+    final burnPercent = (currentBudget / 100000.0).clamp(0.05, 1.0);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.paper,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.borderSage),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Text(
+                  'VITRUVIAN PACING & RUN-RATE',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textSecondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.moss.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '\$${dailyRate.toStringAsFixed(0)}/day (14d flight)',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.moss,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Presets row
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: presets.map((p) {
+                final isCur = (currentBudget - p).abs() < 1.0;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      _budgetController.text = p.toStringAsFixed(0);
+                      _onFieldChanged();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isCur ? AppTheme.forge : AppTheme.leaf,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isCur ? AppTheme.forge : AppTheme.borderSage,
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        p >= 1000 ? '\$${(p / 1000).toStringAsFixed(0)}k' : '\$$p',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isCur ? AppTheme.leaf : AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Live Burn Bar with 75% red needle
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 8,
+                decoration: BoxDecoration(
+                  color: AppTheme.bone,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: (burnPercent * 0.72).clamp(0.04, 1.0),
+                child: Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.moss, AppTheme.warmAmber],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                top: -2,
+                bottom: -2,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final needleLeft = constraints.maxWidth * 0.75;
+                    return Stack(
+                      children: [
+                        Positioned(
+                          left: needleLeft,
+                          top: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 2,
+                            color: AppTheme.crimsonNeedle,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'Allocated: \$${currentBudget.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+              const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 10, color: AppTheme.crimsonNeedle),
+                  SizedBox(width: 3),
+                  Text(
+                    '75% Ceiling Warning Needle',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.crimsonNeedle,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiveAdMockupPreview() {
+    final title = _titleController.text.trim().isNotEmpty
+        ? _titleController.text.trim()
+        : 'Summer Solar Flash Sale';
+    final objective = _objectiveController.text.trim().isNotEmpty
+        ? _objectiveController.text.trim()
+        : 'Direct acquisition of high-efficiency rooftop residential solar units.';
+    final audience = _audienceController.text.trim().isNotEmpty
+        ? _audienceController.text.trim()
+        : 'Suburban homeowners, Eco-conscious tier';
+    final currentBudget = double.tryParse(_budgetController.text) ?? 10000.0;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.paper,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderSage, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.forge.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.forge,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  _channel.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.leaf,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'AD CREATIVE CANVAS · LIVE FLIGHT PREVIEW',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textSecondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.moss.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.fiber_manual_record, size: 7, color: AppTheme.moss),
+                    SizedBox(width: 3),
+                    Text(
+                      'Live Mockup',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.moss,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Simulated Ad Frame
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.leaf,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderSage),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Sponsor header
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: AppTheme.forge,
+                      child: Text(
+                        _channel.isNotEmpty ? _channel[0] : 'C',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.leaf,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.forge,
+                            ),
+                          ),
+                          const Text(
+                            'Sponsored · Campaign Grid Managed',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.bone,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '\$${currentBudget >= 1000 ? '${(currentBudget / 1000).toStringAsFixed(0)}k' : currentBudget.toStringAsFixed(0)} Cap',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Creative Visual Container
+                Container(
+                  height: 90,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.moss.withOpacity(0.18),
+                        AppTheme.warmAmber.withOpacity(0.12),
+                        AppTheme.paper,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: AppTheme.borderSage.withOpacity(0.6)),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: 8,
+                        bottom: 8,
+                        child: Icon(
+                          _channel == 'Search'
+                              ? Icons.saved_search_rounded
+                              : _channel == 'Email'
+                                  ? Icons.forward_to_inbox_rounded
+                                  : Icons.auto_awesome_rounded,
+                          size: 36,
+                          color: AppTheme.forge.withOpacity(0.08),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.forge,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              objective,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.textPrimary,
+                                height: 1.25,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Audience persona & CTA button
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.people_alt_outlined, size: 12, color: AppTheme.textSecondary),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              audience,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.textSecondary,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppTheme.forge,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Learn More',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.leaf,
+                            ),
+                          ),
+                          SizedBox(width: 3),
+                          Icon(Icons.arrow_forward_rounded, size: 10, color: AppTheme.leaf),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKpiSummaryBenchmark() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Expanded(
+              child: Text(
+                'BENCHMARK TELEMETRY & PROJECTED HEALTH',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textSecondary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppTheme.moss.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                '5/5 Monitored',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.moss,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _buildKpiSparkChip('Conv', '${_conversionRate.toStringAsFixed(1)}%', 'vs 2.4% avg', _conversionRate >= 2.4),
+            _buildKpiSparkChip('CTR', '${_ctr.toStringAsFixed(1)}%', 'vs 3.2% avg', _ctr >= 3.2),
+            _buildKpiSparkChip('ROI', '${_roi.toStringAsFixed(1)}x', 'vs 3.0x avg', _roi >= 3.0),
+            _buildKpiSparkChip('CPA', '\$${_cpa.toStringAsFixed(0)}', 'vs \$35 target', _cpa <= 35.0),
+            _buildKpiSparkChip('AOV', '\$${_aov.toStringAsFixed(0)}', 'vs \$85 target', _aov >= 85.0),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKpiSparkChip(String label, String value, String benchmark, bool isPositive) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSage),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            isPositive ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+            size: 9,
+            color: isPositive ? AppTheme.moss : AppTheme.warmAmber,
+          ),
+          const SizedBox(width: 2),
+          Text(
+            benchmark,
+            style: TextStyle(
+              fontSize: 8,
+              fontWeight: FontWeight.w500,
+              color: isPositive ? AppTheme.moss : AppTheme.warmAmber,
+            ),
+          ),
+        ],
       ),
     );
   }
