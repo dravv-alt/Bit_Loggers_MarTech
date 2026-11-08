@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/marketing_visuals.dart';
 import 'campaign_detail_screen.dart';
 
 /// FR-08: Internal Campaign Calendar
@@ -681,7 +682,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
         if (selectedDayEvents.isEmpty) ...[
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
             decoration: BoxDecoration(
               color: AppTheme.leaf,
               borderRadius: BorderRadius.circular(16),
@@ -689,53 +690,45 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             child: Column(
               children: [
-                const Icon(Icons.event_available_outlined, size: 36, color: AppTheme.textSecondary),
-                const SizedBox(height: 8),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.paper,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.borderSage),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.event_available_outlined, size: 24, color: AppTheme.textSecondary),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Text(
                   'No flights scheduled for ${DateFormat('d MMMM yyyy').format(_selectedDay)}',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 const Text(
                   'All channel lanes are open for scheduling on this date.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: AppTheme.leaf,
-                        foregroundColor: AppTheme.forge,
-                        side: const BorderSide(color: AppTheme.borderSage),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      icon: const Icon(Icons.add, size: 14, color: AppTheme.forge),
-                      label: const Text('Book for this date', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.forge)),
-                      onPressed: () => _showScheduleDialog(initialDate: _selectedDay),
-                    ),
-                    if (_events.isEmpty)
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: const Color(0xFFF0F4FF),
-                          foregroundColor: AppTheme.brandAccent,
-                          side: const BorderSide(color: Color(0xFFCCD9F5)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        icon: const Icon(Icons.auto_awesome, size: 14, color: AppTheme.brandAccent),
-                        label: const Text(
-                          'Seed Sample Flights',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.brandAccent),
-                        ),
-                        onPressed: _seedDemoFlights,
-                      ),
-                  ],
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: AppTheme.leaf,
+                    foregroundColor: AppTheme.forge,
+                    side: const BorderSide(color: AppTheme.borderSage, width: 1.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                  icon: const Icon(Icons.add, size: 14, color: AppTheme.forge),
+                  label: const Text(
+                    'Book for this date',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.forge),
+                  ),
+                  onPressed: () => _showScheduleDialog(initialDate: _selectedDay),
                 ),
               ],
             ),
@@ -1109,8 +1102,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final matchedCampaign = _approvedCampaigns
         .cast<Campaign?>()
         .firstWhere((c) => c?.campaignId == event.campaignId, orElse: () => null);
-    final kpi = matchedCampaign?.currentVersion?.kpiProjected;
-    final burnRatePct = (matchedCampaign?.currentVersion?.financials?['burn_rate_pct'] as num?)?.toDouble() ?? 65.0;
+    final curVer = matchedCampaign?.currentVersion;
+    final assetUrl = curVer != null && curVer.creatives.isNotEmpty
+        ? curVer.creatives[0]['asset_url'] as String?
+        : null;
+    final kpi = curVer?.kpiProjected;
+    final burnRatePct = (curVer?.financials?['burn_rate_pct'] as num?)?.toDouble() ?? 65.0;
     final burnRatio = (burnRatePct / 100.0).clamp(0.0, 1.0);
 
     final roiStr = kpi != null ? 'ROI ${kpi.roi.toStringAsFixed(1)}x' : 'ROI 4.2x';
@@ -1207,38 +1204,62 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Campaign Title
-                Text(
-                  event.title,
-                  style: const TextStyle(
-                    fontFamily: 'serif',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-
-                // Flight Span & Budget
+                // Creative Visual + Title & Flight Info
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        '${dateFormat.format(start)} → ${dateFormat.format(end)}',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.title,
+                            style: const TextStyle(
+                              fontFamily: 'serif',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${dateFormat.format(start)} → ${dateFormat.format(end)}',
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '\$${event.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                            style: const TextStyle(
+                              fontFamily: 'serif',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.forge,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
+                    CreativeAssetThumbnail(
+                      assetUrl: assetUrl,
+                      channel: event.channel,
+                      width: 72,
+                      height: 72,
+                      borderRadius: 10,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Human Attribution & Pacing Tag
+                Row(
+                  children: [
+                    MarketerAvatar(userId: matchedCampaign?.createdBy, size: 20, showLabel: true),
+                    const Spacer(),
                     Text(
-                      '\$${event.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                      style: const TextStyle(
-                        fontFamily: 'serif',
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.forge,
-                      ),
+                      'Pacing: ${(burnRatio * 100).toInt()}% allocated',
+                      style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
