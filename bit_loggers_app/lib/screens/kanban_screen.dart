@@ -1005,7 +1005,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                         // Owner Attribution with Avatar
                         Row(
                           children: [
-                            MarketerAvatar(userId: camp.createdBy, size: 18),
+                            MarketerAvatar(userId: camp.ownerId, size: 18),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
@@ -1046,7 +1046,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.verdictAmber,
+                      color: AppTheme.warmAmber,
                     ),
                   ),
                 ],
@@ -1655,7 +1655,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                         // Owner Avatar & Attribution
                         Row(
                           children: [
-                            MarketerAvatar(userId: camp.createdBy, size: 18),
+                            MarketerAvatar(userId: camp.ownerId, size: 18),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(

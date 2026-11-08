@@ -213,12 +213,16 @@ class MarketerAvatar extends StatelessWidget {
       children: [
         avatarWidget,
         const SizedBox(width: 6),
-        Text(
-          name,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+        Flexible(
+          child: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
           ),
         ),
       ],
@@ -584,3 +588,4 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
     );
   }
 }
+

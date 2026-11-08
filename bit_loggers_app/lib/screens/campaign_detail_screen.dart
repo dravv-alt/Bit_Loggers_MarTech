@@ -744,6 +744,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
 
   Widget _buildStandardDossierView() {
     final curVer = _campaign!.currentVersion;
+    final channel = curVer?.channel ?? 'Social';
     final kpis = _getResolvedKpis(_campaign!);
     final idPrefix = _campaign!.campaignId.length >= 4 ? _campaign!.campaignId.substring(0, 4).toUpperCase() : _campaign!.campaignId;
 
@@ -770,7 +771,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      MarketerAvatar(userId: _campaign!.createdBy, size: 20),
+                      MarketerAvatar(userId: _campaign!.ownerId, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -1337,11 +1338,11 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 : null,
             copy: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
                 ? curVer.creatives[0]['copy'] as String?
-                : null,
+                : objective,
             assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
                 ? curVer.creatives[0]['asset_url'] as String?
                 : null,
-            targetCpa: curVer?.kpiProjected?.cpa,
+            targetCpa: curVer?.kpiProjected.cpa,
           ),
           const SizedBox(height: 12),
 

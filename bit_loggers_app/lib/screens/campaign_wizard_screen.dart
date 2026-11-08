@@ -899,14 +899,14 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
             targetCpa: _cpa,
           ),
           const SizedBox(height: 12),
-          // Audience Persona Chip
+          // Audience Persona & Budget Cap Chip
           Row(
             children: [
               const Icon(Icons.people_alt_outlined, size: 14, color: AppTheme.textSecondary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Audience: $audience',
+                  'Audience: $audience · Cap: \$${currentBudget.toInt()}',
                   style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

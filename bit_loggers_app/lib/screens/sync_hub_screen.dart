@@ -1365,9 +1365,14 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                         ),
                         if (evt.payload['recipient'] != null) ...[
                           const SizedBox(width: 6),
-                          Text(
-                            evt.payload['recipient'] as String,
-                            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 80),
+                            child: Text(
+                              evt.payload['recipient'] as String,
+                              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
                         ],
                       ],
@@ -1709,7 +1714,7 @@ class _OutboxDetailModal extends StatelessWidget {
                 const SizedBox(height: 14),
 
                 const Text(
-                  'Technical Payload (JSON)',
+                  'Payload (JSON)',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                 ),
                 const SizedBox(height: 6),

@@ -1107,7 +1107,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ? curVer.creatives[0]['asset_url'] as String?
         : null;
     final kpi = curVer?.kpiProjected;
-    final burnRatePct = (curVer?.financials?['burn_rate_pct'] as num?)?.toDouble() ?? 65.0;
+    final burnRatePct = (curVer?.financials['burn_rate_pct'] as num?)?.toDouble() ?? 65.0;
     final burnRatio = (burnRatePct / 100.0).clamp(0.0, 1.0);
 
     final roiStr = kpi != null ? 'ROI ${kpi.roi.toStringAsFixed(1)}x' : 'ROI 4.2x';
@@ -1255,10 +1255,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 // Human Attribution & Pacing Tag
                 Row(
                   children: [
-                    MarketerAvatar(userId: matchedCampaign?.createdBy, size: 20, showLabel: true),
-                    const Spacer(),
+                    Expanded(
+                      child: MarketerAvatar(userId: matchedCampaign?.ownerId, size: 20, showLabel: true),
+                    ),
+                    const SizedBox(width: 8),
                     Text(
-                      'Pacing: ${(burnRatio * 100).toInt()}% allocated',
+                      'Pacing: ${(burnRatio * 100).toInt()}%',
                       style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                     ),
                   ],
