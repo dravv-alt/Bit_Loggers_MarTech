@@ -1,5 +1,12 @@
 import 'dart:convert';
 
+double _toDouble(dynamic val, [double fallback = 0.0]) {
+  if (val == null) return fallback;
+  if (val is num) return val.toDouble();
+  if (val is String) return double.tryParse(val) ?? fallback;
+  return fallback;
+}
+
 class User {
   final String id;
   final String name;
@@ -55,11 +62,11 @@ class KpiMetrics {
     }
     final map = json is String ? jsonDecode(json) : json as Map<String, dynamic>;
     return KpiMetrics(
-      conversionRate: (map['conversionRate'] as num?)?.toDouble() ?? 3.5,
-      ctr: (map['ctr'] as num?)?.toDouble() ?? 4.2,
-      roi: (map['roi'] as num?)?.toDouble() ?? 3.8,
-      cpa: (map['cpa'] as num?)?.toDouble() ?? 25.0,
-      aov: (map['aov'] as num?)?.toDouble() ?? 95.0,
+      conversionRate: _toDouble(map['conversionRate'] ?? map['conversion_rate'], 3.5),
+      ctr: _toDouble(map['ctr'], 4.2),
+      roi: _toDouble(map['roi'], 3.8),
+      cpa: _toDouble(map['cpa'], 25.0),
+      aov: _toDouble(map['aov'], 95.0),
     );
   }
 
@@ -115,34 +122,40 @@ class CampaignVersion {
     required this.createdAt,
   });
 
-  double get spentToDate => (financials['spent_to_date'] as num?)?.toDouble() ?? 0.0;
-  double get remainingBudget => (financials['remaining_budget'] as num?)?.toDouble() ?? budget;
-  double get burnRatePct => (financials['burn_rate_pct'] as num?)?.toDouble() ?? 0.0;
+  double get spentToDate => _toDouble(financials['spent_to_date'], 0.0);
+  double get remainingBudget => _toDouble(financials['remaining_budget'], budget);
+  double get burnRatePct => _toDouble(financials['burn_rate_pct'], 0.0);
   String get costCenterCode => financials['cost_center_code'] as String? ?? 'CC-DEFAULT';
   String get riskTier => compliance['risk_tier'] as String? ?? 'STANDARD';
   int get creativeCount => creatives.length;
 
   factory CampaignVersion.fromJson(Map<String, dynamic> json) {
     return CampaignVersion(
-      versionId: json['version_id'] ?? '',
-      campaignId: json['campaign_id'] ?? '',
-      versionNo: json['version_no'] ?? 1,
+      versionId: json['version_id'] ?? json['versionId'] ?? '',
+      campaignId: json['campaign_id'] ?? json['campaignId'] ?? '',
+      versionNo: json['version_no'] ?? json['versionNo'] ?? 1,
       objective: json['objective'] ?? '',
-      targetAudience: json['target_audience'] ?? '',
+      targetAudience: json['target_audience'] ?? json['targetAudience'] ?? '',
       channel: json['channel'] ?? 'Social',
-      budget: (json['budget'] as num?)?.toDouble() ?? 10000.0,
-      kpiProjected: KpiMetrics.fromJson(json['kpi_projected']),
-      kpiActual: json['kpi_actual'] != null ? KpiMetrics.fromJson(json['kpi_actual']) : null,
-      aiSummary: json['ai_summary'],
+      budget: _toDouble(json['budget'], 10000.0),
+      kpiProjected: KpiMetrics.fromJson(json['kpi_projected'] ?? json['kpiProjected']),
+      kpiActual: (json['kpi_actual'] ?? json['kpiActual']) != null
+          ? KpiMetrics.fromJson(json['kpi_actual'] ?? json['kpiActual'])
+          : null,
+      aiSummary: json['ai_summary'] ?? json['aiSummary'],
       creatives: json['creatives'] is List ? json['creatives'] : [],
       targeting: json['targeting'] is Map ? Map<String, dynamic>.from(json['targeting']) : {},
       financials: json['financials'] is Map ? Map<String, dynamic>.from(json['financials']) : {},
       compliance: json['compliance'] is Map ? Map<String, dynamic>.from(json['compliance']) : {},
-      adNetwork: json['ad_network'] is Map ? Map<String, dynamic>.from(json['ad_network']) : {},
-      flightPhases: json['flight_phases'] is List ? json['flight_phases'] : [],
+      adNetwork: json['ad_network'] is Map || json['adNetwork'] is Map
+          ? Map<String, dynamic>.from((json['ad_network'] ?? json['adNetwork']) as Map)
+          : {},
+      flightPhases: json['flight_phases'] is List || json['flightPhases'] is List
+          ? ((json['flight_phases'] ?? json['flightPhases']) as List)
+          : [],
       tracking: json['tracking'] is Map ? Map<String, dynamic>.from(json['tracking']) : {},
-      createdBy: json['created_by'] ?? '',
-      createdAt: json['created_at'] ?? '',
+      createdBy: json['created_by'] ?? json['createdBy'] ?? '',
+      createdAt: json['created_at'] ?? json['createdAt'] ?? '',
     );
   }
 }
@@ -242,22 +255,25 @@ class Campaign {
 
   factory Campaign.fromJson(Map<String, dynamic> json) {
     CampaignVersion? currentVer;
-    if (json['current_version'] != null) {
-      currentVer = CampaignVersion.fromJson(json['current_version']);
-    } else if (json['version_no'] != null) {
+    final curVerRaw = json['currentVersion'] ?? json['current_version'];
+    if (curVerRaw != null && curVerRaw is Map) {
+      currentVer = CampaignVersion.fromJson(Map<String, dynamic>.from(curVerRaw));
+    } else if (json['version_no'] != null || json['versionNo'] != null) {
       currentVer = CampaignVersion(
-        versionId: json['current_version_id'] ?? '',
-        campaignId: json['campaign_id'] ?? '',
-        versionNo: json['version_no'] ?? 1,
+        versionId: json['current_version_id'] ?? json['currentVersionId'] ?? '',
+        campaignId: json['campaign_id'] ?? json['campaignId'] ?? '',
+        versionNo: json['version_no'] ?? json['versionNo'] ?? 1,
         objective: json['objective'] ?? '',
-        targetAudience: json['target_audience'] ?? '',
+        targetAudience: json['target_audience'] ?? json['targetAudience'] ?? '',
         channel: json['channel'] ?? 'Social',
-        budget: (json['budget'] as num?)?.toDouble() ?? 10000.0,
-        kpiProjected: KpiMetrics.fromJson(json['kpi_projected']),
-        kpiActual: json['kpi_actual'] != null ? KpiMetrics.fromJson(json['kpi_actual']) : null,
-        aiSummary: json['ai_summary'],
-        createdBy: json['owner_id'] ?? '',
-        createdAt: json['created_at'] ?? '',
+        budget: _toDouble(json['budget'], 10000.0),
+        kpiProjected: KpiMetrics.fromJson(json['kpi_projected'] ?? json['kpiProjected']),
+        kpiActual: (json['kpi_actual'] ?? json['kpiActual']) != null
+            ? KpiMetrics.fromJson(json['kpi_actual'] ?? json['kpiActual'])
+            : null,
+        aiSummary: json['ai_summary'] ?? json['aiSummary'],
+        createdBy: json['owner_id'] ?? json['ownerId'] ?? '',
+        createdAt: json['created_at'] ?? json['createdAt'] ?? '',
       );
     }
 
@@ -422,14 +438,16 @@ class ScheduleEvent {
 
   factory ScheduleEvent.fromJson(Map<String, dynamic> json) {
     return ScheduleEvent(
-      scheduleId: json['schedule_id'] ?? '',
-      campaignId: json['campaign_id'] ?? '',
+      scheduleId: json['schedule_id'] ?? json['scheduleId'] ?? '',
+      campaignId: json['campaign_id'] ?? json['campaignId'] ?? '',
       title: json['title'] ?? '',
       channel: json['channel'] ?? 'Social',
-      versionNo: json['version_no'] ?? 1,
-      budget: (json['budget'] as num?)?.toDouble() ?? 0.0,
-      startsAt: json['starts_at'] ?? '',
-      endsAt: json['ends_at'] ?? '',
+      versionNo: (json['version_no'] ?? json['versionNo'] ?? 1) is int
+          ? (json['version_no'] ?? json['versionNo'] ?? 1) as int
+          : int.tryParse((json['version_no'] ?? json['versionNo'] ?? 1).toString()) ?? 1,
+      budget: _toDouble(json['budget'], 0.0),
+      startsAt: json['starts_at'] ?? json['startsAt'] ?? '',
+      endsAt: json['ends_at'] ?? json['endsAt'] ?? '',
       status: json['status'] ?? 'SCHEDULED',
     );
   }

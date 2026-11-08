@@ -919,20 +919,23 @@ export class WorkflowService {
       [campaignId]
     );
 
+    const verObj = curVer ? {
+      ...curVer,
+      kpi_projected: this.parseJsonField(curVer.kpi_projected, {}),
+      kpi_actual: this.parseJsonField(curVer.kpi_actual, null),
+      creatives: this.parseJsonField(curVer.creatives, []),
+      targeting: this.parseJsonField(curVer.targeting, {}),
+      financials: this.parseJsonField(curVer.financials, {}),
+      compliance: this.parseJsonField(curVer.compliance, {}),
+      ad_network: this.parseJsonField(curVer.ad_network, {}),
+      flight_phases: this.parseJsonField(curVer.flight_phases, []),
+      tracking: this.parseJsonField(curVer.tracking, {})
+    } : null;
+
     return {
       ...campaign,
-      currentVersion: curVer ? {
-        ...curVer,
-        kpi_projected: this.parseJsonField(curVer.kpi_projected, {}),
-        kpi_actual: this.parseJsonField(curVer.kpi_actual, null),
-        creatives: this.parseJsonField(curVer.creatives, []),
-        targeting: this.parseJsonField(curVer.targeting, {}),
-        financials: this.parseJsonField(curVer.financials, {}),
-        compliance: this.parseJsonField(curVer.compliance, {}),
-        ad_network: this.parseJsonField(curVer.ad_network, {}),
-        flight_phases: this.parseJsonField(curVer.flight_phases, []),
-        tracking: this.parseJsonField(curVer.tracking, {})
-      } : null,
+      currentVersion: verObj,
+      current_version: verObj,
       versions: versionsRes.rows.map(v => ({
         ...v,
         kpi_projected: this.parseJsonField(v.kpi_projected, {}),
@@ -980,16 +983,8 @@ export class WorkflowService {
     sql += ' ORDER BY c.updated_at DESC';
 
     const res = await this.db.query(sql, params);
-    return res.rows.map(row => ({
-      campaign_id: row.campaign_id,
-      title: row.title,
-      owner_id: row.owner_id,
-      owner_name: row.owner_name,
-      status: row.status,
-      current_version_id: row.current_version_id,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      currentVersion: row.current_version_id ? {
+    return res.rows.map(row => {
+      const curVerObj = row.current_version_id ? {
         version_id: row.current_version_id,
         version_no: row.version_no,
         title: row.title,
@@ -998,13 +993,27 @@ export class WorkflowService {
         objective: row.objective,
         target_audience: row.target_audience,
         kpi_projected: this.parseJsonField(row.kpi_projected, {}),
+        kpi_actual: this.parseJsonField(row.kpi_actual, null),
         financials: this.parseJsonField(row.financials, {}),
         compliance: this.parseJsonField(row.compliance, {}),
         ad_network: this.parseJsonField(row.ad_network, {}),
         creatives: this.parseJsonField(row.creatives, []),
         flight_phases: this.parseJsonField(row.flight_phases, [])
-      } : null
-    }));
+      } : null;
+
+      return {
+        campaign_id: row.campaign_id,
+        title: row.title,
+        owner_id: row.owner_id,
+        owner_name: row.owner_name,
+        status: row.status,
+        current_version_id: row.current_version_id,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        currentVersion: curVerObj,
+        current_version: curVerObj
+      };
+    });
   }
 
   // --- Calendar & Schedules (FR-07, FR-08) ---
@@ -1018,7 +1027,10 @@ export class WorkflowService {
        WHERE s.status = 'ACTIVE'
        ORDER BY s.starts_at ASC`
     );
-    return res.rows;
+    return res.rows.map(row => ({
+      ...row,
+      budget: Number(row.budget)
+    }));
   }
 
   // --- TimescaleDB Hypertable Queries (FR-15) ---
