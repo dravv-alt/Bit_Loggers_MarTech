@@ -83,6 +83,13 @@ class CampaignVersion {
   final KpiMetrics kpiProjected;
   final KpiMetrics? kpiActual;
   final String? aiSummary;
+  final List<dynamic> creatives;
+  final Map<String, dynamic> targeting;
+  final Map<String, dynamic> financials;
+  final Map<String, dynamic> compliance;
+  final Map<String, dynamic> adNetwork;
+  final List<dynamic> flightPhases;
+  final Map<String, dynamic> tracking;
   final String createdBy;
   final String createdAt;
 
@@ -97,9 +104,23 @@ class CampaignVersion {
     required this.kpiProjected,
     this.kpiActual,
     this.aiSummary,
+    this.creatives = const [],
+    this.targeting = const {},
+    this.financials = const {},
+    this.compliance = const {},
+    this.adNetwork = const {},
+    this.flightPhases = const [],
+    this.tracking = const {},
     required this.createdBy,
     required this.createdAt,
   });
+
+  double get spentToDate => (financials['spent_to_date'] as num?)?.toDouble() ?? 0.0;
+  double get remainingBudget => (financials['remaining_budget'] as num?)?.toDouble() ?? budget;
+  double get burnRatePct => (financials['burn_rate_pct'] as num?)?.toDouble() ?? 0.0;
+  String get costCenterCode => financials['cost_center_code'] as String? ?? 'CC-DEFAULT';
+  String get riskTier => compliance['risk_tier'] as String? ?? 'STANDARD';
+  int get creativeCount => creatives.length;
 
   factory CampaignVersion.fromJson(Map<String, dynamic> json) {
     return CampaignVersion(
@@ -113,6 +134,13 @@ class CampaignVersion {
       kpiProjected: KpiMetrics.fromJson(json['kpi_projected']),
       kpiActual: json['kpi_actual'] != null ? KpiMetrics.fromJson(json['kpi_actual']) : null,
       aiSummary: json['ai_summary'],
+      creatives: json['creatives'] is List ? json['creatives'] : [],
+      targeting: json['targeting'] is Map ? Map<String, dynamic>.from(json['targeting']) : {},
+      financials: json['financials'] is Map ? Map<String, dynamic>.from(json['financials']) : {},
+      compliance: json['compliance'] is Map ? Map<String, dynamic>.from(json['compliance']) : {},
+      adNetwork: json['ad_network'] is Map ? Map<String, dynamic>.from(json['ad_network']) : {},
+      flightPhases: json['flight_phases'] is List ? json['flight_phases'] : [],
+      tracking: json['tracking'] is Map ? Map<String, dynamic>.from(json['tracking']) : {},
       createdBy: json['created_by'] ?? '',
       createdAt: json['created_at'] ?? '',
     );
