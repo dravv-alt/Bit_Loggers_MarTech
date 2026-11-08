@@ -472,12 +472,31 @@ class _KanbanScreenState extends State<KanbanScreen> {
   // --- Workspace Telemetry Helpers ---
   Widget _buildPortfolioPacingTile() {
     double totalAllocated = 0.0;
+    double totalSpent = 0.0;
     for (final c in _campaigns) {
-      totalAllocated += (c.currentVersion?.budget ?? 15000);
+      final b = (c.currentVersion?.budget ?? 0).toDouble();
+      totalAllocated += b;
+      final fin = c.currentVersion?.financials;
+      if (fin != null && fin['spent_to_date'] != null) {
+        totalSpent += (fin['spent_to_date'] as num).toDouble();
+      } else {
+        if (c.status == 'Approved' || c.status == 'Scheduled') {
+          totalSpent += (b * 0.45);
+        }
+      }
     }
-    if (totalAllocated == 0) totalAllocated = 142500;
-    const double burnRatio = 0.64;
+    if (totalAllocated == 0) totalAllocated = 280000;
+    final double burnPct = totalAllocated > 0 ? ((totalSpent / totalAllocated) * 100) : 0.0;
+    final double burnRatio = (burnPct / 100).clamp(0.0, 1.0);
     final totalStr = '\$${(totalAllocated / 1000).toStringAsFixed(1)}K';
+    final burnStr = '${burnPct.toStringAsFixed(0)}% burned';
+
+    final bool isOverCeiling = burnPct > 75.0;
+    final bool isHigh = burnPct > 65.0 && burnPct <= 75.0;
+    final String statusLabel = isOverCeiling ? 'OVER CEILING' : (isHigh ? 'PACING HIGH' : 'ON TRACK');
+    final Color statusColor = isOverCeiling 
+        ? const Color(0xFFB9301D) 
+        : (isHigh ? const Color(0xFFC07700) : AppTheme.statusApproved);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -507,9 +526,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: AppTheme.borderSage),
                 ),
-                child: const Text(
-                  'ON TRACK',
-                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.statusApproved),
+                child: Text(
+                  statusLabel,
+                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: statusColor),
                 ),
               ),
             ],
@@ -530,9 +549,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
-              const Text(
-                'Total Allocated · 64% burned',
-                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+              Text(
+                'Total Allocated · $burnStr',
+                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
               ),
             ],
           ),
@@ -558,7 +577,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   child: Container(
                     height: 6,
                     decoration: BoxDecoration(
-                      color: AppTheme.forge,
+                      color: isOverCeiling ? const Color(0xFFB9301D) : AppTheme.forge,
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -580,7 +599,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'Current flight: 64% burned',
+                  'Current flight: $burnStr',
                   style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -598,12 +617,37 @@ class _KanbanScreenState extends State<KanbanScreen> {
   }
 
   Widget _buildChannelAllocationBar() {
-    final channelShares = [
-      {'name': 'Social', 'share': 0.42, 'color': const Color(0xFF2D55A2)},
-      {'name': 'Search', 'share': 0.28, 'color': const Color(0xFF476044)},
-      {'name': 'Email', 'share': 0.18, 'color': const Color(0xFF234C82)},
-      {'name': 'Display', 'share': 0.12, 'color': const Color(0xFF5B6941)},
-    ];
+    final Map<String, double> channelTotals = {};
+    for (final c in _campaigns) {
+      final ch = c.currentVersion?.channel ?? 'Other';
+      final b = (c.currentVersion?.budget ?? 0).toDouble();
+      channelTotals[ch] = (channelTotals[ch] ?? 0.0) + b;
+    }
+
+    final double totalBudget = channelTotals.values.fold(0.0, (sum, val) => sum + val);
+    final List<Map<String, dynamic>> channelShares = [];
+    if (totalBudget > 0) {
+      channelTotals.forEach((ch, b) {
+        if (b > 0) {
+          channelShares.add({
+            'name': ch,
+            'share': b / totalBudget,
+            'budget': b,
+            'color': AppTheme.getChannelColor(ch),
+          });
+        }
+      });
+      channelShares.sort((a, b) => (b['share'] as double).compareTo(a['share'] as double));
+    }
+
+    if (channelShares.isEmpty) {
+      channelShares.addAll([
+        {'name': 'Social', 'share': 0.40, 'color': AppTheme.getChannelColor('Social')},
+        {'name': 'Search', 'share': 0.30, 'color': AppTheme.getChannelColor('Search')},
+        {'name': 'Email', 'share': 0.18, 'color': AppTheme.getChannelColor('Email')},
+        {'name': 'Display', 'share': 0.12, 'color': AppTheme.getChannelColor('Display')},
+      ]);
+    }
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -629,7 +673,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               child: Row(
                 children: channelShares.map((ch) {
                   return Expanded(
-                    flex: ((ch['share'] as double) * 100).toInt(),
+                    flex: (((ch['share'] as double) * 100).toInt()).clamp(1, 1000),
                     child: Container(color: ch['color'] as Color),
                   );
                 }).toList(),
@@ -1759,8 +1803,34 @@ class _KanbanScreenState extends State<KanbanScreen> {
     final curVer = camp.currentVersion;
     final channel = curVer?.channel ?? 'Social';
     final initials = _getInitials(camp.ownerName);
-    final dateDisplay = DateFormat('d MMM').format(DateTime.now().add(const Duration(days: 2)));
-    final budgetStr = '\$${((curVer?.budget ?? 15000) / 1000).toStringAsFixed(1)}K';
+    final parsedDate = DateTime.tryParse(camp.createdAt);
+    final dateDisplay = DateFormat('d MMM').format(parsedDate ?? DateTime.now());
+    final budgetVal = (curVer?.budget ?? 0).toDouble();
+    final budgetStr = budgetVal > 0 ? '\$${(budgetVal / 1000).toStringAsFixed(1)}K' : '\$15.0K';
+
+    // Real dynamic card burn rate
+    final fin = curVer?.financials;
+    final burnRatePct = (fin?['burn_rate_pct'] as num?)?.toDouble() ??
+        (camp.status == 'Approved' ? 65.0 : (camp.status == 'Scheduled' ? 25.0 : 0.0));
+    final cardBurnFactor = (burnRatePct / 100).clamp(0.0, 1.0);
+
+    // Dynamic Micro-KPIs from curVer?.kpiProjected
+    final kpi = curVer?.kpiProjected;
+    final roi = kpi?.roi;
+    final cr = kpi?.conversionRate;
+    final ctr = kpi?.ctr;
+    final cpa = kpi?.cpa;
+
+    String kpiChip = '';
+    if (roi != null && roi > 0) {
+      kpiChip = '${roi.toStringAsFixed(1)}x ROI';
+    } else if (cr != null && cr > 0) {
+      kpiChip = '${cr.toStringAsFixed(1)}% CR';
+    } else if (ctr != null && ctr > 0) {
+      kpiChip = '${ctr.toStringAsFixed(1)}% CTR';
+    } else if (cpa != null && cpa > 0) {
+      kpiChip = '\$${cpa.toInt()} CPA';
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -1822,14 +1892,18 @@ class _KanbanScreenState extends State<KanbanScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    channel,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textSecondary,
+                  Expanded(
+                    child: Text(
+                      kpiChip.isNotEmpty ? '$channel · $kpiChip' : channel,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 4),
                   Text(
                     budgetStr,
                     style: const TextStyle(
@@ -1842,7 +1916,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 ],
               ),
               const SizedBox(height: 6),
-              // Mini Burn Indicator
+              // Dynamic Mini Burn Indicator
               Container(
                 height: 4,
                 width: double.infinity,
@@ -1852,10 +1926,12 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 ),
                 child: FractionallySizedBox(
                   alignment: Alignment.centerLeft,
-                  widthFactor: 0.65,
+                  widthFactor: cardBurnFactor,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.getChannelColor(channel),
+                      color: burnRatePct > 75
+                          ? const Color(0xFFB9301D)
+                          : AppTheme.getChannelColor(channel),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1874,7 +1950,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     ),
                   ),
                   Text(
-                    dateDisplay,
+                    burnRatePct > 0 ? '${burnRatePct.toInt()}% burned · $dateDisplay' : dateDisplay,
                     style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                   ),
                 ],

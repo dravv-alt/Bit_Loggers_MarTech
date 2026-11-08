@@ -1069,11 +1069,51 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildConversionFunnelCard() {
+    final aggregates = _data?['aggregates'] as Map<String, dynamic>?;
+
+    final double impressions = (aggregates?['impressions'] as num?)?.toDouble() ?? 5996319.0;
+    final double clicks = (aggregates?['clicks'] as num?)?.toDouble() ?? 261835.0;
+    final double conversions = (aggregates?['conversions'] as num?)?.toDouble() ?? 12066.0;
+    final double revenue = (aggregates?['revenue'] as num?)?.toDouble() ?? 2251971.0;
+
+    final double ctr = impressions > 0 ? (clicks / impressions * 100) : 4.4;
+    final double convRate = clicks > 0 ? (conversions / clicks * 100) : 4.6;
+    final double aov = conversions > 0 ? (revenue / conversions) : 186.0;
+
+    String formatVolume(double val, {bool isCurrency = false}) {
+      if (val >= 1000000) {
+        return (isCurrency ? '\$' : '') + (val / 1000000).toStringAsFixed(2) + 'M';
+      } else if (val >= 1000) {
+        return (isCurrency ? '\$' : '') + (val / 1000).toStringAsFixed(1) + 'K';
+      }
+      return (isCurrency ? '\$' : '') + val.toStringAsFixed(0);
+    }
+
     final stages = [
-      {'name': 'Impressions', 'volume': '4.9M', 'pct': '100%', 'bar': 1.0},
-      {'name': 'Clicks', 'volume': '245.0K', 'pct': '5.0%', 'bar': 0.72},
-      {'name': 'Leads / Adds', 'volume': '49.0K', 'pct': '20.0%', 'bar': 0.45},
-      {'name': 'Purchases', 'volume': '18.6K', 'pct': '3.8%', 'bar': 0.28},
+      {
+        'name': 'Impressions',
+        'volume': formatVolume(impressions),
+        'pct': '100%',
+        'bar': 1.0,
+      },
+      {
+        'name': 'Clicks (Traffic)',
+        'volume': formatVolume(clicks),
+        'pct': '${ctr.toStringAsFixed(1)}% CTR',
+        'bar': 0.72,
+      },
+      {
+        'name': 'Conversions (Leads)',
+        'volume': formatVolume(conversions),
+        'pct': '${convRate.toStringAsFixed(1)}% CVR',
+        'bar': 0.45,
+      },
+      {
+        'name': 'Attributed Revenue',
+        'volume': formatVolume(revenue, isCurrency: true),
+        'pct': '\$${aov.toStringAsFixed(0)} AOV',
+        'bar': 0.30,
+      },
     ];
 
     return Container(
@@ -1091,7 +1131,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'CONVERSION FUNNEL (4.9M VOLUME)',
+                  'CONVERSION FUNNEL (${formatVolume(impressions)} VOLUME)',
                   style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
