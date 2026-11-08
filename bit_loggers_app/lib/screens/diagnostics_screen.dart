@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
@@ -140,6 +142,9 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               color: AppTheme.forge,
               backgroundColor: AppTheme.borderSage,
             ),
+
+          // Visual Health & Pipeline Telemetry Spectrum
+          _buildDiagnosticsTelemetryCard(items),
 
           // Search & Filter Bar
           Container(
@@ -284,6 +289,159 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDiagnosticsTelemetryCard(List<DiagnosticLogItem> logs) {
+    int successCount = 0;
+    int failureCount = 0;
+    int infoCount = 0;
+    for (final l in logs) {
+      final o = l.outcome.toUpperCase();
+      if (o == 'SUCCESS') {
+        successCount++;
+      } else if (o == 'FAILURE' || o == 'ERROR') {
+        failureCount++;
+      } else {
+        infoCount++;
+      }
+    }
+    final total = math.max(1, logs.length);
+    final successFlex = math.max(1, (successCount * 100 / total).round());
+    final failureFlex = math.max(1, (failureCount * 100 / total).round());
+    final infoFlex = math.max(1, (infoCount * 100 / total).round());
+    final healthRate = ((successCount / total) * 100).clamp(0, 100);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.borderSage),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.forge.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: failureCount > 0 ? AppTheme.warmAmber : AppTheme.moss,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  'SYSTEM HEALTH & PIPELINE TELEMETRY',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textSecondary,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: failureCount > 0 ? AppTheme.statusChangesBg : AppTheme.statusApprovedBg,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${healthRate.toStringAsFixed(0)}% Reliability',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: failureCount > 0 ? AppTheme.statusChanges : AppTheme.statusApproved,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Visual Spectrum Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+              height: 7,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: successFlex,
+                    child: Container(color: AppTheme.moss),
+                  ),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    flex: failureFlex,
+                    child: Container(color: AppTheme.crimsonNeedle),
+                  ),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    flex: infoFlex,
+                    child: Container(color: AppTheme.forge),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Legend chips
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            children: [
+              _buildDiagChip('Success', '$successCount', AppTheme.moss),
+              _buildDiagChip('Failure', '$failureCount', AppTheme.crimsonNeedle),
+              _buildDiagChip('Info', '$infoCount', AppTheme.forge),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiagChip(String label, String count, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '$label: ',
+          style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+        ),
+        Text(
+          count,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: color,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
     );
   }
 
