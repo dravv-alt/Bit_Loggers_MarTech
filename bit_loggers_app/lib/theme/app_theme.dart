@@ -73,6 +73,26 @@ class AppTheme {
     }
   }
 
+  static IconData getChannelIcon(String channel) {
+    switch (channel.toLowerCase()) {
+      case 'social':
+      case 'paid social':
+        return Icons.campaign_outlined;
+      case 'email':
+        return Icons.alternate_email_rounded;
+      case 'search':
+        return Icons.search_rounded;
+      case 'display':
+        return Icons.view_carousel_outlined;
+      case 'influencer':
+        return Icons.person_pin_circle_outlined;
+      case 'video':
+        return Icons.smart_display_outlined;
+      default:
+        return Icons.hub_outlined;
+    }
+  }
+
   static Color getStatusColor(String status) {
     switch (status) {
       case 'Approved':

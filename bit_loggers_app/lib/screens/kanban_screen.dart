@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
@@ -407,7 +408,15 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // WORKSPACE PORTFOLIO PACING & BURN BAR (FR-09 Alignment)
+            _buildPortfolioPacingTile(),
+            const SizedBox(height: 14),
+
+            // MULTI-CHANNEL FLIGHT ALLOCATION SEGMENTED BAR
+            _buildChannelAllocationBar(),
+            const SizedBox(height: 22),
 
             // Needs your attention
             Row(
@@ -459,6 +468,369 @@ class _KanbanScreenState extends State<KanbanScreen> {
     );
   }
 
+  // --- Workspace Telemetry Helpers ---
+  Widget _buildPortfolioPacingTile() {
+    double totalAllocated = 0.0;
+    for (final c in _campaigns) {
+      totalAllocated += (c.currentVersion?.budget ?? 15000);
+    }
+    if (totalAllocated == 0) totalAllocated = 142500;
+    const double burnRatio = 0.64;
+    final totalStr = '\$${(totalAllocated / 1000).toStringAsFixed(1)}K';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'WORKSPACE PACING · 75% CEILING',
+                  style: AppTheme.wireframeEyebrow(fontSize: 9),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppTheme.borderSage),
+                ),
+                child: const Text(
+                  'ON TRACK',
+                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.statusApproved),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              Text(
+                totalStr,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.5,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+              const Text(
+                'Total Allocated · 64% burned',
+                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Pacing Burn Bar with 75% red needle
+          SizedBox(
+            height: 14,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                Container(
+                  height: 6,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppTheme.paper,
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(color: AppTheme.borderSage, width: 0.5),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: burnRatio,
+                  child: Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: AppTheme.forge,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
+                  child: Container(
+                    width: 2,
+                    height: 14,
+                    color: const Color(0xFFB9301D),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Current flight: 64% burned',
+                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Ceiling: 75%',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFB9301D)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChannelAllocationBar() {
+    final channelShares = [
+      {'name': 'Social', 'share': 0.42, 'color': const Color(0xFF2D55A2)},
+      {'name': 'Search', 'share': 0.28, 'color': const Color(0xFF476044)},
+      {'name': 'Email', 'share': 0.18, 'color': const Color(0xFF234C82)},
+      {'name': 'Display', 'share': 0.12, 'color': const Color(0xFF5B6941)},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.leaf,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.borderSage, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'CHANNEL FLIGHT DISTRIBUTION',
+            style: AppTheme.wireframeEyebrow(fontSize: 9),
+          ),
+          const SizedBox(height: 10),
+
+          // Multi-segmented bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+              height: 10,
+              child: Row(
+                children: channelShares.map((ch) {
+                  return Expanded(
+                    flex: ((ch['share'] as double) * 100).toInt(),
+                    child: Container(color: ch['color'] as Color),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Legend chips
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            children: channelShares.map((ch) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: ch['color'] as Color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${ch['name']} ${((ch['share'] as double) * 100).toInt()}%',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniBurnBar({required double budget, double burnRatio = 0.62}) {
+    final budgetStr = budget.toInt().toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    );
+    final isOverCeiling = burnRatio >= 0.75;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                '\$$budgetStr budget cap',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '${(burnRatio * 100).toInt()}% burned',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isOverCeiling ? AppTheme.statusRejected : AppTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 10,
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              Container(
+                height: 5,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(2.5),
+                  border: Border.all(color: AppTheme.borderSage, width: 0.5),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: burnRatio.clamp(0.0, 1.0),
+                child: Container(
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: isOverCeiling ? AppTheme.statusRejected : AppTheme.forge,
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
+                child: Container(
+                  width: 1.5,
+                  height: 10,
+                  color: const Color(0xFFB9301D),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMicroKpiStrip({
+    required double roi,
+    required double cpa,
+    required double ctr,
+    required String format,
+  }) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _microKpiChip('ROI', '${roi.toStringAsFixed(1)}x', isHighlight: true),
+          const SizedBox(width: 5),
+          _microKpiChip('CPA', '\$${cpa.toStringAsFixed(1)}'),
+          const SizedBox(width: 5),
+          _microKpiChip('CTR', '${ctr.toStringAsFixed(1)}%'),
+          const SizedBox(width: 5),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppTheme.paper,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: AppTheme.borderSage, width: 0.5),
+            ),
+            child: Text(
+              format,
+              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _microKpiChip(String label, String value, {bool isHighlight = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isHighlight ? AppTheme.forge : AppTheme.paper,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: isHighlight ? AppTheme.forge : AppTheme.borderSage, width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label ',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: isHighlight ? AppTheme.leaf.withOpacity(0.7) : AppTheme.textSecondary,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              color: isHighlight ? AppTheme.leaf : AppTheme.textPrimary,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getChannelFormat(String channel) {
+    switch (channel.toLowerCase()) {
+      case 'social':
+      case 'paid social':
+        return '1:1 Feed';
+      case 'search':
+        return 'Search Text';
+      case 'email':
+        return 'HTML Drop';
+      case 'display':
+        return '300x250 Banner';
+      case 'video':
+        return '16:9 Video';
+      default:
+        return 'Direct';
+    }
+  }
+
   Widget _buildMetricTile(String value, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -498,6 +870,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
     final curVer = camp.currentVersion;
     final verText = 'Version ${(curVer?.versionNo ?? 1).toString().padLeft(2, '0')}';
     final submittedTime = _formatRelativeTime(camp.updatedAt);
+    final channel = curVer?.channel ?? 'Social';
+    final kpis = curVer?.kpiProjected ?? KpiMetrics(conversionRate: 3.5, ctr: 4.2, roi: 3.8, cpa: 25.0, aov: 95.0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -526,20 +900,40 @@ class _KanbanScreenState extends State<KanbanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Row: Title + Status
+              // Top Row: Channel Icon + Title + Status
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      camp.title,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Icon(
+                            AppTheme.getChannelIcon(channel),
+                            size: 13,
+                            color: AppTheme.getChannelColor(channel),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            camp.title,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -557,6 +951,22 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+
+              // Spend wave burn bar
+              _buildMiniBurnBar(
+                budget: (curVer?.budget ?? 25000).toDouble(),
+                burnRatio: 0.65,
+              ),
+              const SizedBox(height: 8),
+
+              // Micro-KPI spark strip
+              _buildMicroKpiStrip(
+                roi: kpis.roi,
+                cpa: kpis.cpa,
+                ctr: kpis.ctr,
+                format: _getChannelFormat(channel),
               ),
               const SizedBox(height: 12),
 
@@ -615,7 +1025,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
         return Expanded(
           child: Container(
             margin: EdgeInsets.only(right: idx < 3 ? 6 : 0),
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
               color: AppTheme.leaf,
               borderRadius: BorderRadius.circular(8),
@@ -627,10 +1037,51 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   dayName,
                   style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   dayNum,
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                // Visual flight channel indicator dots
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (count != '—') ...[
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF2D55A2), // Social
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      if (count == '2' || count == '3') ...[
+                        const SizedBox(width: 3),
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF476044), // Search
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                      if (count == '3') ...[
+                        const SizedBox(width: 3),
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF234C82), // Email
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ] else ...[
+                      const SizedBox(height: 5),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -1007,6 +1458,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
     final channel = curVer?.channel ?? 'Social';
     final updatedTime = _formatRelativeTime(camp.updatedAt);
     final verText = 'Version ${(curVer?.versionNo ?? 1).toString().padLeft(2, '0')}';
+    final kpis = curVer?.kpiProjected ?? KpiMetrics(conversionRate: 3.5, ctr: 4.2, roi: 3.8, cpa: 25.0, aov: 95.0);
 
     // Status label mapping matching wireframe and test assertions
     String statusDisplay = 'DRAFT';
@@ -1047,21 +1499,41 @@ class _KanbanScreenState extends State<KanbanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Row 1: Title + Status Indicator
+              // Row 1: Channel Icon + Title + Status Indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      camp.title,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: -0.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Icon(
+                            AppTheme.getChannelIcon(channel),
+                            size: 13,
+                            color: AppTheme.getChannelColor(channel),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            camp.title,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                              letterSpacing: -0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1079,6 +1551,22 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+
+              // Visual Spend Burn Bar with 75% red needle
+              _buildMiniBurnBar(
+                budget: (curVer?.budget ?? 25000).toDouble(),
+                burnRatio: (camp.status == 'Approved' || camp.status == 'Scheduled') ? 0.72 : 0.52,
+              ),
+              const SizedBox(height: 8),
+
+              // Visual Micro-KPI Spark Strip
+              _buildMicroKpiStrip(
+                roi: kpis.roi,
+                cpa: kpis.cpa,
+                ctr: kpis.ctr,
+                format: _getChannelFormat(channel),
               ),
 
               // Optional Reviewer Feedback Box (Crisp, clean note)
@@ -1263,6 +1751,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
     final channel = curVer?.channel ?? 'Social';
     final initials = _getInitials(camp.ownerName);
     final dateDisplay = DateFormat('d MMM').format(DateTime.now().add(const Duration(days: 2)));
+    final budgetStr = '\$${((curVer?.budget ?? 15000) / 1000).toStringAsFixed(1)}K';
 
     return Container(
       decoration: BoxDecoration(
@@ -1290,22 +1779,77 @@ class _KanbanScreenState extends State<KanbanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                camp.title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    margin: const EdgeInsets.only(right: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Icon(
+                      AppTheme.getChannelIcon(channel),
+                      size: 11,
+                      color: AppTheme.getChannelColor(channel),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      camp.title,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                channel,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: AppTheme.textSecondary,
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    channel,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    budgetStr,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              // Mini Burn Indicator
+              Container(
+                height: 4,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: 0.65,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.getChannelColor(channel),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
