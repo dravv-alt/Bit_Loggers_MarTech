@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/marketing_visuals.dart';
 
 class CampaignWizardScreen extends StatefulWidget {
   final ApiService api;
@@ -889,195 +890,29 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Simulated Ad Frame
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.leaf,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.borderSage),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Sponsor header
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundColor: AppTheme.forge,
-                      child: Text(
-                        _channel.isNotEmpty ? _channel[0] : 'C',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.leaf,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.forge,
-                            ),
-                          ),
-                          const Text(
-                            'Sponsored · Campaign Grid Managed',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bone,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '\$${currentBudget >= 1000 ? '${(currentBudget / 1000).toStringAsFixed(0)}k' : currentBudget.toStringAsFixed(0)} Cap',
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ),
-                  ],
+          // Live Multi-Channel Ad Studio Mockup
+          LiveCreativeMockupCanvas(
+            channel: _channel,
+            title: title,
+            headline: title,
+            copy: objective.isNotEmpty ? objective : 'Targeted programmatic reach: $audience',
+            targetCpa: _cpa,
+          ),
+          const SizedBox(height: 12),
+          // Audience Persona Chip
+          Row(
+            children: [
+              const Icon(Icons.people_alt_outlined, size: 14, color: AppTheme.textSecondary),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Audience: $audience',
+                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 10),
-
-                // Creative Visual Container
-                Container(
-                  height: 90,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.moss.withOpacity(0.18),
-                        AppTheme.warmAmber.withOpacity(0.12),
-                        AppTheme.paper,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    border: Border.all(color: AppTheme.borderSage.withOpacity(0.6)),
-                  ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: 8,
-                        bottom: 8,
-                        child: Icon(
-                          _channel == 'Search'
-                              ? Icons.saved_search_rounded
-                              : _channel == 'Email'
-                                  ? Icons.forward_to_inbox_rounded
-                                  : Icons.auto_awesome_rounded,
-                          size: 36,
-                          color: AppTheme.forge.withOpacity(0.08),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.forge,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              objective,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppTheme.textPrimary,
-                                height: 1.25,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Audience persona & CTA button
-                Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Icon(Icons.people_alt_outlined, size: 12, color: AppTheme.textSecondary),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              audience,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppTheme.textSecondary,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppTheme.forge,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Learn More',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.leaf,
-                            ),
-                          ),
-                          SizedBox(width: 3),
-                          Icon(Icons.arrow_forward_rounded, size: 10, color: AppTheme.leaf),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
