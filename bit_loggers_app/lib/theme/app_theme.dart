@@ -1,77 +1,103 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-/// CampaignGrid Bespoke Atelier & Warm Editorial Design System
-/// Replaces cold sterile gray canvases and generic electric blue/Tailwind palettes
-/// with warm alabaster cotton paper, deep obsidian umber ink, and artisanal pigments.
+/// CampaignGrid "Obsidian Vitreum" (Aether Pro) Design System
+/// Transcends generic AI slop, sterile grays, and warm beige templates with
+/// an abyssal oceanic cyan-black ground, vitreous smoked quartz crystal slabs,
+/// specular rim lighting, and vibrant bioluminescent jewel accents.
 class AppTheme {
-  // Bespoke Surface & Ink Tokens (Warm Alabaster & Limewash Linen ground — ZERO sterile gray)
-  static const Color paper = Color(0xFFF9F7F2);        // Warm Alabaster / Limewash Linen canvas
-  static const Color canvas = paper;                   // Semantic canvas alias
-  static const Color forge = Color(0xFF181715);        // Deep Obsidian Umber ink black
-  static const Color leaf = Color(0xFFFFFFFF);         // Warm Ivory Cotton card & sheet surface
-  static const Color borderSage = Color(0xFFE6E1D6);   // Raw Linen 0.5pt hairline border
-  static const Color borderCard = Color(0xFFE6E1D6);   // Card border
-  static const Color brandAccent = Color(0xFFB8532F);  // Seville Terracotta / Burnt Ochre accent
-  static const Color brandDark = Color(0xFF181715);    // Deep Umber brand mark
+  // --- Abyssal Canvas & Vitreous Slabs (Deep Oceanic Cyan-Black) ---
+  static const Color canvasAbyssal = Color(0xFF080C0F); // Deep Oceanic Cyan-Black Ground
+  static const Color canvasVoid = Color(0xFF0B1117);    // Recessed Telemetry Well / Graph Ground
+  static const Color slabQuartz = Color(0xFF111820);    // Vitreous Smoked Quartz Primary Inset Slab
+  static const Color slabElevated = Color(0xFF16222D);  // Elevated Modal / Hero Spotlight Quartz
+  static const Color slabPill = Color(0xFF1C2A37);      // Segmented Toggle / Recessed Control Surface
 
-  // Action & Verdict Tokens (Artisanal Pigments — No Tailwind Neon)
-  static const Color verdictLime = Color(0xFF2A5940);  // Forest Pine Sage
-  static const Color verdictLimeDark = Color(0xFF1F4835); // Deep British Racing Green
-  static const Color accentGold = Color(0xFFC07722);   // Burnished Amber Gold
-  static const Color moss = Color(0xFF1F4835);         // British Racing Green
-  static const Color warmAmber = Color(0xFFB46C1E);    // Warm Honey Amber
-  static const Color bone = Color(0xFFF0EDE4);         // Warm Oat track surface
-  static const Color crimsonNeedle = Color(0xFF932F23);// Venetian Oxblood needle
+  // Aliases for compatibility
+  static const Color paper = canvasAbyssal;
+  static const Color canvas = canvasAbyssal;
+  static const Color forge = canvasAbyssal;
+  static const Color leaf = Color(0xFFF4F8FA);          // Prismatic Silver-White
+  static const Color bone = Color(0xFF16222D);
+  static const Color borderSage = Color(0xFF1E2E3D);    // 0.5pt Quartz Hairline
+  static const Color borderCard = Color(0xFF243644);    // 0.75pt Bevel Hairline
+  static const Color cardBorder = borderCard;
 
-  // Compatibility Tokens
-  static const Color primary = Color(0xFF181715);      // Deep Obsidian Umber Primary Action Ink
-  static const Color card = leaf;
-  static const Color surface = leaf;
-  static const Color cardBorder = borderSage;
+  // --- Bioluminescent Jewel-Tone Accents ---
+  static const Color phosphorChartreuse = Color(0xFFD4FF38); // High-voltage Primary Action & ROI
+  static const Color glacialCyan = Color(0xFF38E8FF);        // Telemetry, Live Clicks, Correlation Trace
+  static const Color solarTangerine = Color(0xFFFF8438);     // Flight Pacing, Due Today, Attention
+  static const Color signalCoral = Color(0xFFFF3B5C);        // Conflicts, Failure Simulation, Rejection
+  static const Color imperialAmethyst = Color(0xFFB366FF);   // Gemini Argon Engine, Multi-channel Flights
+  static const Color celadonSage = Color(0xFF22C55E);        // Verified Signoff, Cryptographic Check
 
-  // Artisanal Pigment Palette (Replaces generic Electric Blue with Parisian Twilight Indigo & natural dyes)
-  static const Color appleBlue = Color(0xFF233E5B);       // Parisian Twilight Indigo (Restrained, deep, artisanal)
-  static const Color appleBlueDark = Color(0xFF182B3F);
-  static const Color appleBlueLight = Color(0xFFEDF2F7);  // Soft atmospheric mist
-  static const Color appleIndigo = Color(0xFF4A3E6D);     // Byzantine Nightshade
-  static const Color applePurple = Color(0xFF58334E);     // Blackberry Plum
-  static const Color applePink = Color(0xFFA63D56);       // Damask Rose
-  static const Color appleRed = Color(0xFF932F23);        // Venetian Oxblood
-  static const Color appleOrange = Color(0xFFB46C1E);     // Warm Honey Amber
-  static const Color appleYellow = Color(0xFFC78426);     // Polished Brass
-  static const Color appleGreen = Color(0xFF1F4835);      // British Racing Green
-  static const Color appleMint = Color(0xFF285C50);       // Alpine Pine
-  static const Color appleTeal = Color(0xFF225B64);       // Aegean Spruce
+  // Brand & Action Roles
+  static const Color brandAccent = phosphorChartreuse;       // Dominant Primary Focus
+  static const Color brandDark = canvasAbyssal;
+  static const Color primary = phosphorChartreuse;
+  static const Color card = slabQuartz;
+  static const Color surface = slabQuartz;
 
-  // Bespoke Warm Semantic Palette (Warm Alabaster System — NO cold gray #F2F2F7)
-  static const Color systemBackground = Color(0xFFF9F7F2);          // Warm Alabaster Canvas
-  static const Color secondarySystemBackground = Color(0xFFFFFFFF); // Warm Ivory Cotton Surface
-  static const Color tertiarySystemBackground = Color(0xFFF0EDE4);  // Warm Oat / Recessed Fields
-  static const Color label = Color(0xFF181715);                      // Deep Obsidian Umber (high contrast warm ink)
-  static const Color secondaryLabel = Color(0xFF6B665E);             // French Mineral Slate
-  static const Color tertiaryLabel = Color(0xFF9E988E);              // Warm Sandstone
-  static const Color quaternaryLabel = Color(0xFFC7C2B8);            // Soft Weathered Flax
-  static const Color separator = Color(0xFFE6E1D6);                  // 0.5pt Raw Linen Hairline
+  // Compatibility Action Tokens
+  static const Color verdictLime = celadonSage;
+  static const Color verdictLimeDark = Color(0xFF16A34A);
+  static const Color accentGold = solarTangerine;
+  static const Color moss = celadonSage;
+  static const Color warmAmber = solarTangerine;
+  static const Color crimsonNeedle = signalCoral;
 
-  // Atmospheric Canvas Gradients (Warm Alabaster luminous veil instead of blue-gray)
+  // Apple HIG Chromatic Tokens (Bioluminescent Scale)
+  static const Color appleBlue = glacialCyan;
+  static const Color appleBlueDark = Color(0xFF1B6B7A);
+  static const Color appleBlueLight = Color(0xFF122C38);
+  static const Color appleIndigo = imperialAmethyst;
+  static const Color applePurple = Color(0xFFC084FC);
+  static const Color applePink = Color(0xFFF472B6);
+  static const Color appleRed = signalCoral;
+  static const Color appleOrange = solarTangerine;
+  static const Color appleYellow = Color(0xFFFACC15);
+  static const Color appleGreen = celadonSage;
+  static const Color appleMint = Color(0xFF2DD4BF);
+  static const Color appleTeal = Color(0xFF06B6D4);
+
+  // --- Semantic Color Tokens ---
+  static const Color systemBackground = canvasAbyssal;
+  static const Color secondarySystemBackground = slabQuartz;
+  static const Color tertiarySystemBackground = slabElevated;
+  static const Color separator = Color(0xFF1E2E3D);
+  static const Color rimKeyLight = Color(0xFF3A5266);
+
+  // --- High-Contrast Typography Spectrum ---
+  static const Color textPrimary = Color(0xFFF4F8FA);   // 100% White-Ice (Crisp readable)
+  static const Color textSecondary = Color(0xFF94A7B8); // 75% Slate-Silver
+  static const Color textMuted = Color(0xFF586E82);     // 50% Muted Dusk
+  static const Color textGhost = Color(0xFF334656);     // 30% Dark Graphite
+  static const Color textInverse = Color(0xFF081402);   // Deep Ink on Phosphor Chartreuse
+  static const Color textInverseMuted = Color(0xFF1E2E3D);
+
+  static const Color label = textPrimary;
+  static const Color secondaryLabel = textSecondary;
+  static const Color tertiaryLabel = textMuted;
+  static const Color quaternaryLabel = textGhost;
+
+  // --- Atmospheric Gradients ---
   static const LinearGradient appleCanvasGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFFAF6EE), // Luminous warm alabaster veil
-      Color(0xFFF9F7F2), // Smooth warm cotton
-      Color(0xFFF9F7F2),
+      Color(0xFF0D141B), // Subtle oceanic aura at the top
+      Color(0xFF080C0F), // Deep void body
+      Color(0xFF06090C), // Infinite depth foot
     ],
-    stops: [0.0, 0.4, 1.0],
+    stops: [0.0, 0.45, 1.0],
   );
 
   static const LinearGradient appleHeroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF24221F), // Deep Velvet Umber
-      Color(0xFF141311), // Midnight Obsidian
+      Color(0xFF162533), // Luminous smoked quartz catch
+      Color(0xFF0E1720), // Abyssal body
     ],
   );
 
@@ -79,90 +105,92 @@ class AppTheme {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF181715), // Deep Umber Ink
-      Color(0xFF2B2724), // Warm Charcoal
+      phosphorChartreuse,
+      Color(0xFFA6E015),
     ],
   );
 
-  // Dual-Layer Ambient Warm Lighting (Warm umber contact + soft diffuse illumination)
+  // --- Dual-Layer Depth & Specular Ambient Occlusion ---
   static const List<BoxShadow> appleCardShadow = [
     BoxShadow(
-      color: Color(0x0A2B2010), // Warm umber contact (4%)
-      blurRadius: 4,
-      offset: Offset(0, 1),
+      color: Color(0x66000000), // 40% deep contact shadow
+      blurRadius: 12,
+      offset: Offset(0, 4),
     ),
     BoxShadow(
-      color: Color(0x0E2B2010), // Warm diffuse key light (5.5%)
-      blurRadius: 18,
-      offset: Offset(0, 6),
+      color: Color(0x1A38E8FF), // Subtle cyan specular bounce
+      blurRadius: 1,
+      offset: Offset(0, 0),
+    ),
+  ];
+  static const List<BoxShadow> dualLayerDepth = appleCardShadow;
+
+  static const List<BoxShadow> appleFloatingShadow = [
+    BoxShadow(
+      color: Color(0x88000000),
+      blurRadius: 28,
+      offset: Offset(0, 12),
+    ),
+    BoxShadow(
+      color: Color(0x223A5266),
+      blurRadius: 2,
+      offset: Offset(0, -1),
     ),
   ];
 
   static const List<BoxShadow> appleGlowBlue = [
     BoxShadow(
-      color: Color(0x20233E5B), // Soft Parisian indigo ambient glow
+      color: Color(0x3338E8FF),
+      blurRadius: 18,
+      offset: Offset(0, 4),
+    ),
+  ];
+
+  static const List<BoxShadow> phosphorGlow = [
+    BoxShadow(
+      color: Color(0x40D4FF38),
       blurRadius: 16,
-      offset: Offset(0, 6),
+      offset: Offset(0, 4),
     ),
   ];
 
-  static const List<BoxShadow> appleFloatingShadow = [
-    BoxShadow(
-      color: Color(0x0F2B2010),
-      blurRadius: 8,
-      offset: Offset(0, 3),
-    ),
-    BoxShadow(
-      color: Color(0x182B2010),
-      blurRadius: 28,
-      offset: Offset(0, 12),
-    ),
-  ];
+  // --- Status Roles & Translucent Glow Tints ---
+  static const Color statusApproved = celadonSage;
+  static const Color statusApprovedBg = Color(0x1F22C55E);
 
-  // Text Colors
-  static const Color textPrimary = Color(0xFF181715);   // Deep Obsidian Umber
-  static const Color textSecondary = Color(0xFF6B665E); // French Mineral Slate
-  static const Color textMuted = Color(0xFF9E988E);     // Warm Sandstone
-  static const Color textInverse = Color(0xFFFDFBF7);   // Warm Ivory on dark controls
-  static const Color textInverseMuted = Color(0xFFD4CEC3);
+  static const Color statusChanges = solarTangerine;
+  static const Color statusChangesBg = Color(0x1FFF8438);
 
-  // Artisanal Semantic Status Tints
-  static const Color statusApproved = Color(0xFF1F4835);       // British Racing Green
-  static const Color statusApprovedBg = Color(0xFFEAF2ED);     // Soft Celadon Wash
+  static const Color statusRejected = signalCoral;
+  static const Color statusRejectedBg = Color(0x22FF3B5C);
 
-  static const Color statusChanges = Color(0xFFB46C1E);        // Warm Honey Amber
-  static const Color statusChangesBg = Color(0xFFFAF1E3);      // Soft Wheat Wash
+  static const Color statusDraft = textSecondary;
+  static const Color statusDraftBg = Color(0x1F94A7B8);
 
-  static const Color statusRejected = Color(0xFF932F23);       // Venetian Oxblood
-  static const Color statusRejectedBg = Color(0xFFF9ECE9);     // Soft Antique Rose Wash
+  static const Color statusSubmitted = glacialCyan;
+  static const Color statusSubmittedBg = Color(0x1F38E8FF);
 
-  static const Color statusDraft = Color(0xFF6B665E);          // French Mineral Slate
-  static const Color statusDraftBg = Color(0xFFF0EDE4);        // Soft Oat Wash
+  static const Color statusScheduled = imperialAmethyst;
+  static const Color statusScheduledBg = Color(0x22B366FF);
 
-  static const Color statusSubmitted = Color(0xFF233E5B);      // Parisian Twilight Indigo
-  static const Color statusSubmittedBg = Color(0xFFEDF2F7);    // Soft Indigo Mist
-
-  static const Color statusScheduled = Color(0xFF4A3E6D);      // Byzantine Nightshade
-  static const Color statusScheduledBg = Color(0xFFF2EFF7);    // Soft Violet Mist
-
-  // Channel Palette (Artisanal pigment tones — NO generic Tailwind hexes)
+  // --- Channel Jewel Palette ---
   static Color getChannelColor(String channel) {
     switch (channel.toLowerCase().trim()) {
       case 'social':
       case 'paid social':
-        return const Color(0xFF213B56); // Deep Venetian Cobalt
+        return const Color(0xFF388BFF); // Electric Cobalt
       case 'email':
-        return const Color(0xFF532E4E); // Blackberry Plum
+        return imperialAmethyst;         // Imperial Amethyst
       case 'search':
-        return const Color(0xFF6E532B); // Cyprus Bronze
+        return const Color(0xFFFFB038); // Solar Amber
       case 'display':
-        return const Color(0xFF934F27); // Seville Rust Ochre
+        return const Color(0xFF00DC82); // Bioluminescent Emerald
       case 'video':
-        return const Color(0xFF832A38); // Cordovan Oxblood
+        return signalCoral;             // Coral Ruby
       case 'influencer':
-        return const Color(0xFF20555E); // Aegean Spruce
+        return glacialCyan;             // Glacial Cyan
       default:
-        return const Color(0xFF5E5950); // Warm Mineral Umber
+        return textSecondary;
     }
   }
 
@@ -170,19 +198,19 @@ class AppTheme {
     switch (channel.toLowerCase()) {
       case 'social':
       case 'paid social':
-        return Icons.campaign_outlined;
+        return Icons.campaign_rounded;
       case 'email':
         return Icons.alternate_email_rounded;
       case 'search':
         return Icons.search_rounded;
       case 'display':
-        return Icons.view_carousel_outlined;
+        return Icons.view_carousel_rounded;
       case 'influencer':
-        return Icons.person_pin_circle_outlined;
+        return Icons.person_pin_circle_rounded;
       case 'video':
-        return Icons.smart_display_outlined;
+        return Icons.smart_display_rounded;
       default:
-        return Icons.hub_outlined;
+        return Icons.hub_rounded;
     }
   }
 
@@ -228,47 +256,68 @@ class AppTheme {
     }
   }
 
-  /// Builds the clean wireframe status indicator (subtle tint, crisp text, NO round pill)
-  static Widget buildStatusIndicator(String status, {double fontSize = 10}) {
+  /// Builds the refined Apple native status capsule with glowing beacon pip
+  static Widget buildStatusIndicator(String status, {double fontSize = 11}) {
     final fg = getStatusColor(status);
     final bg = getStatusBgColor(status);
     String label = status;
-    if (status == 'Submitted' || status == 'InReview') label = 'In review';
+    if (status == 'Submitted' || status == 'InReview') label = 'In Review';
     if (status == 'ChangesRequested') label = 'Changes';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: fg.withOpacity(0.15), width: 0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: fg.withOpacity(0.35), width: 0.75),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w600,
-          color: fg,
-          letterSpacing: 0.02,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: fg,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: fg.withOpacity(0.8), blurRadius: 4, spreadRadius: 1),
+              ],
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w700,
+              color: fg,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  /// Builds the brand monogram (CG)
-  static Widget buildBrandMonogram({double size = 26}) {
+  /// Builds the brand monogram (CG) with glowing phosphor highlight
+  static Widget buildBrandMonogram({double size = 28}) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: forge,
-        borderRadius: BorderRadius.circular(4),
+        color: slabElevated,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: rimKeyLight.withOpacity(0.4), width: 0.75),
+        boxShadow: const [
+          BoxShadow(color: Color(0x44000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
       ),
       alignment: Alignment.center,
       child: Text(
         'CG',
         style: TextStyle(
-          color: leaf,
+          color: phosphorChartreuse,
           fontSize: size * 0.44,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.5,
@@ -287,8 +336,7 @@ class AppTheme {
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      fontFamily: 'serif',
-      letterSpacing: -0.4,
+      letterSpacing: -0.6,
       height: 1.2,
     );
   }
@@ -302,21 +350,21 @@ class AppTheme {
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      letterSpacing: -0.5,
+      letterSpacing: -0.6,
       height: 1.2,
     );
   }
 
   static TextStyle wireframeEyebrow({
-    double fontSize = 9,
-    FontWeight fontWeight = FontWeight.w600,
+    double fontSize = 10,
+    FontWeight fontWeight = FontWeight.w700,
     Color color = textSecondary,
   }) {
     return TextStyle(
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      letterSpacing: 0.08,
+      letterSpacing: 0.8,
       height: 1.2,
     );
   }
@@ -330,7 +378,7 @@ class AppTheme {
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      height: 1.4,
+      height: 1.45,
     );
   }
 
@@ -343,17 +391,38 @@ class AppTheme {
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      fontFeatures: const [FontFeature.tabularFigures()],
+      fontFeatures: const [
+        FontFeature.tabularFigures(),
+        FontFeature.slashedZero(),
+      ],
     );
   }
 
-  // --- Apple HIG SF Pro Dynamic Typography Scale ---
+  /// Monumental numeric display figure for executive metrics
+  static TextStyle monumentalFigure({
+    double fontSize = 32,
+    FontWeight fontWeight = FontWeight.w700,
+    Color color = textPrimary,
+  }) {
+    return TextStyle(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      letterSpacing: -1.0,
+      fontFeatures: const [
+        FontFeature.tabularFigures(),
+        FontFeature.slashedZero(),
+      ],
+    );
+  }
+
+  // --- Apple HIG SF Pro Dynamic Typography Scale (Dark Mode Optimized) ---
   static const TextStyle largeTitle = TextStyle(
     fontSize: 34,
     height: 41 / 34,
     letterSpacing: -1.05,
     fontWeight: FontWeight.w700,
-    color: label,
+    color: textPrimary,
   );
 
   static const TextStyle title1 = TextStyle(
@@ -361,7 +430,7 @@ class AppTheme {
     height: 34 / 28,
     letterSpacing: -0.80,
     fontWeight: FontWeight.w700,
-    color: label,
+    color: textPrimary,
   );
 
   static const TextStyle title2 = TextStyle(
@@ -369,7 +438,7 @@ class AppTheme {
     height: 28 / 22,
     letterSpacing: -0.70,
     fontWeight: FontWeight.w600,
-    color: label,
+    color: textPrimary,
   );
 
   static const TextStyle title3 = TextStyle(
@@ -377,7 +446,7 @@ class AppTheme {
     height: 25 / 20,
     letterSpacing: -0.60,
     fontWeight: FontWeight.w600,
-    color: label,
+    color: textPrimary,
   );
 
   static const TextStyle headline = TextStyle(
@@ -385,7 +454,7 @@ class AppTheme {
     height: 22 / 17,
     letterSpacing: -0.43,
     fontWeight: FontWeight.w600,
-    color: label,
+    color: textPrimary,
   );
 
   static const TextStyle body = TextStyle(
@@ -393,7 +462,7 @@ class AppTheme {
     height: 22 / 17,
     letterSpacing: -0.43,
     fontWeight: FontWeight.w400,
-    color: label,
+    color: textPrimary,
   );
 
   static const TextStyle callout = TextStyle(
@@ -401,7 +470,7 @@ class AppTheme {
     height: 20 / 16,
     letterSpacing: -0.32,
     fontWeight: FontWeight.w400,
-    color: label,
+    color: textPrimary,
   );
 
   static const TextStyle subhead = TextStyle(
@@ -409,7 +478,7 @@ class AppTheme {
     height: 19 / 15,
     letterSpacing: 0.0,
     fontWeight: FontWeight.w400,
-    color: secondaryLabel,
+    color: textSecondary,
   );
 
   static const TextStyle footnote = TextStyle(
@@ -417,7 +486,7 @@ class AppTheme {
     height: 16 / 13,
     letterSpacing: 0.03,
     fontWeight: FontWeight.w400,
-    color: secondaryLabel,
+    color: textSecondary,
   );
 
   static const TextStyle caption1 = TextStyle(
@@ -425,7 +494,7 @@ class AppTheme {
     height: 15 / 12,
     letterSpacing: 0.12,
     fontWeight: FontWeight.w500,
-    color: secondaryLabel,
+    color: textSecondary,
   );
 
   static const TextStyle caption2 = TextStyle(
@@ -433,23 +502,29 @@ class AppTheme {
     height: 14 / 11,
     letterSpacing: 0.15,
     fontWeight: FontWeight.w500,
-    color: tertiaryLabel,
+    color: textMuted,
   );
 
-  // --- Apple HIG Grouped List & Surface Containers ---
+  // --- Vitreous Inset Quartz Card & Surface Containers ---
   static Widget buildAppleGroupedCard({
     required List<Widget> children,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     VoidCallback? onTap,
+    bool elevated = false,
+    Color? borderColor,
   }) {
     final cardContent = Container(
       decoration: BoxDecoration(
-        color: secondarySystemBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: appleCardShadow,
+        color: elevated ? slabElevated : slabQuartz,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: borderColor ?? rimKeyLight.withOpacity(0.35),
+          width: 0.75,
+        ),
+        boxShadow: elevated ? appleFloatingShadow : appleCardShadow,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: padding,
           child: Column(
@@ -465,7 +540,7 @@ class AppTheme {
       return Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: cardContent,
         ),
@@ -474,49 +549,50 @@ class AppTheme {
     return cardContent;
   }
 
+  /// Global ThemeData configured for "Obsidian Vitreum"
   static ThemeData get campaignGridTheme {
     return ThemeData(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: systemBackground,
-      primaryColor: primary,
-      colorScheme: const ColorScheme.light(
-        primary: primary,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: canvasAbyssal,
+      primaryColor: phosphorChartreuse,
+      colorScheme: const ColorScheme.dark(
+        primary: phosphorChartreuse,
         onPrimary: textInverse,
-        secondary: brandAccent,
+        secondary: glacialCyan,
         onSecondary: textInverse,
-        surface: secondarySystemBackground,
-        onSurface: label,
-        error: appleRed,
-        onError: textInverse,
+        surface: slabQuartz,
+        onSurface: textPrimary,
+        error: signalCoral,
+        onError: Colors.white,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: systemBackground,
+        backgroundColor: slabQuartz,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.w600,
-          color: label,
+          color: textPrimary,
           letterSpacing: -0.4,
         ),
-        iconTheme: IconThemeData(color: label),
+        iconTheme: IconThemeData(color: textPrimary),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary, // Deep Obsidian Umber Ink
-          foregroundColor: textInverse, // Warm Ivory text
+          backgroundColor: phosphorChartreuse, // Luminous Phosphor Chartreuse
+          foregroundColor: textInverse,        // Deep Obsidian Text
           elevation: 0,
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, letterSpacing: -0.2),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: -0.2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          minimumSize: const Size(44, 48),
+          minimumSize: const Size(44, 46),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          backgroundColor: secondarySystemBackground,
-          foregroundColor: label,
-          side: const BorderSide(color: separator, width: 1.0),
+          backgroundColor: slabQuartz,
+          foregroundColor: textPrimary,
+          side: BorderSide(color: rimKeyLight.withOpacity(0.4), width: 0.75),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, letterSpacing: -0.2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -525,22 +601,26 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: label,
+          foregroundColor: phosphorChartreuse,
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, letterSpacing: -0.2),
           minimumSize: const Size(44, 44),
         ),
       ),
       snackBarTheme: const SnackBarThemeData(
-        backgroundColor: Color(0xFF181715),
-        contentTextStyle: TextStyle(color: Color(0xFFFDFBF7), fontSize: 13, fontWeight: FontWeight.w500),
+        backgroundColor: slabElevated,
+        contentTextStyle: TextStyle(color: textPrimary, fontSize: 13, fontWeight: FontWeight.w500),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+          side: BorderSide(color: rimKeyLight, width: 0.5),
+        ),
       ),
       cardTheme: CardTheme(
-        color: secondarySystemBackground,
+        color: slabQuartz,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: rimKeyLight.withOpacity(0.35), width: 0.75),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -550,20 +630,20 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: tertiarySystemBackground,
+        fillColor: canvasVoid,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: separator, width: 0.5),
+          borderSide: BorderSide(color: rimKeyLight.withOpacity(0.35), width: 0.75),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: separator, width: 0.5),
+          borderSide: BorderSide(color: rimKeyLight.withOpacity(0.35), width: 0.75),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: brandAccent, width: 1.5),
+          borderSide: const BorderSide(color: phosphorChartreuse, width: 1.5),
         ),
-        hintStyle: const TextStyle(color: secondaryLabel, fontSize: 13),
+        hintStyle: const TextStyle(color: textMuted, fontSize: 13),
       ),
     );
   }

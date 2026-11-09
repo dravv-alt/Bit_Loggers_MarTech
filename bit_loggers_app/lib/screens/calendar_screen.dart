@@ -5,14 +5,15 @@ import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/marketing_visuals.dart';
+import '../widgets/react_bits.dart';
 import 'campaign_detail_screen.dart';
 
-/// Internal Campaign Calendar & Flight Scheduler
-/// Interactive Visual Flight Board with:
-/// 1. Monthly Grid View with multi-channel flight pills & conflict dots
-/// 2. Weekly Flight Lanes Board (Gantt-style channel lanes)
-/// 3. Conflict Detection Engine
-/// 4. Day & Flight inspection dossier drawer
+/// CampaignGrid "Obsidian Vitreum" Calendar & Flight Scheduler
+/// High-luminance multi-channel visual flight board with:
+/// 1. Monthly Grid View with responsive 7-column layout, glowing day nodes & conflict radar
+/// 2. Weekly Flight Lanes Board (Gantt-style channel lanes with occupancy gauges)
+/// 3. Conflict Detection Engine with Signal Coral warning banners
+/// 4. Day & Flight inspection dossier cards with Phosphor Chartreuse tabular budgets
 /// 5. Quick flight scheduling flow for approved campaigns
 class CalendarScreen extends StatefulWidget {
   final ApiService api;
@@ -88,7 +89,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Sample multi-channel flights seeded successfully.'),
-            backgroundColor: AppTheme.forge,
+            backgroundColor: AppTheme.slabElevated,
           ),
         );
       }
@@ -96,7 +97,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (mounted) {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to seed: $e'), backgroundColor: AppTheme.statusRejected),
+          SnackBar(
+            content: Text('Failed to seed: $e'),
+            backgroundColor: AppTheme.signalCoral,
+          ),
         );
       }
     }
@@ -180,7 +184,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final activeConflicts = _detectViewConflicts();
 
     return Scaffold(
-      backgroundColor: AppTheme.paper,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,19 +198,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
             // Channel Filter Chips
             _buildChannelFilterBar(),
 
-            // Subtle loading indicator (preserves calendar interface at all times)
+            // Subtle loading indicator
             if (_loading)
               const LinearProgressIndicator(
-                minHeight: 2.5,
-                color: AppTheme.label,
-                backgroundColor: AppTheme.tertiarySystemBackground,
+                minHeight: 2.0,
+                color: AppTheme.phosphorChartreuse,
+                backgroundColor: AppTheme.slabPill,
               ),
 
             // View Content (Month Grid or Week Flight Lanes)
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _fetch,
-                color: AppTheme.label,
+                color: AppTheme.phosphorChartreuse,
+                backgroundColor: AppTheme.slabElevated,
                 child: _activeView == 'month'
                     ? _buildMonthView()
                     : _buildWeekView(),
@@ -215,14 +220,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showScheduleDialog,
-        backgroundColor: AppTheme.label,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.calendar_month, size: 18),
-        label: const Text(
-          'Schedule flight',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+      floatingActionButton: ElasticPressable(
+        onTap: _showScheduleDialog,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.phosphorChartreuse,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.phosphorChartreuse.withOpacity(0.35),
+                blurRadius: 18,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.calendar_month_rounded, size: 18, color: AppTheme.textInverse),
+              SizedBox(width: 8),
+              Text(
+                'Schedule flight',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: AppTheme.textInverse,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -239,29 +268,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
         '${DateFormat('d MMM').format(weekStart)} – ${DateFormat('d MMM yyyy').format(weekEnd)}';
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: const BoxDecoration(
-        color: AppTheme.systemBackground,
-        border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
+        color: AppTheme.slabQuartz,
+        border: Border(bottom: BorderSide(color: AppTheme.borderCard, width: 0.75)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
+              // Title & Kicker & Subtitle
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const ShinyText(
+                      text: 'FLIGHT CAPACITY BOARD',
+                      shimmerColor: AppTheme.phosphorChartreuse,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.phosphorChartreuse,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
                     const Text(
                       'Flight Calendar',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.label,
-                        letterSpacing: -0.7,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -270,11 +311,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ? monthFormat.format(_focusedDate)
                           : weekFormat,
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.secondaryLabel,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        fontFeatures: [FontFeature.tabularFigures()],
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -282,12 +323,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
               const SizedBox(width: 8),
 
-              // View Toggle (Month / Week)
+              // View Toggle (Month / Week) Segmented Pill
               Container(
-                padding: const EdgeInsets.all(3),
+                padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
-                  color: AppTheme.tertiarySystemBackground,
+                  color: AppTheme.canvasVoid,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.borderCard, width: 0.75),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -299,18 +341,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Date Navigator Controls (< Previous, Today, Next >)
           Row(
             children: [
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.chevron_left, color: AppTheme.label, size: 22),
-                tooltip: 'Previous',
-                onPressed: () {
+              ElasticPressable(
+                onTap: () {
                   setState(() {
                     if (_activeView == 'month') {
                       _focusedDate = DateTime(_focusedDate.year, _focusedDate.month - 1, 1);
@@ -319,36 +356,55 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     }
                   });
                 },
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppTheme.slabElevated,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.borderCard, width: 0.75),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.chevron_left_rounded, color: AppTheme.textPrimary, size: 18),
+                  ),
+                ),
               ),
-              const SizedBox(width: 8),
-              InkWell(
+              const SizedBox(width: 6),
+              ElasticPressable(
                 onTap: () {
                   setState(() {
                     _focusedDate = DateTime.now();
                     _selectedDay = _focusedDate;
                   });
                 },
-                borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  height: 30,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: AppTheme.tertiarySystemBackground,
+                    color: AppTheme.slabElevated,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
-                  child: const Text(
-                    'Today',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.label),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PulseStatusGlow(color: AppTheme.glacialCyan, size: 5),
+                      SizedBox(width: 5),
+                      Text(
+                        'Today',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.chevron_right, color: AppTheme.label, size: 22),
-                tooltip: 'Next',
-                onPressed: () {
+              const SizedBox(width: 6),
+              ElasticPressable(
+                onTap: () {
                   setState(() {
                     if (_activeView == 'month') {
                       _focusedDate = DateTime(_focusedDate.year, _focusedDate.month + 1, 1);
@@ -357,45 +413,67 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     }
                   });
                 },
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppTheme.slabElevated,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.borderCard, width: 0.75),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.chevron_right_rounded, color: AppTheme.textPrimary, size: 18),
+                  ),
+                ),
               ),
               const Spacer(),
               // Flight count chip or quick seed action
               if (_events.isEmpty)
-                InkWell(
+                ElasticPressable(
                   onTap: _seedDemoFlights,
-                  borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                     decoration: BoxDecoration(
-                      color: AppTheme.forge,
-                      borderRadius: BorderRadius.circular(10),
+                      color: AppTheme.phosphorChartreuse.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.phosphorChartreuse.withOpacity(0.4), width: 0.75),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.auto_awesome, size: 12, color: AppTheme.leaf),
+                        Icon(Icons.auto_awesome, size: 11, color: AppTheme.phosphorChartreuse),
                         SizedBox(width: 4),
                         Text(
                           'Seed flights',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.leaf),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.phosphorChartreuse),
                         ),
                       ],
                     ),
                   ),
                 )
               else
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.forge.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${_filteredEvents.length} flights',
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.forge),
-                    ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.slabPill,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.borderCard, width: 0.75),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const PulseStatusGlow(color: AppTheme.phosphorChartreuse, size: 5),
+                      SizedBox(width: 5),
+                      Text(
+                        '${_filteredEvents.length} flights booked',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -407,20 +485,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildViewToggleButton(String label, String viewKey) {
     final isSelected = _activeView == viewKey;
-    return GestureDetector(
+    return ElasticPressable(
       onTap: () => setState(() => _activeView = viewKey),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.forge : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected ? AppTheme.phosphorChartreuse : Colors.transparent,
+          borderRadius: BorderRadius.circular(9),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppTheme.phosphorChartreuse.withOpacity(0.25),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: isSelected ? AppTheme.leaf : AppTheme.textSecondary,
+            fontWeight: FontWeight.w700,
+            color: isSelected ? AppTheme.textInverse : AppTheme.textSecondary,
           ),
         ),
       ),
@@ -433,34 +521,42 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget _buildConflictBanner(List<Map<String, dynamic>> conflicts) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: AppTheme.statusRejected.withOpacity(0.12),
+        color: const Color(0xFF261014),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.statusRejected, width: 1),
+        border: Border.all(color: AppTheme.signalCoral.withOpacity(0.6), width: 0.75),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.signalCoral.withOpacity(0.12),
+            blurRadius: 16,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded, size: 18, color: AppTheme.statusRejected),
-          const SizedBox(width: 8),
+          const PulseStatusGlow(color: AppTheme.signalCoral, size: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Channel Collision Detected',
+                  'CHANNEL COLLISION DETECTED',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.statusRejected,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.signalCoral,
+                    letterSpacing: 0.8,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${conflicts.length} overlapping booking(s) found on ${conflicts.map((c) => c['channel']).toSet().join(', ')}. Post-review flight adjustment required.',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary, height: 1.25),
+                  '${conflicts.length} overlapping booking(s) on ${conflicts.map((c) => c['channel']).toSet().join(', ')}. Post-review flight adjustment required.',
+                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                 ),
               ],
             ),
@@ -475,8 +571,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   // ===========================================================================
   Widget _buildChannelFilterBar() {
     return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      height: 48,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -484,26 +580,57 @@ class _CalendarScreenState extends State<CalendarScreen> {
         itemBuilder: (context, i) {
           final ch = _channels[i];
           final isSelected = _selectedChannel.toLowerCase() == ch.toLowerCase();
+          final chColor = ch == 'All' ? AppTheme.phosphorChartreuse : AppTheme.getChannelColor(ch);
 
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(ch),
-              labelStyle: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? Colors.white : AppTheme.label,
+            child: ElasticPressable(
+              onTap: () => setState(() => _selectedChannel = ch),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? chColor.withOpacity(0.18) : AppTheme.slabQuartz,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? chColor : AppTheme.borderCard,
+                    width: isSelected ? 1.0 : 0.75,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: chColor.withOpacity(0.2),
+                            blurRadius: 8,
+                            spreadRadius: 0.5,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (ch != 'All') ...[
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: chColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      ch,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              selected: isSelected,
-              selectedColor: AppTheme.label,
-              backgroundColor: AppTheme.tertiarySystemBackground,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide.none,
-              ),
-              onSelected: (_) {
-                setState(() => _selectedChannel = ch);
-              },
             ),
           );
         },
@@ -512,7 +639,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // ===========================================================================
-  // 4. MONTHLY GRID VIEW
+  // 4. MONTHLY GRID VIEW (Responsive 7-column squircle layout)
   // ===========================================================================
   Widget _buildMonthView() {
     final year = _focusedDate.year;
@@ -526,21 +653,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final selectedDayEvents = _eventsOnDay(_selectedDay);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
-        // Calendar Grid Container (Elevated Apple HIG Card)
+        // Calendar Grid Container (Obsidian Vitreum Smoked Quartz Slab)
         Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(
-            color: AppTheme.secondarySystemBackground,
+            color: AppTheme.slabQuartz,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: AppTheme.appleCardShadow,
+            border: Border.all(color: AppTheme.rimKeyLight, width: 0.75),
+            boxShadow: AppTheme.dualLayerDepth,
           ),
           child: Column(
             children: [
-              // Day of Week Headers
+              // Responsive Day of Week Headers (7 equal columns: M - S)
               const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _DayHeader('M'),
                   _DayHeader('T'),
@@ -552,98 +679,116 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ],
               ),
               const Padding(
-                padding: EdgeInsets.symmetric(vertical: 6),
-                child: Divider(color: AppTheme.separator, height: 0.5),
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(color: AppTheme.borderCard, height: 0.75),
               ),
 
               // Calendar Days Grid
               for (int row = 0; row < totalRows; row++) ...[
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     for (int col = 0; col < 7; col++) ...[
-                      Builder(builder: (context) {
-                        final cellIndex = row * 7 + col;
-                        final dayNumber = cellIndex - leadingEmpty + 1;
+                      Expanded(
+                        child: Builder(builder: (context) {
+                          final cellIndex = row * 7 + col;
+                          final dayNumber = cellIndex - leadingEmpty + 1;
 
-                        if (dayNumber < 1 || dayNumber > daysInMonth) {
-                          return const SizedBox(width: 40, height: 46);
-                        }
+                          if (dayNumber < 1 || dayNumber > daysInMonth) {
+                            return const SizedBox(height: 46);
+                          }
 
-                        final date = DateTime(year, month, dayNumber);
-                        final isSelected = _isSameDay(date, _selectedDay);
-                        final isToday = _isSameDay(date, DateTime.now());
-                        final dayEvents = _eventsOnDay(date);
-                        final conflicts = _conflictsOnDay(date);
+                          final date = DateTime(year, month, dayNumber);
+                          final isSelected = _isSameDay(date, _selectedDay);
+                          final isToday = _isSameDay(date, DateTime.now());
+                          final dayEvents = _eventsOnDay(date);
+                          final conflicts = _conflictsOnDay(date);
 
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() => _selectedDay = date);
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 48,
-                            margin: const EdgeInsets.symmetric(vertical: 2),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppTheme.forge
-                                  : (isToday ? AppTheme.verdictLime.withOpacity(0.3) : Colors.transparent),
-                              borderRadius: BorderRadius.circular(12),
-                              border: isSelected
-                                  ? Border.all(color: AppTheme.verdictLime, width: 1.5)
-                                  : null,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '$dayNumber',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isSelected || isToday ? FontWeight.bold : FontWeight.w500,
-                                    color: isSelected
-                                        ? AppTheme.leaf
-                                        : (isToday ? AppTheme.forge : AppTheme.textPrimary),
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                // Flight Indicators / Collision alert
-                                if (conflicts.isNotEmpty) ...[
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: AppTheme.statusRejected,
-                                      shape: BoxShape.circle,
+                          return ElasticPressable(
+                            onTap: () {
+                              setState(() => _selectedDay = date);
+                            },
+                            child: Container(
+                              height: 46,
+                              margin: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppTheme.phosphorChartreuse
+                                    : (isToday ? AppTheme.glacialCyan.withOpacity(0.12) : Colors.transparent),
+                                borderRadius: BorderRadius.circular(10),
+                                border: isSelected
+                                    ? Border.all(color: AppTheme.phosphorChartreuse, width: 1.5)
+                                    : (isToday ? Border.all(color: AppTheme.glacialCyan, width: 1.0) : null),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: AppTheme.phosphorChartreuse.withOpacity(0.3),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '$dayNumber',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSelected || isToday ? FontWeight.w700 : FontWeight.w500,
+                                      color: isSelected
+                                          ? AppTheme.textInverse
+                                          : (isToday ? AppTheme.glacialCyan : AppTheme.textPrimary),
+                                      fontFeatures: const [FontFeature.tabularFigures()],
                                     ),
                                   ),
-                                ] else if (dayEvents.isNotEmpty) ...[
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      for (int i = 0; i < dayEvents.length.clamp(0, 3); i++) ...[
-                                        Container(
-                                          width: 4,
-                                          height: 4,
-                                          margin: const EdgeInsets.symmetric(horizontal: 0.5),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? AppTheme.verdictLime
-                                                : AppTheme.getChannelColor(dayEvents[i].channel),
-                                            shape: BoxShape.circle,
+                                  const SizedBox(height: 4),
+                                  // Flight Indicators / Collision alert
+                                  if (conflicts.isNotEmpty) ...[
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? AppTheme.textInverse : AppTheme.signalCoral,
+                                        shape: BoxShape.circle,
+                                        boxShadow: isSelected
+                                            ? null
+                                            : [
+                                                BoxShadow(
+                                                  color: AppTheme.signalCoral.withOpacity(0.6),
+                                                  blurRadius: 4,
+                                                ),
+                                              ],
+                                      ),
+                                    ),
+                                  ] else if (dayEvents.isNotEmpty) ...[
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        for (int i = 0; i < dayEvents.length.clamp(0, 3); i++) ...[
+                                          Container(
+                                            width: 4.5,
+                                            height: 4.5,
+                                            margin: const EdgeInsets.symmetric(horizontal: 0.75),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? AppTheme.textInverse
+                                                  : AppTheme.getChannelColor(dayEvents[i].channel),
+                                              shape: BoxShape.circle,
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ],
-                                    ],
-                                  ),
-                                ] else ...[
-                                  const SizedBox(height: 6),
+                                    ),
+                                  ] else ...[
+                                    const SizedBox(height: 6),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                      ),
                     ],
                   ],
                 ),
@@ -651,7 +796,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
 
         // DOSSIER SECTION: Active Flights on Selected Date
         Row(
@@ -662,70 +807,93 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 DateFormat('EEEE, d MMMM').format(_selectedDay),
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontFamily: 'serif',
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
+                  letterSpacing: -0.3,
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              '${selectedDayEvents.length} active',
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: selectedDayEvents.isEmpty ? AppTheme.slabPill : AppTheme.phosphorChartreuse.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: selectedDayEvents.isEmpty ? AppTheme.borderCard : AppTheme.phosphorChartreuse.withOpacity(0.35),
+                  width: 0.75,
+                ),
+              ),
+              child: Text(
+                '${selectedDayEvents.length} active',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: selectedDayEvents.isEmpty ? AppTheme.textSecondary : AppTheme.phosphorChartreuse,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
 
         if (selectedDayEvents.isEmpty) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
             decoration: BoxDecoration(
-              color: AppTheme.secondarySystemBackground,
+              color: AppTheme.slabQuartz,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: AppTheme.appleCardShadow,
+              border: Border.all(color: AppTheme.rimKeyLight, width: 0.75),
+              boxShadow: AppTheme.dualLayerDepth,
             ),
             child: Column(
               children: [
                 Container(
                   width: 48,
                   height: 48,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.tertiarySystemBackground,
+                  decoration: BoxDecoration(
+                    color: AppTheme.slabPill,
                     shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
                   child: const Center(
-                    child: Icon(Icons.event_available_outlined, size: 24, color: AppTheme.secondaryLabel),
+                    child: Icon(Icons.event_available_rounded, size: 22, color: AppTheme.phosphorChartreuse),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'No flights scheduled for ${DateFormat('d MMMM yyyy').format(_selectedDay)}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.label, letterSpacing: -0.2),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary, letterSpacing: -0.2),
                 ),
                 const SizedBox(height: 6),
                 const Text(
                   'All channel lanes are open for scheduling on this date.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.secondaryLabel, fontSize: 12),
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.tertiarySystemBackground,
-                    foregroundColor: AppTheme.label,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    visualDensity: VisualDensity.compact,
+                ElasticPressable(
+                  onTap: () => _showScheduleDialog(initialDate: _selectedDay),
+                  child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.phosphorChartreuse,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add_rounded, size: 16, color: AppTheme.textInverse),
+                        SizedBox(width: 6),
+                        Text(
+                          'Book for this date',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textInverse),
+                        ),
+                      ],
+                    ),
                   ),
-                  icon: const Icon(Icons.add, size: 14, color: AppTheme.label),
-                  label: const Text(
-                    'Book for this date',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.label),
-                  ),
-                  onPressed: () => _showScheduleDialog(initialDate: _selectedDay),
                 ),
               ],
             ),
@@ -748,7 +916,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         : [_selectedChannel];
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
         // Channel Occupancy & Booking Density Matrix
         _buildChannelOccupancyMatrix(),
@@ -758,28 +926,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: AppTheme.secondarySystemBackground,
+            color: AppTheme.slabQuartz,
             borderRadius: BorderRadius.circular(14),
-            boxShadow: AppTheme.appleCardShadow,
+            border: Border.all(color: AppTheme.rimKeyLight, width: 0.75),
+            boxShadow: AppTheme.dualLayerDepth,
           ),
           child: Row(
             children: [
-              const SizedBox(width: 80, child: Center(child: Text('Channel', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)))),
+              const SizedBox(
+                width: 80,
+                child: Center(
+                  child: Text(
+                    'Channel',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
+                  ),
+                ),
+              ),
               for (final day in weekDays)
                 Expanded(
                   child: Column(
                     children: [
                       Text(
                         DateFormat('E').format(day),
-                        style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '${day.day}',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: _isSameDay(day, DateTime.now()) ? FontWeight.bold : FontWeight.w600,
-                          color: _isSameDay(day, DateTime.now()) ? AppTheme.forge : AppTheme.textPrimary,
+                          fontWeight: _isSameDay(day, DateTime.now()) ? FontWeight.w700 : FontWeight.w600,
+                          color: _isSameDay(day, DateTime.now()) ? AppTheme.glacialCyan : AppTheme.textPrimary,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ],
@@ -801,19 +979,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildChannelOccupancyMatrix() {
     final occupancy = [
-      {'name': 'Social', 'booked': 0.75, 'color': const Color(0xFF2D55A2)},
-      {'name': 'Search', 'booked': 0.50, 'color': const Color(0xFF476044)},
-      {'name': 'Email', 'booked': 0.40, 'color': const Color(0xFF234C82)},
-      {'name': 'Display', 'booked': 0.25, 'color': const Color(0xFF5B6941)},
-      {'name': 'Video', 'booked': 0.35, 'color': const Color(0xFF384F45)},
+      {'name': 'Social', 'booked': 0.75, 'color': AppTheme.getChannelColor('Social')},
+      {'name': 'Search', 'booked': 0.50, 'color': AppTheme.getChannelColor('Search')},
+      {'name': 'Email', 'booked': 0.40, 'color': AppTheme.getChannelColor('Email')},
+      {'name': 'Display', 'booked': 0.25, 'color': AppTheme.getChannelColor('Display')},
+      {'name': 'Video', 'booked': 0.35, 'color': AppTheme.getChannelColor('Video')},
     ];
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
+        color: AppTheme.slabQuartz,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: AppTheme.appleCardShadow,
+        border: Border.all(color: AppTheme.rimKeyLight, width: 0.75),
+        boxShadow: AppTheme.dualLayerDepth,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -824,25 +1003,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
               const Expanded(
                 child: Text(
                   'CHANNEL OCCUPANCY & DENSITY',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.1, color: AppTheme.secondaryLabel),
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: AppTheme.textMuted),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F4EA),
-                  borderRadius: BorderRadius.circular(4),
+                  color: AppTheme.celadonSage.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppTheme.celadonSage.withOpacity(0.4), width: 0.75),
                 ),
-                child: const Text(
-                  'HEALTHY CAPACITY',
-                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF137333)),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PulseStatusGlow(color: AppTheme.celadonSage, size: 5),
+                    SizedBox(width: 4),
+                    Text(
+                      'HEALTHY CAPACITY',
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.celadonSage),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: occupancy.map((ch) {
               final pct = ((ch['booked'] as double) * 100).toInt();
@@ -853,25 +1040,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: [
                       Text(
                         ch['name'] as String,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.secondaryLabel),
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.textSecondary),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(3),
                         child: SizedBox(
                           height: 5,
                           child: LinearProgressIndicator(
                             value: ch['booked'] as double,
-                            backgroundColor: AppTheme.tertiarySystemBackground,
+                            backgroundColor: AppTheme.slabPill,
                             valueColor: AlwaysStoppedAnimation<Color>(ch['color'] as Color),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         '$pct%',
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.label, fontFeatures: [FontFeature.tabularFigures()]),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ],
                   ),
@@ -891,16 +1083,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
+        color: AppTheme.slabQuartz,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: AppTheme.appleCardShadow,
+        border: Border.all(color: AppTheme.rimKeyLight, width: 0.75),
+        boxShadow: AppTheme.dualLayerDepth,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Channel Row Title
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
             child: Row(
               children: [
                 Container(
@@ -911,20 +1104,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   channel,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.label),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
                 ),
                 const Spacer(),
-                Text(
-                  '${laneEvents.length} flight(s)',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.slabPill,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${laneEvents.length} flight(s)',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          const Divider(color: AppTheme.separator, height: 0.5),
+          const Divider(color: AppTheme.borderCard, height: 0.75),
 
           // Flight Lane Board
           if (laneEvents.isEmpty) ...[
@@ -935,24 +1139,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'No $channel flights this week',
+                      'No $channel flights scheduled this week',
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel, fontStyle: FontStyle.italic),
+                      style: const TextStyle(fontSize: 11, color: AppTheme.textMuted, fontStyle: FontStyle.italic),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  InkWell(
+                  ElasticPressable(
                     onTap: () => _showScheduleDialog(initialChannel: channel),
-                    borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppTheme.tertiarySystemBackground,
+                        color: AppTheme.slabElevated,
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.borderCard, width: 0.75),
                       ),
                       child: Text(
                         '+ Book $channel slot',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.label),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.phosphorChartreuse),
                       ),
                     ),
                   ),
@@ -988,20 +1192,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final hasConflict = _detectViewConflicts().any((c) =>
         c['eventA'] == evt || c['eventB'] == evt);
 
-    return InkWell(
+    return ElasticPressable(
       onTap: () => _showFlightDetailModal(evt),
-      borderRadius: BorderRadius.circular(10),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: hasConflict
-              ? AppTheme.statusRejected.withOpacity(0.12)
-              : AppTheme.forge,
+              ? const Color(0xFF261014)
+              : AppTheme.slabElevated,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: hasConflict ? AppTheme.statusRejected : AppTheme.forge,
-            width: 1,
+            color: hasConflict ? AppTheme.signalCoral : AppTheme.rimKeyLight,
+            width: 0.75,
           ),
         ),
         child: Column(
@@ -1012,7 +1215,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                   decoration: BoxDecoration(
-                    color: hasConflict ? AppTheme.statusRejected : AppTheme.verdictLime,
+                    color: hasConflict ? AppTheme.signalCoral : AppTheme.slabPill,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -1020,11 +1223,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     style: TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
-                      color: hasConflict ? AppTheme.leaf : AppTheme.forge,
+                      color: hasConflict ? Colors.white : AppTheme.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     evt.title,
@@ -1032,51 +1236,59 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: hasConflict ? AppTheme.statusRejected : AppTheme.leaf,
+                      color: hasConflict ? AppTheme.signalCoral : AppTheme.textPrimary,
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   '\$${evt.budget.toInt()}',
                   style: TextStyle(
-                    fontFamily: 'serif',
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
                     fontFeatures: const [FontFeature.tabularFigures()],
-                    color: hasConflict ? AppTheme.statusRejected : AppTheme.leaf,
+                    color: hasConflict ? AppTheme.signalCoral : AppTheme.phosphorChartreuse,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Icon(
-                  hasConflict ? Icons.error_outline : Icons.chevron_right,
-                  size: 14,
-                  color: hasConflict ? AppTheme.statusRejected : AppTheme.textInverseMuted,
+                  hasConflict ? Icons.error_outline_rounded : Icons.chevron_right_rounded,
+                  size: 16,
+                  color: hasConflict ? AppTheme.signalCoral : AppTheme.textMuted,
                 ),
               ],
             ),
             const SizedBox(height: 6),
             Row(
               children: [
-                Icon(Icons.flight_takeoff, size: 11, color: hasConflict ? AppTheme.statusRejected : AppTheme.textInverseMuted),
+                Icon(Icons.flight_takeoff_rounded, size: 12, color: hasConflict ? AppTheme.signalCoral : AppTheme.textSecondary),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     '${DateFormat('d MMM').format(start)} – ${DateFormat('d MMM').format(end)}',
-                    style: TextStyle(fontSize: 10, color: hasConflict ? AppTheme.statusRejected : AppTheme.textInverseMuted),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: hasConflict ? AppTheme.signalCoral : AppTheme.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(3),
+                    color: AppTheme.slabPill,
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     '${end.difference(start).inDays.clamp(1, 30)}d flight',
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: hasConflict ? AppTheme.statusRejected : AppTheme.leaf),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: hasConflict ? AppTheme.signalCoral : AppTheme.textPrimary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ],
@@ -1113,206 +1325,235 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
+        color: AppTheme.slabElevated,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: AppTheme.appleCardShadow,
+        border: Border.all(color: AppTheme.rimKeyLight, width: 0.75),
+        boxShadow: AppTheme.dualLayerDepth,
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => CampaignDetailScreen(
-                  campaignId: event.campaignId,
-                  api: widget.api,
-                ),
-              ),
-            ).then((_) => _fetch());
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: [
-                    // Channel Tag + Version Tag
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppTheme.getChannelColor(event.channel).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            event.channel,
-                            style: TextStyle(
-                              color: AppTheme.getChannelColor(event.channel),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  // Channel Tag + Version Tag
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.getChannelColor(event.channel).withOpacity(0.16),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppTheme.getChannelColor(event.channel).withOpacity(0.4), width: 0.75),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(AppTheme.getChannelIcon(event.channel), size: 11, color: AppTheme.getChannelColor(event.channel)),
+                            const SizedBox(width: 4),
+                            Text(
+                              event.channel,
+                              style: TextStyle(
+                                color: AppTheme.getChannelColor(event.channel),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
                             ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.slabPill,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppTheme.borderCard, width: 0.75),
+                        ),
+                        child: Text(
+                          'v${event.versionNo}',
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppTheme.forge.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(8),
+                      ),
+                    ],
+                  ),
+
+                  // Scheduled Status Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.celadonSage.withOpacity(0.16),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppTheme.celadonSage.withOpacity(0.4), width: 0.75),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PulseStatusGlow(color: AppTheme.celadonSage, size: 5),
+                        SizedBox(width: 5),
+                        Text(
+                          'Scheduled',
+                          style: TextStyle(color: AppTheme.celadonSage, fontWeight: FontWeight.w700, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Creative Visual + Title & Flight Info
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          event.title,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            letterSpacing: -0.3,
                           ),
-                          child: Text(
-                            'Version v${event.versionNo}',
-                            style: const TextStyle(color: AppTheme.forge, fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.flight_takeoff_rounded, size: 12, color: AppTheme.textSecondary),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                '${dateFormat.format(start)} – ${dateFormat.format(end)}',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                  fontFeatures: [FontFeature.tabularFigures()],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        // HIGH CONTRAST LUMINOUS BUDGET (Tabular Phosphor Chartreuse)
+                        Text(
+                          '\$${event.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.phosphorChartreuse,
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(width: 12),
+                  CreativeAssetThumbnail(
+                    assetUrl: assetUrl,
+                    channel: event.channel,
+                    width: 72,
+                    height: 72,
+                    borderRadius: 12,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
 
-                    // Scheduled Status Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppTheme.verdictLime.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle, size: 12, color: AppTheme.forge),
-                          SizedBox(width: 4),
-                          Text(
-                            'Scheduled',
-                            style: TextStyle(color: AppTheme.forge, fontWeight: FontWeight.bold, fontSize: 10),
-                          ),
-                        ],
-                      ),
+              // Human Attribution & Pacing Tag
+              Row(
+                children: [
+                  Expanded(
+                    child: MarketerAvatar(userId: matchedCampaign?.ownerId, size: 20, showLabel: true),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Pacing ${(burnRatio * 100).toInt()}%',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: [FontFeature.tabularFigures()],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
 
-                // Creative Visual + Title & Flight Info
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              // Spend Wave Burn Bar
+              _buildMiniSpendBar(event.budget, burnRatio),
+              const SizedBox(height: 10),
+
+              // Micro-KPI Chips
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            event.title,
-                            style: const TextStyle(
-                              fontFamily: 'serif',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${dateFormat.format(start)} → ${dateFormat.format(end)}',
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '\$${event.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                            style: const TextStyle(
-                              fontFamily: 'serif',
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.forge,
-                            ),
-                          ),
-                        ],
+                    _buildMiniKpiTag(roiStr, isPrimary: true),
+                    const SizedBox(width: 6),
+                    _buildMiniKpiTag(cpaStr),
+                    const SizedBox(width: 6),
+                    _buildMiniKpiTag(ctrStr),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // View Full Dossier CTA
+              ElasticPressable(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CampaignDetailScreen(
+                        campaignId: event.campaignId,
+                        api: widget.api,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    CreativeAssetThumbnail(
-                      assetUrl: assetUrl,
-                      channel: event.channel,
-                      width: 72,
-                      height: 72,
-                      borderRadius: 10,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Human Attribution & Pacing Tag
-                Row(
-                  children: [
-                    Expanded(
-                      child: MarketerAvatar(userId: matchedCampaign?.ownerId, size: 20, showLabel: true),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Pacing: ${(burnRatio * 100).toInt()}%',
-                      style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Spend Wave Burn Bar
-                _buildMiniSpendBar(event.budget, burnRatio),
-                const SizedBox(height: 8),
-
-                // Micro-KPI Chips
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                  ).then((_) => _fetch());
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.slabPill,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.borderCard, width: 0.75),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildMiniKpiTag(roiStr, isPrimary: true),
-                      const SizedBox(width: 6),
-                      _buildMiniKpiTag(cpaStr),
-                      const SizedBox(width: 6),
-                      _buildMiniKpiTag(ctrStr),
+                      Icon(Icons.north_east_rounded, size: 14, color: AppTheme.phosphorChartreuse),
+                      SizedBox(width: 6),
+                      Text(
+                        'Inspect proposal dossier',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-
-                // View Full Dossier CTA
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CampaignDetailScreen(
-                            campaignId: event.campaignId,
-                            api: widget.api,
-                          ),
-                        ),
-                      ).then((_) => _fetch());
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.tertiarySystemBackground,
-                      foregroundColor: AppTheme.label,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.north_east, size: 13, color: AppTheme.label),
-                    label: const Text(
-                      'Inspect proposal dossier',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: AppTheme.label, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1326,23 +1567,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(
-              child: Text(
-                'SPEND BURN PACING',
-                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel, letterSpacing: 0.1),
-                overflow: TextOverflow.ellipsis,
-              ),
+            const Text(
+              'SPEND BURN PACING',
+              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: AppTheme.textMuted, letterSpacing: 0.6),
             ),
-            const SizedBox(width: 6),
             Text(
-              '${(burnRatio * 100).toInt()}% burned · 75% ceiling',
-              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
+              '${(burnRatio * 100).toInt()}% burned · 75% limit',
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         SizedBox(
-          height: 10,
+          height: 8,
           child: Stack(
             alignment: Alignment.centerLeft,
             children: [
@@ -1350,7 +1592,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 height: 4,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppTheme.tertiarySystemBackground,
+                  color: AppTheme.slabPill,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1359,17 +1601,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: Container(
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.label,
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.glacialCyan, AppTheme.phosphorChartreuse],
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               Align(
-                alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
+                alignment: const Alignment(-1.0 + (0.75 * 2), 0),
                 child: Container(
-                  width: 1.5,
-                  height: 10,
-                  color: const Color(0xFFB9301D),
+                  width: 2,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppTheme.signalCoral,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
                 ),
               ),
             ],
@@ -1381,17 +1628,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildMiniKpiTag(String text, {bool isPrimary = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isPrimary ? AppTheme.label : AppTheme.tertiarySystemBackground,
+        color: isPrimary ? AppTheme.phosphorChartreuse.withOpacity(0.14) : AppTheme.slabPill,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isPrimary ? AppTheme.phosphorChartreuse.withOpacity(0.4) : AppTheme.borderCard,
+          width: 0.75,
+        ),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-          color: isPrimary ? Colors.white : AppTheme.label,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: isPrimary ? AppTheme.phosphorChartreuse : AppTheme.textSecondary,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
     );
@@ -1400,7 +1652,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _showFlightDetailModal(ScheduleEvent evt) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.secondarySystemBackground,
+      backgroundColor: AppTheme.slabElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1413,19 +1665,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
             Center(
               child: Container(
                 width: 36,
-                height: 5,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: AppTheme.quaternaryLabel,
-                  borderRadius: BorderRadius.circular(2.5),
+                  color: AppTheme.borderCard,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Text(
               evt.title,
-              style: const TextStyle(fontFamily: 'serif', fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'Channel: ${evt.channel} • Version v${evt.versionNo}',
               style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
@@ -1436,27 +1688,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
             _buildModalDetailRow('Allocated budget', '\$${evt.budget.toInt()}'),
             _buildModalDetailRow('Flight status', evt.status),
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CampaignDetailScreen(
-                        campaignId: evt.campaignId,
-                        api: widget.api,
-                      ),
+            ElasticPressable(
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CampaignDetailScreen(
+                      campaignId: evt.campaignId,
+                      api: widget.api,
                     ),
-                  ).then((_) => _fetch());
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.forge,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ).then((_) => _fetch());
+              },
+              child: Container(
+                width: double.infinity,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppTheme.phosphorChartreuse,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Text('Open campaign dossier', style: TextStyle(color: AppTheme.leaf, fontWeight: FontWeight.bold)),
+                child: const Center(
+                  child: Text(
+                    'Open campaign dossier',
+                    style: TextStyle(color: AppTheme.textInverse, fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
+                ),
               ),
             ),
           ],
@@ -1467,12 +1724,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildModalDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
         ],
       ),
     );
@@ -1486,7 +1751,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No approved campaigns pending scheduling. Only approved proposals can be scheduled.'),
-          backgroundColor: AppTheme.forge,
+          backgroundColor: AppTheme.slabElevated,
         ),
       );
       return;
@@ -1501,7 +1766,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.leaf,
+      backgroundColor: AppTheme.slabElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -1514,7 +1779,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             padding: EdgeInsets.only(
               left: 20,
               right: 20,
-              top: 20,
+              top: 16,
               bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
             ),
             child: Column(
@@ -1524,39 +1789,44 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 Center(
                   child: Container(
                     width: 36,
-                    height: 5,
-                    decoration: BoxDecoration(color: AppTheme.quaternaryLabel, borderRadius: BorderRadius.circular(2.5)),
+                    height: 4,
+                    decoration: BoxDecoration(color: AppTheme.borderCard, borderRadius: BorderRadius.circular(2)),
                   ),
                 ),
                 const SizedBox(height: 14),
                 const Text(
                   'Schedule Campaign Flight',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.4),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.4),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Schedules the campaign flight with continuous collision and capacity protection.',
-                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 16),
 
                 // Select Approved Campaign
-                const Text('Approved Campaign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.label)),
+                const Text('Approved Campaign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: AppTheme.tertiarySystemBackground,
+                    color: AppTheme.slabPill,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       isExpanded: true,
+                      dropdownColor: AppTheme.slabElevated,
                       value: selectedCampId,
                       items: _approvedCampaigns.map((c) {
                         return DropdownMenuItem(
                           value: c.campaignId,
-                          child: Text('${c.title} (v${c.currentVersion?.versionNo ?? 1})', style: const TextStyle(fontSize: 13, color: AppTheme.label)),
+                          child: Text(
+                            '${c.title} (v${c.currentVersion?.versionNo ?? 1})',
+                            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                          ),
                         );
                       }).toList(),
                       onChanged: (val) {
@@ -1580,9 +1850,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Flight Start', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.label)),
+                          const Text('Flight Start', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                           const SizedBox(height: 4),
-                          InkWell(
+                          ElasticPressable(
                             onTap: () async {
                               final picked = await showDatePicker(
                                 context: ctx,
@@ -1597,10 +1867,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppTheme.tertiarySystemBackground,
+                                color: AppTheme.slabPill,
                                 borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppTheme.borderCard, width: 0.75),
                               ),
-                              child: Text(DateFormat('yyyy-MM-dd').format(startDate), style: const TextStyle(fontSize: 13, color: AppTheme.label, fontFeatures: [FontFeature.tabularFigures()])),
+                              child: Text(
+                                DateFormat('yyyy-MM-dd').format(startDate),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.textPrimary,
+                                  fontFeatures: [FontFeature.tabularFigures()],
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -1611,9 +1889,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Flight End', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.label)),
+                          const Text('Flight End', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                           const SizedBox(height: 4),
-                          InkWell(
+                          ElasticPressable(
                             onTap: () async {
                               final picked = await showDatePicker(
                                 context: ctx,
@@ -1628,10 +1906,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppTheme.tertiarySystemBackground,
+                                color: AppTheme.slabPill,
                                 borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppTheme.borderCard, width: 0.75),
                               ),
-                              child: Text(DateFormat('yyyy-MM-dd').format(endDate), style: const TextStyle(fontSize: 13, color: AppTheme.label, fontFeatures: [FontFeature.tabularFigures()])),
+                              child: Text(
+                                DateFormat('yyyy-MM-dd').format(endDate),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.textPrimary,
+                                  fontFeatures: [FontFeature.tabularFigures()],
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -1642,50 +1928,59 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 const SizedBox(height: 20),
 
                 // Confirm Schedule Action
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: scheduling
-                        ? null
-                        : () async {
-                            if (curVer == null) return;
-                            final messenger = ScaffoldMessenger.of(context);
-                            final navigator = Navigator.of(ctx);
-                            setModalState(() => scheduling = true);
-                            try {
-                              await widget.api.scheduleCampaign(
-                                campaign.campaignId,
-                                curVer.versionId,
-                                startDate.toIso8601String(),
-                                endDate.toIso8601String(),
-                                channel,
-                              );
-                              navigator.pop();
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text('Scheduled flight confirmed for "${campaign.title}" v${curVer.versionNo}'),
-                                  backgroundColor: AppTheme.forge,
-                                ),
-                              );
-                              _fetch();
-                            } catch (e) {
-                              setModalState(() => scheduling = false);
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(e.toString()),
-                                  backgroundColor: AppTheme.statusRejected,
-                                ),
-                              );
-                            }
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.forge,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ElasticPressable(
+                  onTap: scheduling
+                      ? null
+                      : () async {
+                          if (curVer == null) return;
+                          final messenger = ScaffoldMessenger.of(context);
+                          final navigator = Navigator.of(ctx);
+                          setModalState(() => scheduling = true);
+                          try {
+                            await widget.api.scheduleCampaign(
+                              campaign.campaignId,
+                              curVer.versionId,
+                              startDate.toIso8601String(),
+                              endDate.toIso8601String(),
+                              channel,
+                            );
+                            navigator.pop();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Scheduled flight confirmed for "${campaign.title}" v${curVer.versionNo}'),
+                                backgroundColor: AppTheme.slabElevated,
+                              ),
+                            );
+                            _fetch();
+                          } catch (e) {
+                            setModalState(() => scheduling = false);
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                                backgroundColor: AppTheme.signalCoral,
+                              ),
+                            );
+                          }
+                        },
+                  child: Container(
+                    width: double.infinity,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppTheme.phosphorChartreuse,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.phosphorChartreuse.withOpacity(0.3),
+                          blurRadius: 14,
+                          spreadRadius: 1,
+                        ),
+                      ],
                     ),
-                    child: scheduling
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2))
-                        : const Text('Commit flight schedule', style: TextStyle(color: AppTheme.leaf, fontWeight: FontWeight.bold)),
+                    child: Center(
+                      child: scheduling
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2))
+                          : const Text('Commit flight schedule', style: TextStyle(color: AppTheme.textInverse, fontWeight: FontWeight.w700, fontSize: 14)),
+                    ),
                   ),
                 ),
               ],
@@ -1703,15 +1998,14 @@ class _DayHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 40,
+    return Expanded(
       child: Center(
         child: Text(
           label,
           style: const TextStyle(
             fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textSecondary,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textMuted,
           ),
         ),
       ),

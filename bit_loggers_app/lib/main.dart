@@ -146,35 +146,43 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       backgroundColor: AppTheme.systemBackground,
       appBar: AppBar(
-        backgroundColor: AppTheme.secondarySystemBackground,
+        backgroundColor: AppTheme.slabQuartz,
         elevation: 0,
         bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(0.5),
-          child: Divider(color: AppTheme.separator, height: 0.5),
+          preferredSize: Size.fromHeight(0.75),
+          child: Divider(color: AppTheme.borderCard, height: 0.75),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        title: Row(
           children: [
-            const Text(
-              'CampaignGrid',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.label,
-                letterSpacing: -0.4,
+            AppTheme.buildBrandMonogram(size: 28),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'CampaignGrid',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: -0.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    formattedDate,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.1,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              formattedDate,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppTheme.secondaryLabel,
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.05,
-              ),
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -187,7 +195,7 @@ class _MainShellState extends State<MainShell> {
               final isOffline = _api.syncQueue.isOfflineSimulationEnabled;
               if (pending == 0 && !isOffline) {
                 return IconButton(
-                  icon: const Icon(Icons.cloud_sync_outlined, size: 21, color: AppTheme.label),
+                  icon: const Icon(Icons.cloud_sync_outlined, size: 21, color: AppTheme.textPrimary),
                   tooltip: 'Sync hub',
                   onPressed: () {
                     Navigator.push(
@@ -211,25 +219,28 @@ class _MainShellState extends State<MainShell> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                       decoration: BoxDecoration(
-                        color: isOffline ? const Color(0xFFFFEDD5) : AppTheme.verdictLime.withOpacity(0.35),
+                        color: isOffline ? AppTheme.solarTangerine.withOpacity(0.2) : AppTheme.celadonSage.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: AppTheme.appleCardShadow,
+                        border: Border.all(
+                          color: isOffline ? AppTheme.solarTangerine : AppTheme.celadonSage,
+                          width: 0.75,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isOffline ? Icons.wifi_off : Icons.sync,
+                            isOffline ? Icons.wifi_off_rounded : Icons.sync_rounded,
                             size: 13,
-                            color: isOffline ? const Color(0xFFC2410C) : AppTheme.verdictLimeDark,
+                            color: isOffline ? AppTheme.solarTangerine : AppTheme.celadonSage,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             isOffline ? (pending > 0 ? '$pending pending' : 'offline') : '$pending sync',
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isOffline ? const Color(0xFF9A3412) : AppTheme.verdictLimeDark,
+                              fontWeight: FontWeight.w700,
+                              color: isOffline ? AppTheme.solarTangerine : AppTheme.celadonSage,
                               fontFeatures: const [FontFeature.tabularFigures()],
                             ),
                           ),
@@ -244,7 +255,7 @@ class _MainShellState extends State<MainShell> {
 
           // System Verification Tests
           IconButton(
-            icon: const Icon(Icons.shield_outlined, size: 20, color: AppTheme.label),
+            icon: const Icon(Icons.shield_outlined, size: 20, color: AppTheme.textPrimary),
             tooltip: 'System verification',
             onPressed: () {
               Navigator.push(
@@ -256,16 +267,21 @@ class _MainShellState extends State<MainShell> {
 
           // Ledger & Diagnostics Menu
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_horiz, color: AppTheme.label),
+            icon: const Icon(Icons.more_horiz, color: AppTheme.textPrimary),
+            color: AppTheme.slabElevated,
             tooltip: 'Governance & audit',
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: AppTheme.rimKeyLight.withOpacity(0.4), width: 0.75),
+            ),
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'sync_hub',
                 child: Row(
                   children: [
-                    Icon(Icons.cloud_sync, size: 16, color: AppTheme.label),
+                    Icon(Icons.cloud_sync_rounded, size: 16, color: AppTheme.glacialCyan),
                     SizedBox(width: 8),
-                    Text('Sync hub & outbox', style: TextStyle(fontSize: 13)),
+                    Text('Sync hub & outbox', style: TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
                   ],
                 ),
               ),
@@ -273,9 +289,9 @@ class _MainShellState extends State<MainShell> {
                 value: 'audit',
                 child: Row(
                   children: [
-                    Icon(Icons.history_edu, size: 16, color: AppTheme.label),
+                    Icon(Icons.history_edu_rounded, size: 16, color: AppTheme.solarTangerine),
                     SizedBox(width: 8),
-                    Text('Audit ledger', style: TextStyle(fontSize: 13)),
+                    Text('Audit ledger', style: TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
                   ],
                 ),
               ),
@@ -283,9 +299,9 @@ class _MainShellState extends State<MainShell> {
                 value: 'diagnostics',
                 child: Row(
                   children: [
-                    Icon(Icons.terminal, size: 16, color: AppTheme.label),
+                    Icon(Icons.terminal_rounded, size: 16, color: AppTheme.phosphorChartreuse),
                     SizedBox(width: 8),
-                    Text('Diagnostics', style: TextStyle(fontSize: 13)),
+                    Text('Diagnostics', style: TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
                   ],
                 ),
               ),
@@ -305,7 +321,7 @@ class _MainShellState extends State<MainShell> {
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_none_outlined, size: 20, color: AppTheme.label),
+                icon: const Icon(Icons.notifications_none_rounded, size: 20, color: AppTheme.textPrimary),
                 tooltip: 'Notifications',
                 onPressed: () async {
                   await Navigator.push(
@@ -322,9 +338,12 @@ class _MainShellState extends State<MainShell> {
                   child: Container(
                     width: 7,
                     height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.crimsonNeedle,
+                    decoration: BoxDecoration(
+                      color: AppTheme.signalCoral,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: AppTheme.signalCoral.withOpacity(0.8), blurRadius: 4),
+                      ],
                     ),
                   ),
                 ),
@@ -334,6 +353,11 @@ class _MainShellState extends State<MainShell> {
           // User Profile Pill (SJ / AL / MV)
           PopupMenuButton<User>(
             tooltip: 'Switch user role',
+            color: AppTheme.slabElevated,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: AppTheme.rimKeyLight.withOpacity(0.4), width: 0.75),
+            ),
             itemBuilder: (context) {
               return _users.map((u) {
                 return PopupMenuItem<User>(
@@ -341,19 +365,19 @@ class _MainShellState extends State<MainShell> {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        radius: 10,
-                        backgroundColor: u.role == 'marketer' ? AppTheme.label : AppTheme.tertiarySystemBackground,
+                        radius: 11,
+                        backgroundColor: u.role == 'marketer' ? AppTheme.phosphorChartreuse : AppTheme.glacialCyan,
                         child: Text(
                           u.name.split(' ').map((n) => n[0]).take(2).join(),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
-                            color: u.role == 'marketer' ? Colors.white : AppTheme.label,
+                            color: AppTheme.textInverse,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('${u.name} (${u.role})', style: const TextStyle(fontSize: 13)),
+                      Text('${u.name} (${u.role})', style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
                     ],
                   ),
                 );
@@ -365,9 +389,10 @@ class _MainShellState extends State<MainShell> {
               child: Container(
                 width: 32,
                 height: 32,
-                decoration: const BoxDecoration(
-                  color: AppTheme.secondarySystemBackground,
+                decoration: BoxDecoration(
+                  color: AppTheme.slabElevated,
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.5), width: 0.75),
                   boxShadow: AppTheme.appleCardShadow,
                 ),
                 child: Center(
@@ -378,7 +403,7 @@ class _MainShellState extends State<MainShell> {
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.label,
+                      color: AppTheme.phosphorChartreuse,
                     ),
                   ),
                 ),
@@ -393,16 +418,16 @@ class _MainShellState extends State<MainShell> {
         ),
         child: currentScreen,
       ),
-      // Bespoke Inset Tab Bar (Warm Ivory ground, Antique Hairline, Obsidian Umber active indicator)
+      // Inset Tab Bar (Obsidian Vitreum crystal glass ground, phosphor active pills)
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: AppTheme.secondarySystemBackground,
-          border: Border(top: BorderSide(color: AppTheme.separator, width: 0.5)),
+          color: AppTheme.slabQuartz,
+          border: Border(top: BorderSide(color: AppTheme.borderCard, width: 0.75)),
           boxShadow: [
             BoxShadow(
-              color: Color(0x0A2B2010),
-              blurRadius: 12,
-              offset: Offset(0, -3),
+              color: Color(0x66000000),
+              blurRadius: 16,
+              offset: Offset(0, -4),
             ),
           ],
         ),
@@ -473,13 +498,16 @@ class _MainShellState extends State<MainShell> {
               duration: const Duration(milliseconds: 200),
               padding: EdgeInsets.symmetric(horizontal: active ? 16 : 0, vertical: 3),
               decoration: BoxDecoration(
-                color: active ? AppTheme.tertiarySystemBackground : Colors.transparent,
+                color: active ? AppTheme.slabPill : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
+                border: active
+                    ? Border.all(color: AppTheme.phosphorChartreuse.withOpacity(0.35), width: 0.75)
+                    : null,
               ),
               child: Icon(
                 active ? activeIcon : icon,
-                size: 21,
-                color: active ? AppTheme.label : AppTheme.secondaryLabel,
+                size: 20,
+                color: active ? AppTheme.phosphorChartreuse : AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 2),
@@ -488,7 +516,7 @@ class _MainShellState extends State<MainShell> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                color: active ? AppTheme.label : AppTheme.secondaryLabel,
+                color: active ? AppTheme.phosphorChartreuse : AppTheme.textSecondary,
                 letterSpacing: -0.1,
               ),
               maxLines: 1,

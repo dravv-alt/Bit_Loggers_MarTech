@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 /// Curated high-resolution imagery and authentic ad preview components
-/// specifically designed for enterprise marketing campaign intelligence.
+/// specifically designed for enterprise marketing campaign intelligence
+/// in the "Obsidian Vitreum" design system.
 class MarketingVisuals {
   // Curated authentic photography per marketing channel
   static const Map<String, String> defaultChannelImages = {
@@ -57,8 +58,7 @@ class MarketingVisuals {
 }
 
 /// A resilient, high-craft thumbnail for marketing creative assets.
-/// Automatically handles network loading, graceful offline fallbacks,
-/// and channel badge overlay.
+/// Features vitreous glass bevels, subtle channel wash, and channel badge.
 class CreativeAssetThumbnail extends StatelessWidget {
   final String? assetUrl;
   final String channel;
@@ -87,7 +87,11 @@ class CreativeAssetThumbnail extends StatelessWidget {
       child: Container(
         width: width,
         height: height,
-        color: channelColor.withOpacity(0.08),
+        decoration: BoxDecoration(
+          color: AppTheme.slabElevated,
+          borderRadius: BorderRadius.circular(borderRadius),
+          border: Border.all(color: channelColor.withOpacity(0.35), width: 0.75),
+        ),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -97,14 +101,14 @@ class CreativeAssetThumbnail extends StatelessWidget {
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return Container(
-                  color: AppTheme.paper,
+                  color: AppTheme.canvasVoid,
                   child: Center(
                     child: SizedBox(
                       width: 14,
                       height: 14,
                       child: CircularProgressIndicator(
                         strokeWidth: 1.5,
-                        color: channelColor.withOpacity(0.5),
+                        color: channelColor.withOpacity(0.6),
                       ),
                     ),
                   ),
@@ -130,13 +134,14 @@ class CreativeAssetThumbnail extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppTheme.forge.withOpacity(0.85),
+                    color: AppTheme.canvasAbyssal.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: channelColor.withOpacity(0.4), width: 0.5),
                   ),
                   child: Text(
                     channel.toUpperCase(),
-                    style: const TextStyle(
-                      color: AppTheme.leaf,
+                    style: TextStyle(
+                      color: channelColor,
                       fontSize: 8,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.4,
@@ -153,17 +158,17 @@ class CreativeAssetThumbnail extends StatelessWidget {
   IconData _getChannelIcon(String ch) {
     switch (ch.toLowerCase()) {
       case 'social':
-        return Icons.photo_camera_outlined;
+        return Icons.photo_camera_rounded;
       case 'search':
-        return Icons.search_outlined;
+        return Icons.search_rounded;
       case 'email':
-        return Icons.mail_outline;
+        return Icons.mail_rounded;
       case 'display':
-        return Icons.view_quilt_outlined;
+        return Icons.view_quilt_rounded;
       case 'video':
-        return Icons.play_circle_outline;
+        return Icons.play_circle_rounded;
       default:
-        return Icons.campaign_outlined;
+        return Icons.campaign_rounded;
     }
   }
 }
@@ -177,7 +182,7 @@ class MarketerAvatar extends StatelessWidget {
   const MarketerAvatar({
     super.key,
     this.userId,
-    this.size = 24,
+    this.size = 26,
     this.showLabel = false,
   });
 
@@ -188,20 +193,31 @@ class MarketerAvatar extends StatelessWidget {
     final initials = profile['initials'] ?? 'ML';
     final name = profile['name'] ?? 'Marketing Lead';
 
-    final avatarWidget = ClipOval(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: AppTheme.forge.withOpacity(0.08),
+    final avatarWidget = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.5), width: 1.0),
+        boxShadow: const [
+          BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 1)),
+        ],
+      ),
+      child: ClipOval(
+        child: Container(
+          color: AppTheme.slabElevated,
+          child: avatarUrl.isNotEmpty
+              ? Image.network(
+                  avatarUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return _buildInitials(initials);
+                  },
+                  errorBuilder: (_, __, ___) => _buildInitials(initials),
+                )
+              : _buildInitials(initials),
         ),
-        child: avatarUrl.isNotEmpty
-            ? Image.network(
-                avatarUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildInitials(initials),
-              )
-            : _buildInitials(initials),
       ),
     );
 
@@ -211,14 +227,14 @@ class MarketerAvatar extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         avatarWidget,
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Flexible(
           child: Text(
             name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: AppTheme.textPrimary,
             ),
@@ -235,7 +251,7 @@ class MarketerAvatar extends StatelessWidget {
         style: TextStyle(
           fontSize: size * 0.42,
           fontWeight: FontWeight.bold,
-          color: AppTheme.forge,
+          color: AppTheme.phosphorChartreuse,
         ),
       ),
     );
@@ -284,8 +300,9 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
+        color: AppTheme.slabQuartz,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.35), width: 0.75),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
@@ -298,8 +315,8 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: AppTheme.forge,
-                  child: const Text('BL', style: TextStyle(color: AppTheme.leaf, fontSize: 10, fontWeight: FontWeight.bold)),
+                  backgroundColor: AppTheme.slabElevated,
+                  child: const Text('BL', style: TextStyle(color: AppTheme.phosphorChartreuse, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -310,7 +327,7 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                         children: [
                           const Text('BitLoggers Brand', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
                           const SizedBox(width: 4),
-                          Icon(Icons.verified, size: 12, color: AppTheme.getChannelColor('Social')),
+                          Icon(Icons.verified, size: 12, color: AppTheme.glacialCyan),
                         ],
                       ),
                       const Text('Sponsored · Instagram Feed Comp', style: TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
@@ -329,7 +346,7 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
               effectiveImg,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                color: AppTheme.paper,
+                color: AppTheme.canvasVoid,
                 child: const Center(child: Icon(Icons.photo_library_outlined, size: 36, color: AppTheme.textSecondary)),
               ),
             ),
@@ -338,7 +355,7 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
           // Action Callout Bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            color: const Color(0xFFF9FAFB),
+            color: AppTheme.slabPill,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -353,10 +370,13 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.forge,
+                    color: AppTheme.phosphorChartreuse,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text('Shop Now', style: TextStyle(color: AppTheme.leaf, fontSize: 10, fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Shop Now',
+                    style: TextStyle(color: AppTheme.textInverse, fontSize: 10, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ],
             ),
@@ -367,10 +387,13 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary, height: 1.4),
+                style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary, height: 1.45),
                 children: [
-                  const TextSpan(text: 'bitloggers ', style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextSpan(text: copy ?? 'Limited seasonal release. Experience seamless performance optimization with verified audience reach.'),
+                  const TextSpan(text: 'bitloggers ', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+                  TextSpan(
+                    text: copy ?? 'Limited seasonal release. Experience seamless performance optimization with verified audience reach.',
+                    style: const TextStyle(color: AppTheme.textSecondary),
+                  ),
                 ],
               ),
             ),
@@ -386,8 +409,9 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
+        color: AppTheme.slabQuartz,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.35), width: 0.75),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
@@ -398,10 +422,10 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
+                  color: AppTheme.celadonSage.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('Sponsored', style: TextStyle(color: Color(0xFF2E7D32), fontSize: 10, fontWeight: FontWeight.bold)),
+                child: const Text('Sponsored', style: TextStyle(color: AppTheme.celadonSage, fontSize: 10, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 8),
               const Text('https://bitloggers.io/campaign', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
@@ -411,16 +435,16 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
           Text(
             headline ?? title,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1A0DAB),
+              color: AppTheme.glacialCyan,
               decoration: TextDecoration.underline,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             copy ?? 'Discover high-performance campaign flight intelligence. Guaranteed low CPA and maximum ROAS with real-time portfolio telemetry.',
-            style: const TextStyle(fontSize: 12, color: Color(0xFF4D5156), height: 1.4),
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -441,10 +465,11 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F3F4),
+        color: AppTheme.slabPill,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.3), width: 0.5),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF1A0DAB), fontWeight: FontWeight.w500)),
+      child: Text(text, style: const TextStyle(fontSize: 11, color: AppTheme.glacialCyan, fontWeight: FontWeight.w500)),
     );
   }
 
@@ -455,8 +480,9 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
+        color: AppTheme.slabQuartz,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.35), width: 0.75),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
@@ -465,9 +491,9 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
           // Email header banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF9FAFB),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            decoration: BoxDecoration(
+              color: AppTheme.slabPill,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
             child: Row(
@@ -499,7 +525,7 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
               children: [
                 Text(
                   headline ?? title,
-                  style: const TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -511,10 +537,13 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppTheme.forge,
+                      color: AppTheme.phosphorChartreuse,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text('Claim Early Invitation →', style: TextStyle(color: AppTheme.leaf, fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Claim Early Invitation →',
+                      style: TextStyle(color: AppTheme.textInverse, fontSize: 12, fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ],
@@ -532,8 +561,9 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
+        color: AppTheme.slabQuartz,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.35), width: 0.75),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
@@ -574,10 +604,10 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppTheme.forge,
+                    color: AppTheme.phosphorChartreuse,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('Explore', style: TextStyle(color: AppTheme.leaf, fontSize: 11, fontWeight: FontWeight.w600)),
+                  child: const Text('Explore', style: TextStyle(color: AppTheme.textInverse, fontSize: 11, fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
@@ -587,4 +617,3 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
     );
   }
 }
-
