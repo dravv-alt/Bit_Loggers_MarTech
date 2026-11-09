@@ -1,54 +1,106 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-/// CampaignGrid Wireframe Design System
-/// Derived directly from the Framer wireframes (https://campaigngrid.framer.website/).
-/// Principles: "No multiple subtexts, no pills, and no BS clear design."
+/// CampaignGrid Bespoke Atelier & Warm Editorial Design System
+/// Replaces cold sterile gray canvases and generic electric blue/Tailwind palettes
+/// with warm alabaster cotton paper, deep obsidian umber ink, and artisanal pigments.
 class AppTheme {
-  // Core Surface & Ink Tokens (Framer Wireframe Hex values)
-  static const Color paper = Color(0xFFF5F6F8);        // Clean, airy wireframe canvas
+  // Bespoke Surface & Ink Tokens (Warm Alabaster & Limewash Linen ground — ZERO sterile gray)
+  static const Color paper = Color(0xFFF9F7F2);        // Warm Alabaster / Limewash Linen canvas
   static const Color canvas = paper;                   // Semantic canvas alias
-  static const Color forge = Color(0xFF20211F);        // Deep charcoal/ink black
-  static const Color leaf = Color(0xFFFFFFFF);         // Pure white card & sheet surface
-  static const Color borderSage = Color(0xFFDEE2E1);   // Hairline 1px border
-  static const Color borderCard = Color(0xFFDEE2E1);   // Card border
-  static const Color brandAccent = Color(0xFF2D55A2);  // Cobalt accent / CG monogram
-  static const Color brandDark = Color(0xFF20211F);    // Charcoal brand mark
+  static const Color forge = Color(0xFF181715);        // Deep Obsidian Umber ink black
+  static const Color leaf = Color(0xFFFFFFFF);         // Warm Ivory Cotton card & sheet surface
+  static const Color borderSage = Color(0xFFE6E1D6);   // Raw Linen 0.5pt hairline border
+  static const Color borderCard = Color(0xFFE6E1D6);   // Card border
+  static const Color brandAccent = Color(0xFFB8532F);  // Seville Terracotta / Burnt Ochre accent
+  static const Color brandDark = Color(0xFF181715);    // Deep Umber brand mark
 
-  // Action & Verdict Tokens
-  static const Color verdictLime = Color(0xFFD7F46A);  // Architectural Lime highlight (#D7F46A)
-  static const Color verdictLimeDark = Color(0xFF2C5E43); // Dark forest green accent
-  static const Color accentGold = Color(0xFFF0B323);   // Architectural ochre highlight
-  static const Color moss = Color(0xFF137333);         // Visual growth telemetry
-  static const Color warmAmber = Color(0xFFD97706);    // Visual pacing accent
-  static const Color bone = Color(0xFFE5E7EB);         // Track surface
-  static const Color crimsonNeedle = Color(0xFFB9301D);// Pacing warning needle
+  // Action & Verdict Tokens (Artisanal Pigments — No Tailwind Neon)
+  static const Color verdictLime = Color(0xFF2A5940);  // Forest Pine Sage
+  static const Color verdictLimeDark = Color(0xFF1F4835); // Deep British Racing Green
+  static const Color accentGold = Color(0xFFC07722);   // Burnished Amber Gold
+  static const Color moss = Color(0xFF1F4835);         // British Racing Green
+  static const Color warmAmber = Color(0xFFB46C1E);    // Warm Honey Amber
+  static const Color bone = Color(0xFFF0EDE4);         // Warm Oat track surface
+  static const Color crimsonNeedle = Color(0xFF932F23);// Venetian Oxblood needle
 
   // Compatibility Tokens
-  static const Color primary = forge;
+  static const Color primary = Color(0xFF181715);      // Deep Obsidian Umber Primary Action Ink
   static const Color card = leaf;
   static const Color surface = leaf;
   static const Color cardBorder = borderSage;
 
-  // Apple HIG Semantic Palette
-  static const Color systemBackground = Color(0xFFF2F2F7);          // Inset grouped canvas
-  static const Color secondarySystemBackground = Color(0xFFFFFFFF); // Grouped card surface
-  static const Color tertiarySystemBackground = Color(0xFFE5E5EA);  // Search wells & track fields
-  static const Color label = Color(0xFF1C1C1E);                      // Primary ink (high contrast)
-  static const Color secondaryLabel = Color(0xFF6C6C70);             // Muted subtext & captions
-  static const Color tertiaryLabel = Color(0xFF8E8E93);              // Subtle timestamps / badges
-  static const Color quaternaryLabel = Color(0xFFAEAEB2);            // Inactive placeholders
-  static const Color separator = Color(0x1F000000);                  // 0.5pt Apple hairline divider
+  // Artisanal Pigment Palette (Replaces generic Electric Blue with Parisian Twilight Indigo & natural dyes)
+  static const Color appleBlue = Color(0xFF233E5B);       // Parisian Twilight Indigo (Restrained, deep, artisanal)
+  static const Color appleBlueDark = Color(0xFF182B3F);
+  static const Color appleBlueLight = Color(0xFFEDF2F7);  // Soft atmospheric mist
+  static const Color appleIndigo = Color(0xFF4A3E6D);     // Byzantine Nightshade
+  static const Color applePurple = Color(0xFF58334E);     // Blackberry Plum
+  static const Color applePink = Color(0xFFA63D56);       // Damask Rose
+  static const Color appleRed = Color(0xFF932F23);        // Venetian Oxblood
+  static const Color appleOrange = Color(0xFFB46C1E);     // Warm Honey Amber
+  static const Color appleYellow = Color(0xFFC78426);     // Polished Brass
+  static const Color appleGreen = Color(0xFF1F4835);      // British Racing Green
+  static const Color appleMint = Color(0xFF285C50);       // Alpine Pine
+  static const Color appleTeal = Color(0xFF225B64);       // Aegean Spruce
 
-  // Apple HIG Dual-Layer Ambient Depth (Physical Lighting Simulation)
+  // Bespoke Warm Semantic Palette (Warm Alabaster System — NO cold gray #F2F2F7)
+  static const Color systemBackground = Color(0xFFF9F7F2);          // Warm Alabaster Canvas
+  static const Color secondarySystemBackground = Color(0xFFFFFFFF); // Warm Ivory Cotton Surface
+  static const Color tertiarySystemBackground = Color(0xFFF0EDE4);  // Warm Oat / Recessed Fields
+  static const Color label = Color(0xFF181715);                      // Deep Obsidian Umber (high contrast warm ink)
+  static const Color secondaryLabel = Color(0xFF6B665E);             // French Mineral Slate
+  static const Color tertiaryLabel = Color(0xFF9E988E);              // Warm Sandstone
+  static const Color quaternaryLabel = Color(0xFFC7C2B8);            // Soft Weathered Flax
+  static const Color separator = Color(0xFFE6E1D6);                  // 0.5pt Raw Linen Hairline
+
+  // Atmospheric Canvas Gradients (Warm Alabaster luminous veil instead of blue-gray)
+  static const LinearGradient appleCanvasGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFFFAF6EE), // Luminous warm alabaster veil
+      Color(0xFFF9F7F2), // Smooth warm cotton
+      Color(0xFFF9F7F2),
+    ],
+    stops: [0.0, 0.4, 1.0],
+  );
+
+  static const LinearGradient appleHeroGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF24221F), // Deep Velvet Umber
+      Color(0xFF141311), // Midnight Obsidian
+    ],
+  );
+
+  static const LinearGradient appleAccentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF181715), // Deep Umber Ink
+      Color(0xFF2B2724), // Warm Charcoal
+    ],
+  );
+
+  // Dual-Layer Ambient Warm Lighting (Warm umber contact + soft diffuse illumination)
   static const List<BoxShadow> appleCardShadow = [
     BoxShadow(
-      color: Color(0x06000000), // 2.5% black tight ambient occlusion
+      color: Color(0x0A2B2010), // Warm umber contact (4%)
       blurRadius: 4,
       offset: Offset(0, 1),
     ),
     BoxShadow(
-      color: Color(0x0A000000), // 4% black soft diffuse key light
+      color: Color(0x0E2B2010), // Warm diffuse key light (5.5%)
+      blurRadius: 18,
+      offset: Offset(0, 6),
+    ),
+  ];
+
+  static const List<BoxShadow> appleGlowBlue = [
+    BoxShadow(
+      color: Color(0x20233E5B), // Soft Parisian indigo ambient glow
       blurRadius: 16,
       offset: Offset(0, 6),
     ),
@@ -56,61 +108,61 @@ class AppTheme {
 
   static const List<BoxShadow> appleFloatingShadow = [
     BoxShadow(
-      color: Color(0x08000000),
-      blurRadius: 6,
-      offset: Offset(0, 2),
+      color: Color(0x0F2B2010),
+      blurRadius: 8,
+      offset: Offset(0, 3),
     ),
     BoxShadow(
-      color: Color(0x14000000),
-      blurRadius: 24,
-      offset: Offset(0, 10),
+      color: Color(0x182B2010),
+      blurRadius: 28,
+      offset: Offset(0, 12),
     ),
   ];
 
   // Text Colors
-  static const Color textPrimary = Color(0xFF20211F);   // Deep graphite ink
-  static const Color textSecondary = Color(0xFF777972); // Muted slate (readable neutral)
-  static const Color textMuted = Color(0xFF777972);
-  static const Color textInverse = Color(0xFFFFFFFF);   // Pure white on dark buttons
-  static const Color textInverseMuted = Color(0xFFB7C5D1);
+  static const Color textPrimary = Color(0xFF181715);   // Deep Obsidian Umber
+  static const Color textSecondary = Color(0xFF6B665E); // French Mineral Slate
+  static const Color textMuted = Color(0xFF9E988E);     // Warm Sandstone
+  static const Color textInverse = Color(0xFFFDFBF7);   // Warm Ivory on dark controls
+  static const Color textInverseMuted = Color(0xFFD4CEC3);
 
-  // Soft Wireframe Status Tints (Subtle, non-distracting, zero-slop)
-  static const Color statusApproved = Color(0xFF137333);
-  static const Color statusApprovedBg = Color(0xFFE6F4EA);
+  // Artisanal Semantic Status Tints
+  static const Color statusApproved = Color(0xFF1F4835);       // British Racing Green
+  static const Color statusApprovedBg = Color(0xFFEAF2ED);     // Soft Celadon Wash
 
-  static const Color statusChanges = Color(0xFF9C3A27);
-  static const Color statusChangesBg = Color(0xFFFDE8E4);
+  static const Color statusChanges = Color(0xFFB46C1E);        // Warm Honey Amber
+  static const Color statusChangesBg = Color(0xFFFAF1E3);      // Soft Wheat Wash
 
-  static const Color statusRejected = Color(0xFFB9301D);
-  static const Color statusRejectedBg = Color(0xFFFBDDD7);
+  static const Color statusRejected = Color(0xFF932F23);       // Venetian Oxblood
+  static const Color statusRejectedBg = Color(0xFFF9ECE9);     // Soft Antique Rose Wash
 
-  static const Color statusDraft = Color(0xFF555950);
-  static const Color statusDraftBg = Color(0xFFECEDE9);
+  static const Color statusDraft = Color(0xFF6B665E);          // French Mineral Slate
+  static const Color statusDraftBg = Color(0xFFF0EDE4);        // Soft Oat Wash
 
-  static const Color statusSubmitted = Color(0xFF8A542C); // Warm tan / In review
-  static const Color statusSubmittedBg = Color(0xFFF8EBDD);
+  static const Color statusSubmitted = Color(0xFF233E5B);      // Parisian Twilight Indigo
+  static const Color statusSubmittedBg = Color(0xFFEDF2F7);    // Soft Indigo Mist
 
-  static const Color statusScheduled = Color(0xFF234C82); // Soft blue / Scheduled
-  static const Color statusScheduledBg = Color(0xFFE5EDF7);
+  static const Color statusScheduled = Color(0xFF4A3E6D);      // Byzantine Nightshade
+  static const Color statusScheduledBg = Color(0xFFF2EFF7);    // Soft Violet Mist
 
-  // Channel Palette (Vibrant, distinct, high-contrast modern tones)
+  // Channel Palette (Artisanal pigment tones — NO generic Tailwind hexes)
   static Color getChannelColor(String channel) {
     switch (channel.toLowerCase().trim()) {
       case 'social':
       case 'paid social':
-        return const Color(0xFF2563EB); // Royal Blue
+        return const Color(0xFF213B56); // Deep Venetian Cobalt
       case 'email':
-        return const Color(0xFF7C3AED); // Amethyst Purple
+        return const Color(0xFF532E4E); // Blackberry Plum
       case 'search':
-        return const Color(0xFF059669); // Emerald Green
+        return const Color(0xFF6E532B); // Cyprus Bronze
       case 'display':
-        return const Color(0xFFEA580C); // Warm Tangerine / Amber
+        return const Color(0xFF934F27); // Seville Rust Ochre
       case 'video':
-        return const Color(0xFFE11D48); // Crimson Rose
+        return const Color(0xFF832A38); // Cordovan Oxblood
       case 'influencer':
-        return const Color(0xFF0891B2); // Cyan / Teal
+        return const Color(0xFF20555E); // Aegean Spruce
       default:
-        return const Color(0xFF64748B); // Cool Slate
+        return const Color(0xFF5E5950); // Warm Mineral Umber
     }
   }
 
@@ -395,7 +447,6 @@ class AppTheme {
         color: secondarySystemBackground,
         borderRadius: BorderRadius.circular(12),
         boxShadow: appleCardShadow,
-        border: Border.all(color: borderSage.withOpacity(0.4), width: 0.5),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -426,89 +477,93 @@ class AppTheme {
   static ThemeData get campaignGridTheme {
     return ThemeData(
       brightness: Brightness.light,
-      scaffoldBackgroundColor: paper,
-      primaryColor: forge,
+      scaffoldBackgroundColor: systemBackground,
+      primaryColor: primary,
       colorScheme: const ColorScheme.light(
-        primary: forge,
-        onPrimary: leaf,
-        secondary: forge,
-        onSecondary: leaf,
-        surface: leaf,
-        onSurface: textPrimary,
-        error: statusRejected,
-        onError: leaf,
+        primary: primary,
+        onPrimary: textInverse,
+        secondary: brandAccent,
+        onSecondary: textInverse,
+        surface: secondarySystemBackground,
+        onSurface: label,
+        error: appleRed,
+        onError: textInverse,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: leaf,
+        backgroundColor: systemBackground,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontSize: 16,
+          fontSize: 17,
           fontWeight: FontWeight.w600,
-          color: textPrimary,
+          color: label,
+          letterSpacing: -0.4,
         ),
-        iconTheme: IconThemeData(color: textPrimary),
+        iconTheme: IconThemeData(color: label),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: forge,
-          foregroundColor: leaf,
+          backgroundColor: primary, // Deep Obsidian Umber Ink
+          foregroundColor: textInverse, // Warm Ivory text
           elevation: 0,
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, letterSpacing: -0.2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          minimumSize: const Size(44, 48),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          backgroundColor: leaf,
-          foregroundColor: forge,
-          side: const BorderSide(color: borderSage, width: 1),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          backgroundColor: secondarySystemBackground,
+          foregroundColor: label,
+          side: const BorderSide(color: separator, width: 1.0),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, letterSpacing: -0.2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          minimumSize: const Size(44, 44),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: forge,
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          foregroundColor: label,
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, letterSpacing: -0.2),
+          minimumSize: const Size(44, 44),
         ),
       ),
       snackBarTheme: const SnackBarThemeData(
-        backgroundColor: forge,
-        contentTextStyle: TextStyle(color: leaf, fontSize: 13, fontWeight: FontWeight.w500),
+        backgroundColor: Color(0xFF181715),
+        contentTextStyle: TextStyle(color: Color(0xFFFDFBF7), fontSize: 13, fontWeight: FontWeight.w500),
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
       ),
       cardTheme: CardTheme(
-        color: leaf,
+        color: secondarySystemBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: borderSage, width: 1),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       dividerTheme: const DividerThemeData(
-        color: borderSage,
-        thickness: 1,
+        color: separator,
+        thickness: 0.5,
         space: 1,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: leaf,
+        fillColor: tertiarySystemBackground,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: borderSage, width: 1),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: separator, width: 0.5),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: borderSage, width: 1),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: separator, width: 0.5),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: forge, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: brandAccent, width: 1.5),
         ),
-        hintStyle: const TextStyle(color: textSecondary, fontSize: 13),
+        hintStyle: const TextStyle(color: secondaryLabel, fontSize: 13),
       ),
     );
   }

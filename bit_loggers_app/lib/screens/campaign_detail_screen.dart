@@ -236,17 +236,21 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     final isSubmitted = _campaign!.status == 'Submitted';
 
     return Scaffold(
-      backgroundColor: AppTheme.paper,
+      backgroundColor: AppTheme.systemBackground,
       appBar: AppBar(
-        backgroundColor: AppTheme.paper,
+        backgroundColor: AppTheme.secondarySystemBackground,
         elevation: 0,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(0.5),
+          child: Divider(color: AppTheme.separator, height: 0.5),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.label),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           isReviewer && isSubmitted ? 'Review proposal' : (isApproved ? 'Schedule status' : 'Proposal dossier'),
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.4),
         ),
         actions: [
           if (isMarketer && curVer != null)
@@ -264,7 +268,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               },
               child: const Text(
                 '+ Revise',
-                style: TextStyle(color: AppTheme.forge, fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(color: AppTheme.brandAccent, fontWeight: FontWeight.w600, fontSize: 14),
               ),
             ),
         ],
@@ -314,26 +318,25 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Editorial Serif Headline
+        // Apple Dynamic Headline
         const Text(
-          'One last look.',
+          'Proposal Review & Verification',
           style: TextStyle(
-            fontFamily: 'serif',
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary,
-            letterSpacing: -0.6,
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.label,
+            letterSpacing: -0.8,
           ),
         ),
         const SizedBox(height: 18),
 
-        // Wireframe Bento Card holding proposal summary and reviewer identity
+        // Apple Elevated Inset Card holding proposal summary and reviewer identity
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: AppTheme.leaf,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderSage, width: 1),
+            color: AppTheme.secondarySystemBackground,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppTheme.appleCardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,13 +352,13 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       children: [
                         Text(
                           widget.api.currentUser.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.label),
                         ),
                         Text(
                           isOwner ? 'Owner • Self-approval blocked' : 'Reviewer • Independent verification',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isOwner ? AppTheme.statusChanges : AppTheme.textSecondary,
+                            color: isOwner ? AppTheme.appleOrange : AppTheme.secondaryLabel,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -370,13 +373,13 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     channel: curVer?.channel ?? 'Social',
                     width: 44,
                     height: 44,
-                    borderRadius: 8,
+                    borderRadius: 10,
                   ),
                 ],
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
-                child: Divider(color: AppTheme.borderSage, height: 1),
+                child: Divider(color: AppTheme.separator, height: 0.5),
               ),
 
               // Two-column tabular list
@@ -399,21 +402,21 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
-                child: Divider(color: AppTheme.borderSage, height: 1),
+                child: Divider(color: AppTheme.separator, height: 0.5),
               ),
 
               // Projected ROI
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Projected ROI', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  const Text('Projected ROI', style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel)),
                   Text(
                     '${kpis.roi}x',
                     style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.appleGreen,
+                      fontFeatures: [FontFeature.tabularFigures()],
                     ),
                   ),
                 ],
@@ -425,21 +428,20 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
 
         // Immutability Notice
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppTheme.paper,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.borderSage, width: 0.8),
+            color: AppTheme.tertiarySystemBackground,
+            borderRadius: BorderRadius.circular(12),
           ),
           child: const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline, size: 14, color: AppTheme.textSecondary),
+              Icon(Icons.info_outline, size: 16, color: AppTheme.secondaryLabel),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Reason is mandatory and immutable once recorded. Next action simulates approval.',
-                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel, height: 1.3),
                 ),
               ),
             ],
@@ -447,35 +449,35 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Primary Action: Approve Version V3 ↗ (Forge #20211F)
+        // Primary Action: Approve Version (British Racing Green)
         SizedBox(
           width: double.infinity,
-          height: 48,
+          height: 50,
           child: ElevatedButton(
             onPressed: isOwner || _submittingDecision
                 ? null
                 : () => _submitReviewDecision('APPROVED'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.forge,
-              foregroundColor: AppTheme.leaf,
+              backgroundColor: AppTheme.statusApproved,
+              foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             child: _submittingDecision
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'Approve version v${curVer?.versionNo ?? 3}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: -0.2),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.north_east, size: 15),
+                      const Icon(Icons.north_east_rounded, size: 16),
                     ],
                   ),
           ),
@@ -485,22 +487,22 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         // Secondary Text Action: Request changes or reject
         SizedBox(
           width: double.infinity,
-          height: 44,
+          height: 48,
           child: OutlinedButton(
             onPressed: isOwner || _submittingDecision
                 ? null
                 : () => _showRejectionDialog(),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.textPrimary,
-              side: const BorderSide(color: AppTheme.borderSage, width: 1),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              foregroundColor: AppTheme.appleOrange,
+              side: BorderSide(color: AppTheme.appleOrange.withOpacity(0.35), width: 1.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             child: const Text(
               'Request changes or reject',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
+                color: AppTheme.appleOrange,
               ),
             ),
           ),
@@ -514,10 +516,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.leaf,
+        backgroundColor: AppTheme.secondarySystemBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppTheme.borderSage),
         ),
         title: const Text(
           'Review action',
@@ -618,39 +619,39 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Decision committed in 1 transaction. Outbox queued.',
-          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        Text(
+          isScheduled
+              ? 'Flight schedule confirmed and locked across delivery channels.'
+              : 'Flight version approved and prepared for launch execution.',
+          style: const TextStyle(fontSize: 13, color: AppTheme.secondaryLabel),
         ),
         const SizedBox(height: 24),
 
-        // Wireframe Bento Card: Version Guard & Ledger
+        // Apple Inset Grouped Surface: Version Progression & Ledger
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.leaf,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderSage, width: 1),
+            color: AppTheme.secondarySystemBackground,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppTheme.appleCardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Scheduled slot
-              const Center(
+              Center(
                 child: Column(
                   children: [
-                    Text(
-                      'SCHEDULED SLOT',
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.12),
+                    const Text(
+                      'Target flight launch',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.secondaryLabel),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
-                      'Oct 24, 10:00',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+                      'Oct 24 · 10:00 AM',
+                      style: AppTheme.title2.copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ],
@@ -658,14 +659,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
-                child: Divider(color: AppTheme.borderSage, height: 1),
+                child: Divider(color: AppTheme.separator, height: 0.5),
               ),
 
               // Version Progression Ledger
               _buildLedgerRow(
                 'Version v1',
-                'Superseded (409 Blocked)',
-                textColor: AppTheme.statusRejected,
+                'Superseded by revision',
+                textColor: AppTheme.secondaryLabel,
                 badgeBg: AppTheme.paper,
               ),
               const SizedBox(height: 10),
@@ -683,9 +684,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
               const SizedBox(height: 10),
               _buildLedgerRow(
-                'Outbox status',
-                'Email Retry #2 (Approval Safe)',
-                textColor: AppTheme.textSecondary,
+                'Delivery status',
+                'Verified & active',
+                textColor: AppTheme.statusApproved,
               ),
               const SizedBox(height: 10),
               Row(
@@ -751,116 +752,155 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title Row with Creative Thumbnail & Marketer Info
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _campaign!.title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
-                      letterSpacing: -0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      MarketerAvatar(userId: _campaign!.ownerId, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${_campaign!.ownerName} · $channel · CG-$idPrefix',
-                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      AppTheme.buildStatusIndicator(_campaign!.status),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            CreativeAssetThumbnail(
-              assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
-                  ? curVer.creatives[0]['asset_url'] as String?
-                  : null,
-              channel: channel,
-              width: 68,
-              height: 68,
-              borderRadius: 10,
-            ),
-          ],
-        ),
+        // Apple HIG Hero Dossier Card with Continuous Curvature & Ambient Depth
+        _buildAppleHeroDossierCard(curVer, channel, idPrefix),
         const SizedBox(height: 16),
 
-        // Wireframe Segmented Tabs (Overview | Versions | Discussion | Activity)
+        // Apple HIG iOS Segmented Control
         _buildSegmentedTabBar(),
         const SizedBox(height: 16),
 
-        // Bento 1: Campaign Details Spec Matrix
-        _buildBentoSpecMatrix(curVer),
-        const SizedBox(height: 14),
-
-        // Bento 2: Version Lineage Stepper
-        _buildVersionHistoryStepper(curVer),
-        const SizedBox(height: 14),
-
-        // Bento 3: Changes Diff & Creative Strategy
-        _buildDiffBentoTile(curVer),
-        const SizedBox(height: 14),
-
-        // Bento 4: 5 Projected Campaign KPIs Economics Matrix
-        _buildEconomicsBentoMatrix(kpis),
-        const SizedBox(height: 16),
-
-        // Bento 5: Decision Actions Bar
-        _buildDecisionActionsBar(curVer),
-        const SizedBox(height: 20),
-
-        // Discussions (FR-12 Collaboration & Version Anchoring)
-        _buildDiscussionsCard(),
+        // Dynamic Tab Routing (Purposeful Scannability)
+        if (_activeTab == 'Overview') ...[
+          _buildBentoSpecMatrix(curVer),
+          const SizedBox(height: 16),
+          _buildEconomicsBentoMatrix(kpis),
+          const SizedBox(height: 16),
+          _buildDecisionActionsBar(curVer),
+        ] else if (_activeTab == 'Versions') ...[
+          _buildVersionHistoryStepper(curVer),
+          const SizedBox(height: 16),
+          _buildDiffBentoTile(curVer),
+        ] else if (_activeTab == 'Creative') ...[
+          _buildDiffBentoTile(curVer),
+        ] else if (_activeTab == 'Discussion' || _activeTab == 'Activity') ...[
+          _buildDiscussionsCard(),
+        ],
         const SizedBox(height: 30),
       ],
     );
   }
 
+  Widget _buildAppleHeroDossierCard(CampaignVersion? curVer, String channel, String idPrefix) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _campaign!.title,
+                  style: AppTheme.title2,
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    MarketerAvatar(userId: _campaign!.ownerId, size: 22),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _campaign!.ownerName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.label,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  channel,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.getChannelColor(channel),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'CG-$idPrefix',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.tertiaryLabel,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                AppTheme.buildStatusIndicator(_campaign!.status),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          CreativeAssetThumbnail(
+            assetUrl: (curVer?.creatives != null && curVer!.creatives.isNotEmpty)
+                ? curVer.creatives[0]['asset_url'] as String?
+                : null,
+            channel: channel,
+            width: 76,
+            height: 76,
+            borderRadius: 14,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSegmentedTabBar() {
-    final tabs = ['Overview', 'Versions', 'Discussion', 'Activity'];
+    final tabs = ['Overview', 'Versions', 'Creative', 'Discussion'];
 
     return Container(
-      height: 36,
+      height: 40,
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: AppTheme.paper,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSage, width: 0.8),
+        color: const Color(0xFFEFEFF4),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: tabs.map((tab) {
-          final isSelected = _activeTab == tab;
+          final isSelected = _activeTab == tab || (_activeTab == 'Activity' && tab == 'Discussion');
           return Expanded(
-            child: InkWell(
+            child: GestureDetector(
               onTap: () => setState(() => _activeTab = tab),
-              borderRadius: BorderRadius.circular(7),
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeInOut,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.leaf : Colors.transparent,
-                  borderRadius: BorderRadius.circular(7),
-                  border: isSelected ? Border.all(color: AppTheme.borderSage, width: 0.8) : null,
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
                   boxShadow: isSelected
-                      ? [
+                      ? const [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
+                            color: Color(0x18000000),
+                            blurRadius: 3,
+                            offset: Offset(0, 1.5),
                           ),
                         ]
                       : null,
@@ -868,9 +908,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 child: Text(
                   tab,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? AppTheme.label : AppTheme.secondaryLabel,
                   ),
                 ),
               ),
@@ -888,130 +928,178 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         );
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'CAMPAIGN DETAILS',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.12,
-              color: AppTheme.textSecondary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Campaign specifications',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.label,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: AppTheme.paper,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'v0${curVer?.versionNo ?? 1}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.secondaryLabel,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
+
+          // Inset Grouped Specs Table with 0.5pt Apple hairlines
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.paper,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _buildAppleSpecRow('Channel & placement', curVer?.channel ?? 'Paid Social', isFirst: true),
+                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.separator),
+                _buildAppleSpecRow('Budget cap', '\$$budgetStr allocated', isNumeric: true),
+                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.separator),
+                _buildAppleSpecRow('Flight window', '12–26 Nov (14 days)'),
+                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.separator),
+                _buildAppleSpecRow('Approval state', _campaign!.status, isLast: true),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Visual Spend Wave Burn Bar
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: _buildBentoCell('Channel', curVer?.channel ?? 'Paid social'),
+              const Text(
+                'Spend wave pacing',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.label,
+                ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildBentoCell('Budget cap', '\$$budgetStr · configured'),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6F4EA),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Active flight',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF137333)),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildBentoCell('Flight', '12–26 Nov'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildBentoCell('Current version', '0${curVer?.versionNo ?? 1} · ${_campaign!.status}'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Divider(height: 1, color: AppTheme.borderSage),
-          const SizedBox(height: 12),
-
-          // Visual Spend Wave Burn Bar with 75% red needle
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'SPEND WAVE PACING · 75% CEILING',
-                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.1, color: AppTheme.textSecondary),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                'ACTIVE FLIGHT',
-                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.statusApproved),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
           SizedBox(
-            height: 16,
+            height: 18,
             child: Stack(
               alignment: Alignment.centerLeft,
               children: [
                 Container(
-                  height: 6,
+                  height: 8,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: AppTheme.paper,
-                    borderRadius: BorderRadius.circular(3),
-                    border: Border.all(color: AppTheme.borderSage, width: 0.5),
+                    color: const Color(0xFFE5E5EA),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
                 FractionallySizedBox(
                   widthFactor: 0.62,
                   child: Container(
-                    height: 6,
+                    height: 8,
                     decoration: BoxDecoration(
                       color: AppTheme.forge,
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 ),
                 Align(
                   alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
                   child: Container(
-                    width: 2,
-                    height: 16,
-                    color: const Color(0xFFB9301D),
+                    width: 2.5,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB9301D),
+                      borderRadius: BorderRadius.circular(1),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 4),
-          Row(
+          const SizedBox(height: 6),
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  'Current flight: 62% burned',
-                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                'Current flight: 62% consumed',
+                style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
               ),
-              const SizedBox(width: 6),
-              const Text(
-                'Ceiling: 75%',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFB9301D)),
+              Text(
+                'Safety ceiling: 75%',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFB9301D)),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: AppTheme.borderSage),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          const Divider(height: 0.5, thickness: 0.5, color: AppTheme.separator),
+          const SizedBox(height: 14),
 
           // Visual Flight Gantt Timeline Track
           _buildFlightTimelineTrack(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppleSpecRow(String label, String value, {bool isFirst = false, bool isLast = false, bool isNumeric = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppTheme.secondaryLabel,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppTheme.label,
+              fontWeight: FontWeight.w600,
+              fontFeatures: isNumeric ? const [FontFeature.tabularFigures()] : null,
+            ),
+          ),
         ],
       ),
     );
@@ -1116,9 +1204,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: AppTheme.paper,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSage, width: 0.8),
+        color: AppTheme.tertiarySystemBackground,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1127,7 +1214,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             label,
             style: const TextStyle(
               fontSize: 10,
-              color: AppTheme.textSecondary,
+              color: AppTheme.secondaryLabel,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1139,7 +1226,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
+              color: AppTheme.label,
             ),
           ),
         ],
@@ -1158,11 +1245,11 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1171,33 +1258,38 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Version history',
+                'Version lineage',
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.label,
+                  letterSpacing: -0.2,
                 ),
               ),
               InkWell(
                 onTap: () => setState(() => _activeTab = 'Versions'),
-                child: const Row(
-                  children: [
-                    Text(
-                      'View all',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
+                borderRadius: BorderRadius.circular(6),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Row(
+                    children: [
+                      Text(
+                        'View full history',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.secondaryLabel,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 2),
-                    Icon(Icons.north_east, size: 11, color: AppTheme.textSecondary),
-                  ],
+                      SizedBox(width: 3),
+                      Icon(Icons.arrow_forward_ios, size: 10, color: AppTheme.secondaryLabel),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: List.generate(steps.length, (idx) {
               final s = steps[idx];
@@ -1205,15 +1297,11 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               final isActive = s['active'] as bool;
               return Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(right: idx < steps.length - 1 ? 6 : 0),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  margin: EdgeInsets.only(right: idx < steps.length - 1 ? 8 : 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   decoration: BoxDecoration(
                     color: isCurrent ? AppTheme.forge : (isActive ? AppTheme.paper : AppTheme.canvas),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isCurrent ? AppTheme.forge : AppTheme.borderSage,
-                      width: 0.8,
-                    ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1221,19 +1309,19 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       Text(
                         s['num'] as String,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                          color: isCurrent ? AppTheme.leaf : (isActive ? AppTheme.textPrimary : AppTheme.textSecondary),
+                          color: isCurrent ? AppTheme.leaf : (isActive ? AppTheme.label : AppTheme.secondaryLabel),
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         s['label'] as String,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: isCurrent ? AppTheme.leaf.withOpacity(0.9) : AppTheme.textSecondary,
+                          color: isCurrent ? AppTheme.leaf.withOpacity(0.9) : AppTheme.secondaryLabel,
                         ),
                       ),
                     ],
@@ -1254,80 +1342,93 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     final audience = curVer?.targetAudience ?? 'Growth-oriented consumer demographic.';
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 4,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Changes in version 0$verNo',
                 style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.label,
+                  letterSpacing: -0.2,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(
                   color: AppTheme.paper,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppTheme.borderSage),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'AUDITED v$verNo',
-                  style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                  'Audited v$verNo',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.secondaryLabel,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Inset Grouped Diff List
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.paper,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _buildDiffRow('Audience exclusions', 'Updated demographic filters', isUpdated: true),
+                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.separator),
+                _buildDiffRow('Primary CTA copy', 'Refined for conversion', isChanged: true),
+                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.separator),
+                _buildDiffRow('Budget allocation', 'Preserved at ceiling', isUnchanged: true),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Ad Creative Canvas Preview
+          Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: AppTheme.getChannelColor(channel).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  AppTheme.getChannelIcon(channel),
+                  size: 14,
+                  color: AppTheme.getChannelColor(channel),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Creative mockup canvas · $channel',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.label,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildDiffRow('Audience exclusions', 'Updated', isUpdated: true),
-          const SizedBox(height: 8),
-          _buildDiffRow('Primary CTA', 'Changed', isChanged: true),
-          const SizedBox(height: 8),
-          _buildDiffRow('Budget cap', 'Unchanged', isUnchanged: true),
-          const SizedBox(height: 14),
-          const Divider(height: 1, color: AppTheme.borderSage),
-          const SizedBox(height: 14),
-
-          // AD CREATIVE CANVAS PREVIEW (Visually striking ad mockup)
-          Row(
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: AppTheme.getChannelColor(channel).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Icon(
-                  AppTheme.getChannelIcon(channel),
-                  size: 13,
-                  color: AppTheme.getChannelColor(channel),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'AD CREATIVE CANVAS · ${channel.toUpperCase()}',
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.1, color: AppTheme.textSecondary),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
 
           // Authentic Live Marketing Creative Mockup Studio
           LiveCreativeMockupCanvas(
@@ -1344,24 +1445,24 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 : null,
             targetCpa: curVer?.kpiProjected.cpa,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          // Target Audience Persona Chips
+          // Target Audience Persona
           const Text(
-            'Target audience persona',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+            'Target audience demographic',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             audience,
-            style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary, height: 1.3),
+            style: const TextStyle(fontSize: 13, color: AppTheme.label, height: 1.35),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              _buildAudienceChip('🎯 Prime Persona', audience.split(' ').take(3).join(' ')),
+              _buildAudienceChip('🎯 Prime persona', audience.split(' ').take(3).join(' ')),
               _buildAudienceChip('📍 Reach', 'Tier 1 Demographics'),
               _buildAudienceChip('⚡ Placement', '$channel Feed'),
             ],
@@ -1373,21 +1474,20 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
 
   Widget _buildAudienceChip(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: AppTheme.paper,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppTheme.borderSage, width: 0.8),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         '$label: $value',
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.label),
       ),
     );
   }
 
   Widget _buildDiffRow(String label, String status, {bool isUpdated = false, bool isChanged = false, bool isUnchanged = false}) {
-    Color textColor = AppTheme.textSecondary;
+    Color textColor = AppTheme.secondaryLabel;
     Color bgColor = AppTheme.paper;
     if (isUpdated) {
       textColor = const Color(0xFF137333);
@@ -1397,82 +1497,81 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       bgColor = const Color(0xFFF8EBDD);
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: AppTheme.borderSage, width: 0.5),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 13, color: AppTheme.label, fontWeight: FontWeight.w400),
           ),
-          child: Text(
-            status,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: textColor,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              status,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildEconomicsBentoMatrix(KpiMetrics kpis) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 4,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                '5 Projected campaign KPIs',
+                'Projected campaign metrics',
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.label,
+                  letterSpacing: -0.2,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(
-                  color: AppTheme.paper,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppTheme.borderSage),
+                  color: const Color(0xFFE6F4EA),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
-                  'PROJECTED VS BENCHMARK',
-                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                  'Top quartile',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF137333)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          _buildKpiGaugeRow('Conversion Rate', '${kpis.conversionRate}%', (kpis.conversionRate / 6.0).clamp(0.0, 1.0), '+0.8% vs avg', isPositive: true),
-          const SizedBox(height: 10),
-          _buildKpiGaugeRow('Click-Through Rate (CTR)', '${kpis.ctr}%', (kpis.ctr / 8.0).clamp(0.0, 1.0), '+1.2% strong', isPositive: true),
-          const SizedBox(height: 10),
-          _buildKpiGaugeRow('Return on Investment (ROI)', '${kpis.roi}x', (kpis.roi / 6.0).clamp(0.0, 1.0), 'Top quartile', isPositive: true),
-          const SizedBox(height: 10),
-          _buildKpiGaugeRow('Cost Per Acquisition (CPA)', '\$${kpis.cpa.toStringAsFixed(2)}', (kpis.cpa / 50.0).clamp(0.0, 1.0), 'Below ceiling', isPositive: true),
-          const SizedBox(height: 10),
-          _buildKpiGaugeRow('Average Order Value (AOV)', '\$${kpis.aov.toStringAsFixed(2)}', (kpis.aov / 150.0).clamp(0.0, 1.0), 'High basket', isPositive: true),
+          const SizedBox(height: 16),
+          _buildKpiGaugeRow('Conversion rate', '${kpis.conversionRate}%', (kpis.conversionRate / 6.0).clamp(0.0, 1.0), '+0.8% vs avg', isPositive: true),
+          const SizedBox(height: 12),
+          _buildKpiGaugeRow('Click-through rate (CTR)', '${kpis.ctr}%', (kpis.ctr / 8.0).clamp(0.0, 1.0), '+1.2% strong', isPositive: true),
+          const SizedBox(height: 12),
+          _buildKpiGaugeRow('Return on investment (ROI)', '${kpis.roi}x', (kpis.roi / 6.0).clamp(0.0, 1.0), 'Top quartile', isPositive: true),
+          const SizedBox(height: 12),
+          _buildKpiGaugeRow('Cost per acquisition (CPA)', '\$${kpis.cpa.toStringAsFixed(2)}', (kpis.cpa / 50.0).clamp(0.0, 1.0), 'Below ceiling', isPositive: true),
+          const SizedBox(height: 12),
+          _buildKpiGaugeRow('Average order value (AOV)', '\$${kpis.aov.toStringAsFixed(2)}', (kpis.aov / 150.0).clamp(0.0, 1.0), 'High basket', isPositive: true),
         ],
       ),
     );
@@ -1488,7 +1587,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: AppTheme.label),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -1499,15 +1598,15 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
-                    color: AppTheme.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.label,
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                   decoration: BoxDecoration(
                     color: isPositive ? const Color(0xFFE6F4EA) : const Color(0xFFFBDDD7),
                     borderRadius: BorderRadius.circular(4),
@@ -1515,8 +1614,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   child: Text(
                     badgeText,
                     style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
                       color: isPositive ? const Color(0xFF137333) : const Color(0xFFB9301D),
                     ),
                   ),
@@ -1525,14 +1624,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         ClipRRect(
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: BorderRadius.circular(3),
           child: SizedBox(
-            height: 4,
+            height: 5,
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: AppTheme.paper,
+              backgroundColor: const Color(0xFFE5E5EA),
               valueColor: AlwaysStoppedAnimation<Color>(
                 isPositive ? AppTheme.forge : const Color(0xFFB9301D),
               ),
@@ -1548,30 +1647,51 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     final verNo = curVer?.versionNo ?? 1;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'REVIEW DECISION  ·  VERSION 0$verNo',
-            style: const TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.12,
-              color: AppTheme.textSecondary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Review decision',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.label,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              Text(
+                'Version 0$verNo',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.secondaryLabel,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
+          const Text(
+            'Approve flight release or request revisions from the campaign author.',
+            style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
+              // Single Prominent Primary Action Button (Apple HIG)
               Expanded(
+                flex: 3,
                 child: SizedBox(
-                  height: 42,
+                  height: 48,
                   child: ElevatedButton(
                     onPressed: isOwner || _submittingDecision
                         ? null
@@ -1580,37 +1700,40 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       backgroundColor: AppTheme.forge,
                       foregroundColor: AppTheme.leaf,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _submittingDecision
                         ? const SizedBox(
-                            width: 16,
-                            height: 16,
+                            width: 18,
+                            height: 18,
                             child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
                           )
                         : const Text(
-                            'Approve',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                            'Approve flight version',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
+              // Secondary Tonal Action Button
               Expanded(
+                flex: 2,
                 child: SizedBox(
-                  height: 42,
+                  height: 48,
                   child: OutlinedButton(
                     onPressed: isOwner || _submittingDecision
                         ? null
                         : () => _showRejectionDialog(),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.textPrimary,
-                      side: const BorderSide(color: AppTheme.borderSage, width: 1),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      foregroundColor: AppTheme.label,
+                      backgroundColor: AppTheme.paper,
+                      side: const BorderSide(color: AppTheme.separator, width: 0.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text(
                       'Request changes',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -1629,11 +1752,11 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     final isReviewer = widget.api.currentUser.role.toLowerCase().contains('reviewer');
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1652,25 +1775,24 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 children: [
                   const Text(
                     'Discussions & Threads',
-                    style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.label),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppTheme.paper,
+                      color: AppTheme.tertiarySystemBackground,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.borderSage),
                     ),
                     child: Text(
                       '${_discussions.length}',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.label),
                     ),
                   ),
                 ],
               ),
               const Text(
-                'FR-12 Anchored',
-                style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                'Version Anchored',
+                style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -1690,7 +1812,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       ? 'No discussion anchored to this version yet.'
                       : 'No discussion entries yet. Marketers and Reviewers can collaborate here.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                 ),
               ),
             )
@@ -1708,7 +1830,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Container(width: 2, color: AppTheme.borderSage),
+                            Container(width: 2, color: AppTheme.separator),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -1724,7 +1846,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             }),
 
           const SizedBox(height: 12),
-          const Divider(height: 1, color: AppTheme.borderSage),
+          const Divider(height: 0.5, color: AppTheme.separator),
           const SizedBox(height: 12),
 
           // Replying banner
@@ -1733,24 +1855,23 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: AppTheme.paper,
+                color: AppTheme.tertiarySystemBackground,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.borderSage),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.reply_rounded, size: 14, color: AppTheme.forge),
+                  const Icon(Icons.reply_rounded, size: 14, color: AppTheme.brandAccent),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'Replying to ${_replyingTo!.authorName}: "${_replyingTo!.content.length > 32 ? '${_replyingTo!.content.substring(0, 30)}...' : _replyingTo!.content}"',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.label),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   InkWell(
                     onTap: () => setState(() => _replyingTo = null),
-                    child: const Icon(Icons.close, size: 14, color: AppTheme.textSecondary),
+                    child: const Icon(Icons.close, size: 14, color: AppTheme.secondaryLabel),
                   ),
                 ],
               ),
@@ -1768,21 +1889,20 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _anchorToVersion ? AppTheme.forge : AppTheme.paper,
+                    color: _anchorToVersion ? AppTheme.forge : AppTheme.tertiarySystemBackground,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppTheme.borderSage),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.anchor, size: 12, color: _anchorToVersion ? AppTheme.verdictLime : AppTheme.textSecondary),
+                      Icon(Icons.anchor, size: 12, color: _anchorToVersion ? Colors.white : AppTheme.secondaryLabel),
                       const SizedBox(width: 4),
                       Text(
                         'v${_campaign?.currentVersion?.versionNo ?? 1}.0 Anchor',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: _anchorToVersion ? AppTheme.leaf : AppTheme.textSecondary,
+                          color: _anchorToVersion ? Colors.white : AppTheme.secondaryLabel,
                         ),
                       ),
                     ],
@@ -1797,21 +1917,20 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _isInternalOnlyNote ? const Color(0xFF8A4620) : AppTheme.paper,
+                      color: _isInternalOnlyNote ? const Color(0xFF8A4620) : AppTheme.tertiarySystemBackground,
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: _isInternalOnlyNote ? const Color(0xFF8A4620) : AppTheme.borderSage),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.lock, size: 12, color: _isInternalOnlyNote ? AppTheme.leaf : AppTheme.textSecondary),
+                        Icon(Icons.lock, size: 12, color: _isInternalOnlyNote ? AppTheme.leaf : AppTheme.secondaryLabel),
                         const SizedBox(width: 4),
                         Text(
                           'Internal Note',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: _isInternalOnlyNote ? AppTheme.leaf : AppTheme.textSecondary,
+                            color: _isInternalOnlyNote ? AppTheme.leaf : AppTheme.secondaryLabel,
                           ),
                         ),
                       ],
@@ -1892,15 +2011,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               label: const Text('All Versions'),
               selected: _selectedVersionFilter == null,
               selectedColor: AppTheme.forge,
-              backgroundColor: AppTheme.paper,
+              backgroundColor: AppTheme.tertiarySystemBackground,
               labelStyle: TextStyle(
                 fontSize: 11,
-                fontWeight: _selectedVersionFilter == null ? FontWeight.bold : FontWeight.normal,
-                color: _selectedVersionFilter == null ? AppTheme.leaf : AppTheme.textPrimary,
+                fontWeight: _selectedVersionFilter == null ? FontWeight.w600 : FontWeight.normal,
+                color: _selectedVersionFilter == null ? Colors.white : AppTheme.label,
               ),
-              side: BorderSide(
-                color: _selectedVersionFilter == null ? AppTheme.forge : AppTheme.borderSage,
-              ),
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               visualDensity: VisualDensity.compact,
               onSelected: (val) {
                 if (val) {
@@ -1918,15 +2036,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 label: Text('v${v.versionNo}.0 (${v.channel})'),
                 selected: isSelected,
                 selectedColor: AppTheme.forge,
-                backgroundColor: AppTheme.paper,
+                backgroundColor: AppTheme.tertiarySystemBackground,
                 labelStyle: TextStyle(
                   fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? AppTheme.leaf : AppTheme.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? Colors.white : AppTheme.label,
                 ),
-                side: BorderSide(
-                  color: isSelected ? AppTheme.forge : AppTheme.borderSage,
-                ),
+                side: BorderSide.none,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 visualDensity: VisualDensity.compact,
                 onSelected: (val) {
                   setState(() => _selectedVersionFilter = val ? v.versionId : null);
@@ -1955,22 +2072,15 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       constraints: const BoxConstraints(maxHeight: 140),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.forge, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: ListView.separated(
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(vertical: 4),
         itemCount: filtered.length,
-        separatorBuilder: (_, __) => const Divider(height: 1, color: AppTheme.borderSage),
+        separatorBuilder: (_, __) => const Divider(height: 0.5, color: AppTheme.separator),
         itemBuilder: (context, idx) {
           final c = filtered[idx];
           return InkWell(
@@ -1984,26 +2094,25 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     backgroundColor: AppTheme.forge,
                     child: Text(
                       c.name.isNotEmpty ? c.name[0] : '?',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.leaf),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       c.name,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.label),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppTheme.paper,
+                      color: AppTheme.tertiarySystemBackground,
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: AppTheme.borderSage),
                     ),
                     child: Text(
                       c.role.toUpperCase(),
-                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel),
                     ),
                   ),
                 ],
@@ -2025,12 +2134,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       margin: EdgeInsets.only(bottom: isReply ? 8 : 10),
       padding: EdgeInsets.all(isReply ? 10 : 12),
       decoration: BoxDecoration(
-        color: msg.isInternalOnly ? const Color(0xFFFBF4ED) : (isReply ? AppTheme.paper.withOpacity(0.5) : AppTheme.paper),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: msg.isInternalOnly ? const Color(0xFFE2C2A8) : AppTheme.borderSage,
-          width: msg.isInternalOnly ? 1.2 : 0.8,
-        ),
+        color: msg.isInternalOnly
+            ? const Color(0xFFFBF4ED)
+            : (isReply ? AppTheme.tertiarySystemBackground : AppTheme.secondarySystemBackground),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: msg.isInternalOnly ? null : AppTheme.appleCardShadow,
+        border: msg.isInternalOnly
+            ? Border.all(color: const Color(0xFFE2C2A8), width: 1.0)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2040,13 +2151,13 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             children: [
               CircleAvatar(
                 radius: isReply ? 10 : 12,
-                backgroundColor: isReviewer ? const Color(0xFF3B5249) : AppTheme.forge,
+                backgroundColor: isReviewer ? AppTheme.appleIndigo : AppTheme.forge,
                 child: Text(
                   initials,
                   style: TextStyle(
                     fontSize: isReply ? 9 : 10,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.leaf,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -2059,31 +2170,29 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   children: [
                     Text(
                       msg.authorName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.textPrimary),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.label),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                       decoration: BoxDecoration(
-                        color: isReviewer ? AppTheme.forge : AppTheme.leaf,
+                        color: isReviewer ? AppTheme.appleIndigo.withOpacity(0.12) : AppTheme.tertiarySystemBackground,
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppTheme.borderSage, width: 0.5),
                       ),
                       child: Text(
                         msg.authorRole.toUpperCase(),
                         style: TextStyle(
                           fontSize: 8,
                           fontWeight: FontWeight.bold,
-                          color: isReviewer ? AppTheme.verdictLime : AppTheme.textSecondary,
+                          color: isReviewer ? AppTheme.appleIndigo : AppTheme.secondaryLabel,
                         ),
                       ),
                     ),
                     if (msg.versionNo != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                         decoration: BoxDecoration(
-                          color: AppTheme.leaf,
+                          color: AppTheme.tertiarySystemBackground,
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: AppTheme.borderSage, width: 0.8),
                         ),
                         child: Text(
                           'v${msg.versionNo}.0',
@@ -2091,7 +2200,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'monospace',
-                            color: AppTheme.textPrimary,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                            color: AppTheme.label,
                           ),
                         ),
                       ),
@@ -2133,9 +2243,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.reply_rounded, size: 14, color: AppTheme.textSecondary),
+                        Icon(Icons.reply_rounded, size: 14, color: AppTheme.brandAccent),
                         SizedBox(width: 3),
-                        Text('Reply', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                        Text('Reply', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.brandAccent)),
                       ],
                     ),
                   ),
@@ -2164,8 +2274,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             text: '$word$space',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              color: AppTheme.forge,
-              backgroundColor: Color(0x33D7F46A),
+              color: AppTheme.brandAccent,
+              backgroundColor: Color(0x1FB8532F),
             ),
           ),
         );
@@ -2173,7 +2283,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         spans.add(
           TextSpan(
             text: '$word$space',
-            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.35),
+            style: const TextStyle(fontSize: 13, color: AppTheme.label, height: 1.35),
           ),
         );
       }
@@ -2189,7 +2299,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: 13, color: AppTheme.secondaryLabel),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -2198,13 +2308,12 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: AppTheme.paper,
+              color: AppTheme.tertiarySystemBackground,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.borderSage, width: 1),
             ),
             child: Text(
               value,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.forge),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.label),
             ),
           )
         else
@@ -2213,7 +2322,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: AppTheme.label,
               fontStyle: italicValue ? FontStyle.italic : FontStyle.normal,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),

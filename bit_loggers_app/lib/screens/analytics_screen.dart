@@ -213,13 +213,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Intelligence & Analytics',
-              style: AppTheme.serifHeadline(fontSize: 18, color: AppTheme.textPrimary),
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.label,
+                letterSpacing: -0.4,
+              ),
             ),
             const Text(
-              'TimescaleDB Continuous Aggregations (FR-09)',
-              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+              'Live performance telemetry',
+              style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w400),
             ),
           ],
         ),
@@ -301,11 +306,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final dateRangeStr = '${dateFormat.format(_startDate)} – ${dateFormat.format(_endDate)}';
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,20 +334,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
               InkWell(
                 onTap: _pickCustomDateRange,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: _datePreset == 'Custom' ? AppTheme.forge : AppTheme.paper,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppTheme.borderSage),
+                    color: _datePreset == 'Custom' ? AppTheme.label : AppTheme.tertiarySystemBackground,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     'Custom',
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: _datePreset == 'Custom' ? AppTheme.leaf : AppTheme.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      color: _datePreset == 'Custom' ? Colors.white : AppTheme.label,
                     ),
                   ),
                 ),
@@ -361,14 +365,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               _presetChip('Quarter to Date', '90D'),
             ],
           ),
-          const Divider(height: 20, color: AppTheme.borderSage),
+          const Divider(height: 16, color: AppTheme.separator),
 
           // Row 2: Channel filter pills
           Row(
             children: [
               const Text(
                 'CHANNEL:',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel, letterSpacing: 0.5),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -384,14 +388,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           selected: isSelected,
                           labelStyle: TextStyle(
                             fontSize: 11,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? AppTheme.leaf : AppTheme.textPrimary,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                            color: isSelected ? Colors.white : AppTheme.label,
                           ),
-                          selectedColor: AppTheme.forge,
-                          backgroundColor: AppTheme.paper,
-                          side: BorderSide(
-                            color: isSelected ? AppTheme.forge : AppTheme.borderSage,
-                            width: 1,
+                          selectedColor: AppTheme.label,
+                          backgroundColor: AppTheme.tertiarySystemBackground,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide.none,
                           ),
                           visualDensity: VisualDensity.compact,
                           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -424,16 +428,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 6),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.forge : AppTheme.paper,
+            color: isSelected ? AppTheme.label : AppTheme.tertiarySystemBackground,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isSelected ? AppTheme.forge : AppTheme.borderSage),
           ),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 11,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? AppTheme.leaf : AppTheme.textPrimary,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              color: isSelected ? Colors.white : AppTheme.label,
             ),
           ),
         ),
@@ -446,16 +449,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   // ---------------------------------------------------------------------------
   Widget _buildTrendChartCard(List<Map<String, dynamic>> trends, _MetricInfo activeMetric) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Title + TimescaleDB Badge
+          // Header: Title + Telemetry Badge
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
@@ -463,24 +466,23 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             runSpacing: 6,
             children: [
               Text(
-                'Historical Performance Flights',
-                style: AppTheme.serifHeadline(fontSize: 15),
+                'Historical performance flights',
+                style: AppTheme.headline,
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.paper,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderSage),
+                  color: const Color(0xFFE6F4EA),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
+                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF137333), shape: BoxShape.circle)),
                     const SizedBox(width: 5),
                     const Text(
-                      'hypertable time_bucket',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'monospace', color: AppTheme.textSecondary),
+                      'Live telemetry',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF137333)),
                     ),
                   ],
                 ),
@@ -509,18 +511,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       duration: const Duration(milliseconds: 180),
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.forge : AppTheme.paper,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected ? AppTheme.forge : AppTheme.borderSage,
-                        ),
+                        color: isSelected ? AppTheme.label : AppTheme.tertiarySystemBackground,
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
                         metric.shortTitle,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? AppTheme.verdictLime : AppTheme.textPrimary,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected ? Colors.white : AppTheme.label,
                         ),
                       ),
                     ),
@@ -567,7 +566,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
 
           const SizedBox(height: 12),
-          const Divider(height: 1, color: AppTheme.borderSage),
+          const Divider(height: 0.5, color: AppTheme.separator),
           const SizedBox(height: 10),
 
           // Statistical Summary Chips (Min, Max, Avg)
@@ -599,9 +598,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: AppTheme.paper,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.borderSage),
+          color: AppTheme.tertiarySystemBackground,
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Wrap(
           alignment: WrapAlignment.spaceBetween,
@@ -738,7 +736,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // 5 MANDATORY KPIS DISPLAY (SECTION 1.3 / FR-09) — BENTO GRID TELEMETRY
+  // PERFORMANCE BENCHMARKS — METRIC TILES
   // ---------------------------------------------------------------------------
   Widget _buildKpiSection(Map<String, dynamic> kpis) {
     return Column(
@@ -751,8 +749,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           runSpacing: 4,
           children: [
             const Text(
-              '5 MANDATORY METRICS (PROJECTED VS ACTUAL)',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.1),
+              'Performance benchmarks (projected vs actual)',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
             ),
             Text(
               'Tap card to inspect telemetry',
@@ -787,14 +785,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       onTap: () => setState(() => _selectedMetric = 'cpa'),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.leaf,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppTheme.forge : AppTheme.borderSage,
-            width: isSelected ? 1.5 : 1.0,
-          ),
+          color: AppTheme.secondarySystemBackground,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? AppTheme.appleFloatingShadow
+              : AppTheme.appleCardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -876,12 +873,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
             // Spend wave burn bar with red needle at 75% ceiling
             const Text(
-              'SPEND WAVE PACING · 75% BUDGET CEILING',
+              'Spend wave pacing · 75% budget ceiling',
               style: TextStyle(
-                fontSize: 8,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.1,
-                color: AppTheme.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.secondaryLabel,
               ),
             ),
             const SizedBox(height: 6),
@@ -895,9 +891,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     height: 8,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppTheme.paper,
+                      color: AppTheme.tertiarySystemBackground,
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: AppTheme.borderSage, width: 0.5),
                     ),
                   ),
                   // Filled progress (62% burn)
@@ -986,16 +981,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           _hoveredIndex = null;
         });
       },
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.paper : AppTheme.leaf,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? AppTheme.forge : AppTheme.borderSage,
-            width: isSelected ? 1.5 : 1.0,
-          ),
+          color: isSelected ? AppTheme.paper : AppTheme.secondarySystemBackground,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: isSelected ? AppTheme.appleFloatingShadow : AppTheme.appleCardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1117,11 +1109,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1210,11 +1202,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   // ---------------------------------------------------------------------------
   Widget _buildChannelEconomicsCard(List<dynamic> breakdown, double totalBudget, int totalCampaigns) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1286,7 +1278,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '\$${NumberFormat('#,###').format(budget)} (${(percent * 100).toStringAsFixed(0)}%)',
+                          "\$${NumberFormat('#,###').format(budget)} (${(percent * 100).toStringAsFixed(0)}%)",
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -1372,8 +1364,8 @@ class _HistoricalTrendPainter extends CustomPainter {
 
     // 2. Draw Horizontal Grid Lines & Y-Axis Labels
     final gridPaint = Paint()
-      ..color = AppTheme.borderSage.withOpacity(0.55)
-      ..strokeWidth = 1.0;
+      ..color = AppTheme.separator
+      ..strokeWidth = 0.5;
 
     const yTicks = 4;
     for (int i = 0; i <= yTicks; i++) {

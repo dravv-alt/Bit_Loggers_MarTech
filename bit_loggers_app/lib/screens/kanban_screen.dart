@@ -8,7 +8,6 @@ import '../theme/app_theme.dart';
 import '../widgets/marketing_visuals.dart';
 import 'campaign_detail_screen.dart';
 import 'campaign_wizard_screen.dart';
-import 'notifications_screen.dart';
 
 class KanbanScreen extends StatefulWidget {
   final ApiService api;
@@ -145,336 +144,585 @@ class _KanbanScreenState extends State<KanbanScreen> {
         c.status == 'Submitted' || c.status == 'InReview' || c.status == 'ChangesRequested'
     ).toList();
     final displayAttention = attentionList.isNotEmpty ? attentionList : _campaigns.take(3).toList();
+    final topSpotlightCamp = displayAttention.isNotEmpty ? displayAttention.first : (_campaigns.isNotEmpty ? _campaigns.first : null);
 
     return Scaffold(
-      backgroundColor: AppTheme.paper,
+      backgroundColor: Colors.transparent,
       body: RefreshIndicator(
         onRefresh: _fetch,
-        color: AppTheme.forge,
+        color: AppTheme.label,
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           children: [
-            // Wireframe Brand Header
+            // Bespoke Editorial Header
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                AppTheme.buildBrandMonogram(size: 24),
-                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Campaign Grid',
-                        style: TextStyle(
-                          fontSize: 12,
+                      Text(
+                        dateStr.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
-                          letterSpacing: -0.2,
+                          color: AppTheme.brandAccent,
+                          letterSpacing: 0.8,
                         ),
                       ),
+                      const SizedBox(height: 3),
                       Text(
-                        'GROWTH WORKSPACE',
-                        style: AppTheme.wireframeEyebrow(fontSize: 8),
+                        'Good morning, $userName',
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.label,
+                          letterSpacing: -0.7,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_none, size: 20, color: AppTheme.textPrimary),
-                  tooltip: 'Notifications',
-                  onPressed: () {
-                    Navigator.push(
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.forge,
+                    foregroundColor: AppTheme.textInverse,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    minimumSize: const Size(0, 36),
+                  ),
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => NotificationsScreen(api: widget.api)),
+                      MaterialPageRoute(builder: (_) => CampaignWizardScreen(api: widget.api)),
                     );
+                    _fetch();
+                    widget.onRefresh();
                   },
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('New Campaign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
             const SizedBox(height: 18),
 
-            // Greeting & Workspace Overview
-            Text(
-              'Good morning, $userName',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '$dateStr · Workspace overview',
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 20),
+            // Apple Spotlight Feature Card (App Store / Apple Music Style)
+            if (topSpotlightCamp != null) ...[
+              _buildAppleHeroSpotlight(topSpotlightCamp),
+              const SizedBox(height: 20),
+            ],
 
-            // BENTO GRID: WORKLOAD & VELOCITY
-            Text(
-              'REVIEW WORKLOAD',
-              style: AppTheme.wireframeEyebrow(),
-            ),
-            const SizedBox(height: 8),
-
-            // Bento Grid: Hero Tile (Left) + 2 Stacked Tiles (Right)
+            // Apple 3-Metric Activity Strip (Apple Fitness Style)
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Hero Bento Tile (Awaiting Review & Quick Jump)
                 Expanded(
-                  flex: 5,
-                  child: Container(
-                    height: 148,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.leaf,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.borderSage, width: 1),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    'Awaiting review',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textSecondary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (awaitingCount > 0)
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: AppTheme.brandAccent,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '$awaitingCount'.padLeft(2, '0'),
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
-                                letterSpacing: -1,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (displayAttention.isNotEmpty)
-                          InkWell(
-                            onTap: () async {
-                              final topCamp = displayAttention.first;
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CampaignDetailScreen(
-                                    campaignId: topCamp.campaignId,
-                                    api: widget.api,
-                                  ),
-                                ),
-                              );
-                              _fetch();
-                              widget.onRefresh();
-                            },
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Next: ${displayAttention.first.title}',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.brandAccent,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_outward, size: 11, color: AppTheme.brandAccent),
-                              ],
-                            ),
-                          )
-                        else
-                          const Text(
-                            'All caught up',
-                            style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
-                          ),
-                      ],
-                    ),
+                  child: _buildAppleMetricTile(
+                    label: 'In Review',
+                    value: '$awaitingCount'.padLeft(2, '0'),
+                    subtext: 'Needs signoff',
+                    accentColor: AppTheme.statusSubmitted,
+                    icon: Icons.assignment_turned_in_rounded,
                   ),
                 ),
                 const SizedBox(width: 8),
-
-                // Stacked Bento Tiles (Due Today & Changes Requested)
                 Expanded(
-                  flex: 4,
-                  child: Column(
-                    children: [
-                      // Due Today Bento Tile
-                      Container(
-                        height: 70,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppTheme.leaf,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.borderSage, width: 1),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Due today',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textSecondary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$dueTodayCount'.padLeft(2, '0'),
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(Icons.schedule, size: 16, color: AppTheme.textSecondary.withOpacity(0.5)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Changes Requested Bento Tile
-                      Container(
-                        height: 70,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppTheme.leaf,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.borderSage, width: 1),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Changes requested',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textSecondary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$changesCount'.padLeft(2, '0'),
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(Icons.edit_note, size: 18, color: AppTheme.textSecondary.withOpacity(0.5)),
-                          ],
-                        ),
-                      ),
-                    ],
+                  child: _buildAppleMetricTile(
+                    label: 'Due Today',
+                    value: '$dueTodayCount'.padLeft(2, '0'),
+                    subtext: 'Flight launch',
+                    accentColor: AppTheme.appleOrange,
+                    icon: Icons.schedule_rounded,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildAppleMetricTile(
+                    label: 'Revisions',
+                    value: '$changesCount'.padLeft(2, '0'),
+                    subtext: 'Flags raised',
+                    accentColor: AppTheme.appleRed,
+                    icon: Icons.edit_note_rounded,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // WORKSPACE PORTFOLIO PACING & BURN BAR (FR-09 Alignment)
+            // Workspace Portfolio Pacing & Burn Bar
             _buildPortfolioPacingTile(),
             const SizedBox(height: 14),
 
-            // MULTI-CHANNEL FLIGHT ALLOCATION SEGMENTED BAR
+            // Multi-Channel Flight Allocation Bar
             _buildChannelAllocationBar(),
             const SizedBox(height: 22),
 
-            // Needs your attention
+            // Section Header: Needs Your Attention
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Expanded(
-                  child: Text(
-                    'Needs your attention',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
-                    ),
+                const Text(
+                  'Needs your attention',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.label,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                Text(
-                  '${displayAttention.length} active',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppTheme.statusApprovedBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.statusApproved.withOpacity(0.2), width: 0.5),
+                  ),
+                  child: Text(
+                    '${displayAttention.length} active',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.statusApproved),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 10),
 
-            // Attention Cards List
+            // Inset Grouped Table of Attention Cards
             if (_loading)
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge)))
+              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandAccent)))
             else if (displayAttention.isEmpty)
               _buildEmptyOverviewState()
             else
-              ...displayAttention.map((c) => _buildAttentionCard(c)),
+              _buildAppleAttentionGroupedList(displayAttention),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
 
             // Upcoming Schedule strip
             const Text(
               'Upcoming schedule',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.label,
+                letterSpacing: -0.3,
               ),
             ),
             const SizedBox(height: 10),
             _buildUpcomingScheduleStrip(),
             const SizedBox(height: 24),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppleHeroSpotlight(Campaign camp) {
+    final curVer = camp.currentVersion;
+    final channel = curVer?.channel ?? 'Social';
+    final roi = (curVer?.kpiProjected.roi ?? 3.8).toStringAsFixed(1);
+    final budgetStr = ((curVer?.budget ?? 25000) / 1000).toStringAsFixed(0);
+    final cpa = (curVer?.kpiProjected.cpa ?? 18.5).toStringAsFixed(1);
+    final chColor = AppTheme.getChannelColor(channel);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppTheme.appleHeroGradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.appleFloatingShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            // Ambient subtle color bloom in top right corner
+            Positioned(
+              top: -40,
+              right: -40,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: chColor.withOpacity(0.25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: chColor.withOpacity(0.35),
+                      blurRadius: 50,
+                      spreadRadius: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Eyebrow Tag
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: AppTheme.brandAccent,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.brandAccent.withOpacity(0.8),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'FEATURED FLIGHT · ACTION REQUIRED',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.85),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: chColor.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: chColor.withOpacity(0.5), width: 0.8),
+                        ),
+                        child: Text(
+                          channel.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Campaign Title
+                  Text(
+                    camp.title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: -0.6,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Marketer & Recency
+                  Text(
+                    '${camp.ownerName} · Submitted ${_formatRelativeTime(camp.updatedAt)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.65),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Glassmorphic Metric Summary Box
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _heroMetricItem('PROJECTED ROI', '${roi}x', AppTheme.appleGreen),
+                        Container(width: 0.5, height: 26, color: Colors.white.withOpacity(0.2)),
+                        _heroMetricItem('BUDGET CAP', '\$${budgetStr}K', Colors.white),
+                        Container(width: 0.5, height: 26, color: Colors.white.withOpacity(0.2)),
+                        _heroMetricItem('TARGET CPA', '\$$cpa', Colors.white),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Bespoke Inverted Action Button (Warm Ivory on Velvet Umber Ground)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.secondarySystemBackground,
+                        foregroundColor: AppTheme.label,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shadowColor: const Color(0x2B201014),
+                      ),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CampaignDetailScreen(
+                              campaignId: camp.campaignId,
+                              api: widget.api,
+                            ),
+                          ),
+                        );
+                        _fetch();
+                        widget.onRefresh();
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Review Proposal & Specs',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: -0.1),
+                          ),
+                          SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_rounded, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _heroMetricItem(String label, String value, Color valColor) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withOpacity(0.55),
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: valColor,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAppleMetricTile({
+    required String label,
+    required String value,
+    required String subtext,
+    required Color accentColor,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(icon, size: 14, color: accentColor),
+                ),
+              ),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.label,
+              letterSpacing: -0.6,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.label,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            subtext,
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppTheme.secondaryLabel,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppleAttentionGroupedList(List<Campaign> campaigns) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemCount: campaigns.length,
+          separatorBuilder: (_, __) => const Divider(
+            height: 0.5,
+            thickness: 0.5,
+            indent: 58,
+            color: AppTheme.separator,
+          ),
+          itemBuilder: (context, idx) {
+            final c = campaigns[idx];
+            final ch = c.currentVersion?.channel ?? 'Social';
+            final chColor = AppTheme.getChannelColor(ch);
+            final statusTint = c.status == 'Approved'
+                ? AppTheme.appleGreen
+                : (c.status == 'ChangesRequested' ? AppTheme.appleRed : AppTheme.appleOrange);
+
+            return InkWell(
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CampaignDetailScreen(
+                      campaignId: c.campaignId,
+                      api: widget.api,
+                    ),
+                  ),
+                );
+                _fetch();
+                widget.onRefresh();
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Row(
+                  children: [
+                    // Channel Glyphic Squircle
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: chColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(AppTheme.getChannelIcon(ch), size: 18, color: chColor),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Title & Owner
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            c.title,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.label,
+                              letterSpacing: -0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${c.ownerName} · $ch · ${_formatRelativeTime(c.updatedAt)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.secondaryLabel,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Status Pill
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: statusTint.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        c.status,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: statusTint,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right, size: 18, color: AppTheme.tertiaryLabel),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -506,15 +754,15 @@ class _KanbanScreenState extends State<KanbanScreen> {
     final bool isHigh = burnPct > 65.0 && burnPct <= 75.0;
     final String statusLabel = isOverCeiling ? 'OVER CEILING' : (isHigh ? 'PACING HIGH' : 'ON TRACK');
     final Color statusColor = isOverCeiling 
-        ? const Color(0xFFB9301D) 
-        : (isHigh ? const Color(0xFFC07700) : AppTheme.statusApproved);
+        ? AppTheme.appleRed 
+        : (isHigh ? AppTheme.appleOrange : AppTheme.appleGreen);
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,24 +770,26 @@ class _KanbanScreenState extends State<KanbanScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  'WORKSPACE PACING · 75% CEILING',
-                  style: AppTheme.wireframeEyebrow(fontSize: 9),
-                  overflow: TextOverflow.ellipsis,
+              const Text(
+                'WORKSPACE PACING · 75% CEILING',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.secondaryLabel,
+                  letterSpacing: 0.6,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.paper,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppTheme.borderSage),
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   statusLabel,
-                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: statusColor),
+                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: statusColor),
                 ),
               ),
             ],
@@ -553,20 +803,20 @@ class _KanbanScreenState extends State<KanbanScreen> {
               Text(
                 totalStr,
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 26,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                  letterSpacing: -0.5,
+                  color: AppTheme.label,
+                  letterSpacing: -0.6,
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
               Text(
                 'Total Allocated · $burnStr',
-                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           // Pacing Burn Bar with 75% red needle
           SizedBox(
@@ -578,9 +828,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   height: 6,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: AppTheme.paper,
+                    color: AppTheme.tertiarySystemBackground,
                     borderRadius: BorderRadius.circular(3),
-                    border: Border.all(color: AppTheme.borderSage, width: 0.5),
                   ),
                 ),
                 FractionallySizedBox(
@@ -588,7 +837,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   child: Container(
                     height: 6,
                     decoration: BoxDecoration(
-                      color: isOverCeiling ? const Color(0xFFB9301D) : AppTheme.forge,
+                      color: isOverCeiling ? AppTheme.appleRed : AppTheme.appleOrange,
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -663,16 +912,21 @@ class _KanbanScreenState extends State<KanbanScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'CHANNEL FLIGHT DISTRIBUTION',
-            style: AppTheme.wireframeEyebrow(fontSize: 9),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.secondaryLabel,
+              letterSpacing: 0.6,
+            ),
           ),
           const SizedBox(height: 10),
 
@@ -717,7 +971,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${ch['name']} ${((ch['share'] as double) * 100).toInt()}%',
+                    "${ch['name']} ${((ch['share'] as double) * 100).toInt()}%",
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
@@ -779,9 +1033,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 height: 5,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppTheme.paper,
+                  color: AppTheme.tertiarySystemBackground,
                   borderRadius: BorderRadius.circular(2.5),
-                  border: Border.all(color: AppTheme.borderSage, width: 0.5),
                 ),
               ),
               FractionallySizedBox(
@@ -828,13 +1081,12 @@ class _KanbanScreenState extends State<KanbanScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: AppTheme.paper,
+              color: AppTheme.tertiarySystemBackground,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppTheme.borderSage, width: 0.5),
             ),
             child: Text(
               format,
-              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
             ),
           ),
         ],
@@ -846,9 +1098,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isHighlight ? AppTheme.forge : AppTheme.paper,
+        color: isHighlight ? AppTheme.label : AppTheme.tertiarySystemBackground,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isHighlight ? AppTheme.forge : AppTheme.borderSage, width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -897,9 +1148,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -938,9 +1189,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: InkWell(
         onTap: () async {
@@ -956,7 +1207,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           _fetch();
           widget.onRefresh();
         },
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -1070,7 +1321,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               const SizedBox(height: 12),
 
               // Hairline separator
-              const Divider(color: AppTheme.borderSage, height: 1),
+              const Divider(color: AppTheme.separator, height: 0.5),
               const SizedBox(height: 10),
 
               // Footer: Version on left, View details ↗ on right
@@ -1124,22 +1375,27 @@ class _KanbanScreenState extends State<KanbanScreen> {
         return Expanded(
           child: Container(
             margin: EdgeInsets.only(right: idx < 3 ? 6 : 0),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             decoration: BoxDecoration(
-              color: AppTheme.leaf,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.borderSage, width: 1),
+              color: AppTheme.secondarySystemBackground,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: AppTheme.appleCardShadow,
             ),
             child: Column(
               children: [
                 Text(
                   dayName,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   dayNum,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.label,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
                 ),
                 const SizedBox(height: 4),
                 // Visual flight channel indicator dots
@@ -1188,7 +1444,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: count == '—' ? AppTheme.textSecondary.withOpacity(0.5) : AppTheme.textPrimary,
+                    color: count == '—' ? AppTheme.secondaryLabel.withOpacity(0.5) : AppTheme.label,
                   ),
                 ),
               ],
@@ -1201,17 +1457,17 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
   Widget _buildEmptyOverviewState() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.borderSage),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: const Center(
         child: Text(
-          'All caught up! No campaigns currently awaiting your decision.',
+          'All caught up. No campaigns currently awaiting your decision.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          style: TextStyle(fontSize: 13, color: AppTheme.secondaryLabel),
         ),
       ),
     );
@@ -1303,8 +1559,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       decoration: const BoxDecoration(
-        color: AppTheme.leaf,
-        border: Border(bottom: BorderSide(color: AppTheme.borderSage, width: 1)),
+        color: AppTheme.secondarySystemBackground,
+        border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1320,15 +1576,15 @@ class _KanbanScreenState extends State<KanbanScreen> {
                       title,
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.label,
                         letterSpacing: -0.4,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
                     ),
                   ],
                 ),
@@ -1336,11 +1592,10 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
               // View Toggle Segmented Control (Ledger vs Board)
               Container(
-                padding: const EdgeInsets.all(2),
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: AppTheme.paper,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.borderSage, width: 1),
+                  color: AppTheme.tertiarySystemBackground,
+                  borderRadius: BorderRadius.circular(9),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1372,16 +1627,16 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: awaitingCount > 0 ? AppTheme.statusChanges : AppTheme.textSecondary,
+                    color: awaitingCount > 0 ? AppTheme.statusChanges : AppTheme.secondaryLabel,
                   ),
                 ),
-                const Text('  ·  ', style: TextStyle(color: AppTheme.borderSage)),
+                const Text('  ·  ', style: TextStyle(color: AppTheme.separator)),
                 Text(
                   '$scheduledCount Scheduled flights',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.secondaryLabel,
                   ),
                 ),
               ],
@@ -1402,18 +1657,16 @@ class _KanbanScreenState extends State<KanbanScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.leaf : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-          boxShadow: isSelected
-              ? [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 2, offset: const Offset(0, 1))]
-              : null,
+          color: isSelected ? AppTheme.secondarySystemBackground : Colors.transparent,
+          borderRadius: BorderRadius.circular(7),
+          boxShadow: isSelected ? AppTheme.appleCardShadow : null,
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 11,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected ? AppTheme.label : AppTheme.secondaryLabel,
           ),
         ),
       ),
@@ -1427,28 +1680,27 @@ class _KanbanScreenState extends State<KanbanScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-      color: AppTheme.leaf,
+      color: AppTheme.secondarySystemBackground,
       child: Column(
         children: [
           // Search Input
           Container(
-            height: 36,
+            height: 38,
             decoration: BoxDecoration(
-              color: AppTheme.paper,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.borderSage, width: 1),
+              color: AppTheme.tertiarySystemBackground,
+              borderRadius: BorderRadius.circular(10),
             ),
             child: TextField(
               onChanged: (val) => setState(() => _searchQuery = val),
-              style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+              style: const TextStyle(fontSize: 12, color: AppTheme.label),
               decoration: InputDecoration(
                 isDense: true,
-                hintText: '⌕ Search campaigns',
-                hintStyle: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                prefixIcon: const Icon(Icons.search, size: 16, color: AppTheme.textSecondary),
+                hintText: 'Search campaigns...',
+                hintStyle: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                prefixIcon: const Icon(Icons.search, size: 16, color: AppTheme.secondaryLabel),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 14, color: AppTheme.textSecondary),
+                        icon: const Icon(Icons.clear, size: 14, color: AppTheme.secondaryLabel),
                         onPressed: () => setState(() => _searchQuery = ''),
                       )
                     : null,
@@ -1468,7 +1720,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 _buildFilterTab('Submitted', 'Active ${_campaigns.where((c) => c.status != 'Draft').length}'),
                 _buildFilterTab('Draft', 'Drafts $draftCount'),
                 const SizedBox(width: 8),
-                const Text('·', style: TextStyle(color: AppTheme.borderSage)),
+                const Text('·', style: TextStyle(color: AppTheme.separator)),
                 const SizedBox(width: 8),
                 _buildChannelFilterChip('All', 'All'),
                 _buildChannelFilterChip('Social', 'Social'),
@@ -1587,9 +1839,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: InkWell(
         onTap: () async {
@@ -1605,7 +1857,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           _fetch();
           widget.onRefresh();
         },
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -1752,7 +2004,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               ],
 
               const SizedBox(height: 12),
-              const Divider(color: AppTheme.borderSage, height: 1),
+              const Divider(color: AppTheme.separator, height: 0.5),
               const SizedBox(height: 10),
 
               // Row 3: Version 04 on left, Open record ↗ on right
@@ -1764,7 +2016,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.secondaryLabel,
                     ),
                   ),
                   const Row(
@@ -1775,11 +2027,11 @@ class _KanbanScreenState extends State<KanbanScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
+                          color: AppTheme.label,
                         ),
                       ),
                       SizedBox(width: 2),
-                      Icon(Icons.arrow_outward, size: 12, color: AppTheme.textPrimary),
+                      Icon(Icons.arrow_outward, size: 12, color: AppTheme.label),
                     ],
                   ),
                 ],
@@ -1792,7 +2044,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
   }
 
   // ==========================================
-  // KANBAN BOARD VIEW (Wireframe Board Columns)
+  // KANBAN BOARD VIEW (Apple HIG Board Columns)
   // ==========================================
   Widget _buildKanbanView(List<Campaign> campaigns) {
     final columns = [
@@ -1844,18 +2096,18 @@ class _KanbanScreenState extends State<KanbanScreen> {
       width: 260,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        color: AppTheme.paper,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.systemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Column Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppTheme.borderSage, width: 1)),
+              border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1865,20 +2117,25 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.label,
                     letterSpacing: 0.5,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppTheme.leaf,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppTheme.borderSage),
+                    color: AppTheme.secondarySystemBackground,
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow: AppTheme.appleCardShadow,
                   ),
                   child: Text(
                     '${campaigns.length}'.padLeft(2, '0'),
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.label,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ],
@@ -1947,9 +2204,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: InkWell(
         onTap: () async {

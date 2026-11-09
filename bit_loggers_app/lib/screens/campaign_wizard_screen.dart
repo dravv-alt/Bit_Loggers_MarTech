@@ -199,18 +199,11 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           children: [
           // Gemini Argon AI Assistant Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: AppTheme.leaf,
+              color: AppTheme.secondarySystemBackground,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.borderSage, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: AppTheme.appleCardShadow,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,22 +363,32 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           _buildLiveAdMockupPreview(),
           const SizedBox(height: 20),
 
-          // 5 Projected KPIs (Pillar 2)
+          // Projected Performance Benchmarks
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.leaf,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.borderSage),
+              color: AppTheme.secondarySystemBackground,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppTheme.appleCardShadow,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '5 MANDATORY PROJECTED MARTECH KPIS',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+                  'Projected performance benchmarks',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.label,
+                    letterSpacing: -0.2,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 2),
+                const Text(
+                  'Estimated conversion, engagement, and returns',
+                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                ),
+                const SizedBox(height: 14),
                 Row(
                   children: [
                     _kpiInput('Conv (%)', _conversionRate, (v) => setState(() => _conversionRate = v)),
@@ -400,7 +403,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Divider(height: 1, color: AppTheme.borderSage),
+                const Divider(height: 0.5, color: AppTheme.separator),
                 const SizedBox(height: 10),
                 _buildKpiSummaryBenchmark(),
               ],
@@ -412,37 +415,29 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
     ),
     bottomNavigationBar: Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        border: const Border(top: BorderSide(color: AppTheme.borderSage, width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.forge.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
+      decoration: const BoxDecoration(
+        color: AppTheme.secondarySystemBackground,
+        border: Border(top: BorderSide(color: AppTheme.separator, width: 0.5)),
       ),
       child: SafeArea(
         child: Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: ElevatedButton(
                 onPressed: _submitting ? null : () => _save(false),
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: AppTheme.leaf,
-                  foregroundColor: AppTheme.forge,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.tertiarySystemBackground,
+                  foregroundColor: AppTheme.label,
                   elevation: 0,
-                  side: const BorderSide(color: AppTheme.borderSage, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: const Text(
                   'Save Draft',
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.forge,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.label,
                   ),
                 ),
               ),
@@ -452,10 +447,10 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
               child: ElevatedButton(
                 onPressed: _submitting ? null : () => _save(true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.forge,
-                  foregroundColor: AppTheme.leaf,
+                  backgroundColor: AppTheme.label,
+                  foregroundColor: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: _submitting
@@ -486,15 +481,14 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: AppTheme.paper.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.borderSage, width: 0.5),
+          color: AppTheme.tertiarySystemBackground,
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           children: [
             Text(
               label,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
             ),
             const SizedBox(height: 4),
             TextFormField(
@@ -504,17 +498,17 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
+                color: AppTheme.label,
                 fontFeatures: [FontFeature.tabularFigures()],
               ),
               decoration: const InputDecoration(
                 isDense: true,
                 filled: true,
-                fillColor: AppTheme.leaf,
+                fillColor: AppTheme.secondarySystemBackground,
                 contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
                 border: OutlineInputBorder(borderSide: BorderSide.none),
                 enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.forge, width: 1)),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.label, width: 1)),
               ),
               onChanged: (text) {
                 final d = double.tryParse(text);
@@ -558,21 +552,9 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
               width: 125,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.forge : AppTheme.paper,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? AppTheme.warmAmber : AppTheme.borderSage,
-                  width: isSelected ? 1.5 : 1.0,
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppTheme.forge.withOpacity(0.15),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ]
-                    : null,
+                color: isSelected ? AppTheme.label : AppTheme.secondarySystemBackground,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: isSelected ? AppTheme.appleFloatingShadow : AppTheme.appleCardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -635,11 +617,11 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
     final burnPercent = (currentBudget / 100000.0).clamp(0.05, 1.0);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.paper,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderSage),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -649,27 +631,27 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  'VITRUVIAN PACING & RUN-RATE',
+                  'Pacing & daily run-rate',
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textSecondary,
-                    letterSpacing: 0.5,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.label,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppTheme.moss.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   '\$${dailyRate.toStringAsFixed(0)}/day (14d flight)',
                   style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                     color: AppTheme.moss,
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
@@ -677,7 +659,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
           // Presets row
           SingleChildScrollView(
@@ -694,21 +676,18 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                       _onFieldChanged();
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isCur ? AppTheme.forge : AppTheme.leaf,
+                        color: isCur ? AppTheme.label : AppTheme.tertiarySystemBackground,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isCur ? AppTheme.forge : AppTheme.borderSage,
-                          width: 1,
-                        ),
                       ),
                       child: Text(
                         p >= 1000 ? '\$${(p / 1000).toStringAsFixed(0)}k' : '\$$p',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isCur ? AppTheme.leaf : AppTheme.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          color: isCur ? Colors.white : AppTheme.label,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ),
@@ -819,16 +798,9 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.paper,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.forge.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -973,11 +945,10 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
 
   Widget _buildKpiSparkChip(String label, String value, String benchmark, bool isPositive) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.tertiarySystemBackground,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSage),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -987,7 +958,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textSecondary,
+              color: AppTheme.secondaryLabel,
             ),
           ),
           Text(
@@ -995,7 +966,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: AppTheme.label,
               fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),

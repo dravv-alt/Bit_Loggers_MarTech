@@ -47,3 +47,4 @@ Apple HIG requires error messaging to follow three mandatory rules:
 | **Edit Lock Conflict** | `409 LEASE_CONFLICT: User Marcus holds active lock until 14:02:11` | *"Marcus is currently editing this proposal. You will be notified as soon as it becomes available."* |
 | **Optimistic Version Mismatch** | `Optimistic concurrency error: Expected v1, found v2` | *"This campaign was updated by another team member. Tap to refresh the latest changes."* |
 | **Empty State** | `0 items returned from query` | *"No scheduled flights for this date. All channel lanes are open for booking."* |
+

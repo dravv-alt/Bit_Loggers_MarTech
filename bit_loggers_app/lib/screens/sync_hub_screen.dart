@@ -6,8 +6,8 @@ import '../services/api_service.dart';
 import '../services/sync_queue_service.dart';
 import '../theme/app_theme.dart';
 
-/// FR-13: Mobile Offline Sync Queue (ADR-005 Client-Supplied Idempotency)
-/// FR-14: Transactional Outbox Background Worker (ADR-004 SKIP LOCKED)
+/// Mobile Offline Sync Queue & Transactional Outbox Background Worker
+/// Provides local mutation queueing, cryptographic idempotency tokens, and reliable event dispatch.
 class SyncHubScreen extends StatefulWidget {
   final ApiService api;
   final int initialTabIndex;
@@ -295,7 +295,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               ),
             ),
             Text(
-              'FR-13 Mobile Queue · FR-14 Transactional Outbox',
+              'Offline synchronization & background dispatch',
               style: TextStyle(
                 fontSize: 11,
                 color: AppTheme.textSecondary.withOpacity(0.9),
@@ -395,7 +395,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
   }
 
   // =========================================================================
-  // TAB 1: MOBILE OFFLINE SYNC QUEUE (FR-13, ADR-005)
+  // TAB 1: MOBILE OFFLINE SYNC QUEUE
   // =========================================================================
   Widget _buildMobileQueueTab() {
     final queue = _syncQueue.queue;
@@ -459,21 +459,11 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     final isSimulating = _syncQueue.isOfflineSimulationEnabled;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSimulating ? const Color(0xFFFFF7ED) : AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isSimulating ? const Color(0xFFF97316) : AppTheme.borderSage,
-          width: isSimulating ? 1.5 : 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: isSimulating ? const Color(0xFFFFF7ED) : AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,33 +473,35 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isSimulating ? const Color(0xFFFFEDD5) : AppTheme.paper,
+                  color: isSimulating ? const Color(0xFFFFEDD5) : AppTheme.tertiarySystemBackground,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   isSimulating ? Icons.wifi_off_rounded : Icons.wifi_rounded,
                   size: 20,
-                  color: isSimulating ? const Color(0xFFC2410C) : AppTheme.forge,
+                  color: isSimulating ? const Color(0xFFC2410C) : AppTheme.label,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isSimulating ? 'Offline Simulation Active' : 'Network Connectivity Online',
+                      isSimulating ? 'Offline simulation active' : 'Network connected',
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: isSimulating ? const Color(0xFF9A3412) : AppTheme.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: isSimulating ? const Color(0xFF9A3412) : AppTheme.label,
+                        letterSpacing: -0.3,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       isSimulating
-                          ? 'Campaign writes are queued locally with idempotency keys'
-                          : 'Mutations post directly to server API',
-                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ? 'Campaign updates queue locally with cryptographic keys'
+                          : 'Mutations sync automatically with the cloud service',
+                      style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                     ),
                   ],
                 ),
@@ -523,23 +515,23 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: AppTheme.paper.withOpacity(0.5),
+              color: AppTheme.tertiarySystemBackground.withOpacity(0.5),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                const Icon(Icons.fingerprint, size: 14, color: AppTheme.textSecondary),
+                const Icon(Icons.fingerprint, size: 14, color: AppTheme.secondaryLabel),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'ADR-005: Every offline action generates a client UUID idempotency key to prevent replay duplication upon network restoration.',
+                    'Every offline action generates a unique cryptographic key to prevent duplicate submissions upon network restoration.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppTheme.textSecondary.withOpacity(0.95),
+                      color: AppTheme.secondaryLabel.withOpacity(0.95),
                       height: 1.3,
                     ),
                   ),
@@ -557,7 +549,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       children: [
         _buildMetricMiniCard('Pending', '${_syncQueue.pendingCount}', AppTheme.statusChanges),
         const SizedBox(width: 8),
-        _buildMetricMiniCard('Syncing', '${_syncQueue.syncingCount}', const Color(0xFF2563EB)),
+        _buildMetricMiniCard('Syncing', '${_syncQueue.syncingCount}', AppTheme.statusSubmitted),
         const SizedBox(width: 8),
         _buildMetricMiniCard('Synced', '${_syncQueue.syncedCount}', AppTheme.verdictLimeDark),
         const SizedBox(width: 8),
@@ -569,18 +561,18 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
   Widget _buildMetricMiniCard(String label, String value, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: AppTheme.leaf,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderSage, width: 1),
+          color: AppTheme.secondarySystemBackground,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: AppTheme.appleCardShadow,
         ),
         child: Column(
           children: [
             Text(
               value,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 19,
                 fontWeight: FontWeight.bold,
                 color: color,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -591,7 +583,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               label,
               style: const TextStyle(
                 fontSize: 11,
-                color: AppTheme.textSecondary,
+                color: AppTheme.secondaryLabel,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -636,18 +628,19 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         const SizedBox(width: 8),
         Expanded(
           flex: 2,
-          child: OutlinedButton.icon(
+          child: ElevatedButton.icon(
             onPressed: _simulateOfflineWrite,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.textPrimary,
-              backgroundColor: AppTheme.leaf,
-              side: const BorderSide(color: AppTheme.borderSage, width: 1),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: AppTheme.label,
+              backgroundColor: AppTheme.secondarySystemBackground,
+              elevation: 0,
+              shadowColor: Colors.black.withOpacity(0.04),
               padding: const EdgeInsets.symmetric(vertical: 13),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.add_circle_outline, size: 16),
             label: const Text(
-              'Add Mock',
+              'Add test item',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             ),
           ),
@@ -656,8 +649,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           const SizedBox(width: 6),
           IconButton(
             onPressed: _syncQueue.clearSynced,
-            tooltip: 'Clear Synced Items',
-            icon: const Icon(Icons.cleaning_services_outlined, size: 18, color: AppTheme.textSecondary),
+            tooltip: 'Clear synced items',
+            icon: const Icon(Icons.cleaning_services_outlined, size: 18, color: AppTheme.secondaryLabel),
           ),
         ],
       ],
@@ -666,30 +659,31 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
   Widget _buildQueueFilterPills() {
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.tertiarySystemBackground,
+        borderRadius: BorderRadius.circular(9),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: ['ALL', 'PENDING', 'SYNCED', 'FAILED'].map((f) {
-          final active = _queueFilter == f;
+        children: ['All', 'Pending', 'Synced', 'Failed'].map((f) {
+          final active = _queueFilter.toUpperCase() == f.toUpperCase();
           return InkWell(
-            onTap: () => setState(() => _queueFilter = f),
+            onTap: () => setState(() => _queueFilter = f.toUpperCase()),
+            borderRadius: BorderRadius.circular(7),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: active ? AppTheme.forge : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
+                color: active ? AppTheme.secondarySystemBackground : Colors.transparent,
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: active ? AppTheme.appleCardShadow : null,
               ),
               child: Text(
                 f,
                 style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: active ? AppTheme.leaf : AppTheme.textSecondary,
+                  fontSize: 11,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                  color: active ? AppTheme.label : AppTheme.secondaryLabel,
                 ),
               ),
             ),
@@ -703,35 +697,35 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         children: [
-          Icon(Icons.inbox_outlined, size: 40, color: AppTheme.textSecondary.withOpacity(0.5)),
+          Icon(Icons.inbox_outlined, size: 40, color: AppTheme.secondaryLabel.withOpacity(0.5)),
           const SizedBox(height: 12),
           const Text(
-            'Offline Sync Queue is Empty',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            'Offline queue is empty',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.3),
           ),
           const SizedBox(height: 6),
           Text(
-            'When offline mode is active, any campaign edits, creations, or submissions are safely held in local storage and replayed here with client idempotency UUIDs.',
+            'When offline mode is active, campaign edits and submissions are safely stored locally and synchronized automatically when connection is restored.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary.withOpacity(0.85), height: 1.4),
+            style: const TextStyle(fontSize: 13, color: AppTheme.secondaryLabel, height: 1.4),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: _simulateOfflineWrite,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.forge,
-              foregroundColor: AppTheme.leaf,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              backgroundColor: AppTheme.label,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             ),
             icon: const Icon(Icons.add, size: 16),
-            label: const Text('Simulate Offline Campaign Write', style: TextStyle(fontSize: 12)),
+            label: const Text('Add test campaign write', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -747,7 +741,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         statusIcon = Icons.check_circle_outline;
         break;
       case 'SYNCING':
-        statusColor = const Color(0xFF2563EB);
+        statusColor = AppTheme.statusSubmitted;
         statusIcon = Icons.sync;
         break;
       case 'FAILED':
@@ -766,16 +760,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.015),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -858,20 +845,19 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.paper.withOpacity(0.6),
+                    color: AppTheme.tertiarySystemBackground,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppTheme.borderSage, width: 0.5),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.vpn_key_outlined, size: 11, color: AppTheme.textSecondary),
+                      const Icon(Icons.key_rounded, size: 12, color: AppTheme.secondaryLabel),
                       const SizedBox(width: 5),
-                      Text(
-                        'Idempotency Key: ',
+                      const Text(
+                        'Sync Token: ',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondary.withOpacity(0.9),
+                          color: AppTheme.secondaryLabel,
                         ),
                       ),
                       Expanded(
@@ -881,9 +867,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                           maxLines: 1,
                           style: const TextStyle(
                             fontSize: 10,
-                            fontFamily: 'monospace',
-                            color: AppTheme.forge,
-                            fontWeight: FontWeight.bold,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                            color: AppTheme.label,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -983,7 +969,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
   }
 
   // =========================================================================
-  // TAB 2: TRANSACTIONAL OUTBOX (FR-14, ADR-004)
+  // TAB 2: TRANSACTIONAL OUTBOX DISPATCH
   // =========================================================================
   Widget _buildTransactionalOutboxTab() {
     final filtered = _outboxEvents.where((e) {
@@ -1051,11 +1037,11 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
   Widget _buildOutboxControlBanner() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1063,8 +1049,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           Row(
             children: [
               Container(
-                width: 10,
-                height: 10,
+                width: 9,
+                height: 9,
                 decoration: const BoxDecoration(
                   color: AppTheme.verdictLimeDark,
                   shape: BoxShape.circle,
@@ -1073,27 +1059,27 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'Transactional Outbox Worker (4s Poll Loop)',
+                  'Background Dispatch Service',
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.label,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.forge.withOpacity(0.08),
+                  color: const Color(0xFFE6F4EA),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
-                  'SKIP LOCKED',
+                  'Active',
                   style: TextStyle(
-                    fontSize: 9,
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.forge,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF137333),
                   ),
                 ),
               ),
@@ -1102,40 +1088,40 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           const SizedBox(height: 12),
           // Email Service Failure Injection Toggle
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: _isEmailFailing ? const Color(0xFFFEF2F2) : AppTheme.paper.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: _isEmailFailing ? const Color(0xFFF87171) : AppTheme.borderSage,
-                width: 1,
-              ),
+              color: _isEmailFailing ? const Color(0xFFFEF2F2) : AppTheme.tertiarySystemBackground,
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 Icon(
                   _isEmailFailing ? Icons.warning_rounded : Icons.mark_email_read_outlined,
-                  size: 18,
-                  color: _isEmailFailing ? AppTheme.statusRejected : AppTheme.forge,
+                  size: 20,
+                  color: _isEmailFailing ? AppTheme.statusRejected : AppTheme.label,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Inject Email Service Outage',
+                      const Text(
+                        'Simulate email delivery failure',
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: _isEmailFailing ? AppTheme.statusRejected : AppTheme.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.label,
                         ),
                       ),
+                      const SizedBox(height: 1),
                       Text(
                         _isEmailFailing
-                            ? 'Simulating SMTP timeout (retries with exp backoff up to 5 attempts)'
-                            : 'All outbox events dispatch successfully to mock SMTP',
-                        style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                            ? 'Email deliveries fail with exponential retry backoff'
+                            : 'Normal delivery dispatch operates reliably',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _isEmailFailing ? const Color(0xFFB91C1C) : AppTheme.secondaryLabel,
+                        ),
                       ),
                     ],
                   ),
@@ -1143,7 +1129,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                 Switch.adaptive(
                   value: _isEmailFailing,
                   activeColor: AppTheme.statusRejected,
-                  onChanged: _toggleEmailFailure,
+                  onChanged: (val) {
+                    _toggleEmailFailure(val);
+                  },
                 ),
               ],
             ),
@@ -1200,19 +1188,20 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           children: [
             Expanded(
               flex: 3,
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: _queueTestOutboxEvent,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: AppTheme.leaf,
-                  foregroundColor: AppTheme.forge,
-                  side: const BorderSide(color: AppTheme.borderSage),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.secondarySystemBackground,
+                  foregroundColor: AppTheme.label,
+                  elevation: 0,
+                  shadowColor: Colors.black.withOpacity(0.04),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                icon: const Icon(Icons.mark_email_unread_outlined, size: 16, color: AppTheme.forge),
+                icon: const Icon(Icons.mark_email_unread_outlined, size: 16, color: AppTheme.label),
                 label: const Text(
-                  'Queue Test Notification Event',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                  'Queue test notification',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.label),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1220,19 +1209,20 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             const SizedBox(width: 8),
             Expanded(
               flex: 2,
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: _resetOutboxToCleanSlate,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: AppTheme.leaf,
-                  foregroundColor: AppTheme.textSecondary,
-                  side: const BorderSide(color: AppTheme.borderSage),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.secondarySystemBackground,
+                  foregroundColor: AppTheme.secondaryLabel,
+                  elevation: 0,
+                  shadowColor: Colors.black.withOpacity(0.04),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                icon: const Icon(Icons.restart_alt, size: 15, color: AppTheme.textSecondary),
+                icon: const Icon(Icons.restart_alt, size: 15, color: AppTheme.secondaryLabel),
                 label: const Text(
-                  'Clean Slate',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  'Reset queue',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1245,30 +1235,31 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
   Widget _buildOutboxFilterPills() {
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.tertiarySystemBackground,
+        borderRadius: BorderRadius.circular(9),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: ['ALL', 'PENDING', 'PROCESSED', 'FAILED'].map((f) {
-          final active = _outboxFilter == f;
+        children: ['All', 'Pending', 'Processed', 'Failed'].map((f) {
+          final active = _outboxFilter.toUpperCase() == f.toUpperCase();
           return InkWell(
-            onTap: () => setState(() => _outboxFilter = f),
+            onTap: () => setState(() => _outboxFilter = f.toUpperCase()),
+            borderRadius: BorderRadius.circular(7),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: active ? AppTheme.forge : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
+                color: active ? AppTheme.secondarySystemBackground : Colors.transparent,
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: active ? AppTheme.appleCardShadow : null,
               ),
               child: Text(
                 f,
                 style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: active ? AppTheme.leaf : AppTheme.textSecondary,
+                  fontSize: 11,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                  color: active ? AppTheme.label : AppTheme.secondaryLabel,
                 ),
               ),
             ),
@@ -1282,23 +1273,23 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         children: [
-          Icon(Icons.outbox, size: 40, color: AppTheme.textSecondary.withOpacity(0.5)),
+          Icon(Icons.outbox, size: 40, color: AppTheme.secondaryLabel.withOpacity(0.5)),
           const SizedBox(height: 12),
           const Text(
-            'No Outbox Events Recorded',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            'No outbox events recorded',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.3),
           ),
           const SizedBox(height: 6),
-          Text(
-            'Campaign decisions, submissions, and status changes write events inside the same atomic ACID transaction to guarantee zero duplicate emails or notifications.',
+          const Text(
+            'Campaign updates and decisions are synchronized automatically with guaranteed single-delivery for emails and notifications.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary.withOpacity(0.85), height: 1.4),
+            style: TextStyle(fontSize: 13, color: AppTheme.secondaryLabel, height: 1.4),
           ),
         ],
       ),
@@ -1314,7 +1305,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         statusIcon = Icons.check_circle_outline;
         break;
       case 'PROCESSING':
-        statusColor = const Color(0xFF2563EB);
+        statusColor = AppTheme.statusSubmitted;
         statusIcon = Icons.sync;
         break;
       case 'FAILED':
@@ -1333,9 +1324,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -1401,13 +1392,12 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     decoration: BoxDecoration(
-                      color: AppTheme.paper,
+                      color: AppTheme.tertiarySystemBackground,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppTheme.borderSage),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.mail_outline, size: 14, color: AppTheme.textSecondary),
+                        const Icon(Icons.mail_outline, size: 14, color: AppTheme.secondaryLabel),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -1489,7 +1479,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 }
 
 // ---------------------------------------------------------------------------
-// DETAIL MODAL: ACTION INSPECTION (FR-13)
+// DETAIL MODAL: ACTION INSPECTION
 // ---------------------------------------------------------------------------
 class _ActionDetailModal extends StatelessWidget {
   final OfflineSyncAction action;
@@ -1501,7 +1491,7 @@ class _ActionDetailModal extends StatelessWidget {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -1509,10 +1499,10 @@ class _ActionDetailModal extends StatelessWidget {
           Container(
             margin: const EdgeInsets.symmetric(vertical: 10),
             width: 36,
-            height: 4,
+            height: 5,
             decoration: BoxDecoration(
-              color: AppTheme.borderSage,
-              borderRadius: BorderRadius.circular(2),
+              color: AppTheme.quaternaryLabel,
+              borderRadius: BorderRadius.circular(2.5),
             ),
           ),
           Padding(
@@ -1526,91 +1516,89 @@ class _ActionDetailModal extends StatelessWidget {
                       Text(
                         action.actionType,
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.label,
+                          letterSpacing: -0.4,
                         ),
                       ),
-                      Text(
-                        'Offline Client Action Inspection',
-                        style: TextStyle(fontSize: 11, color: AppTheme.textSecondary.withOpacity(0.8)),
+                      const Text(
+                        'Offline action record',
+                        style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 20),
+                  icon: const Icon(Icons.close, size: 20, color: AppTheme.label),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppTheme.borderSage),
+          const Divider(height: 0.5, color: AppTheme.separator),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 _buildInfoRow('Action ID', action.actionId, monospace: true),
-                _buildInfoRow('Idempotency Key', action.idempotencyKey, monospace: true),
+                _buildInfoRow('Sync Token', action.idempotencyKey, monospace: true),
                 _buildInfoRow('Endpoint', '${action.method} ${action.endpoint}', monospace: true),
                 _buildInfoRow('Status', action.status),
-                _buildInfoRow('Replay Cached?', action.isReplay ? 'YES (Cache Hit)' : 'NO'),
+                _buildInfoRow('Replay Cached', action.isReplay ? 'Cached' : 'Direct'),
                 _buildInfoRow('Retry Attempts', '${action.retryCount}'),
                 _buildInfoRow('Created At', action.createdAt),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
 
                 const Text(
-                  'Payload (JSON)',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                  'Payload',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.label),
                 ),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.paper,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.borderSage, width: 1),
+                    color: AppTheme.tertiarySystemBackground,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: SelectableText(
                     const JsonEncoder.withIndent('  ').convert(action.payload),
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.textPrimary),
+                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
                   ),
                 ),
 
                 if (action.serverResponse != null) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   const Text(
                     'Server Response',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.verdictLimeDark),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.verdictLimeDark),
                   ),
                   const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.paper,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.borderSage, width: 1),
+                      color: AppTheme.tertiarySystemBackground,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: SelectableText(
                       const JsonEncoder.withIndent('  ').convert(action.serverResponse),
-                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.textPrimary),
+                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
                     ),
                   ),
                 ],
 
                 if (action.error != null) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   const Text(
                     'Error Message',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.statusRejected),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.statusRejected),
                   ),
                   const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppTheme.statusRejected.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.statusRejected.withOpacity(0.3), width: 1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: SelectableText(
                       action.error!,
@@ -1628,7 +1616,7 @@ class _ActionDetailModal extends StatelessWidget {
 
   Widget _buildInfoRow(String label, String value, {bool monospace = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1636,7 +1624,7 @@ class _ActionDetailModal extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
@@ -1644,9 +1632,9 @@ class _ActionDetailModal extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontFamily: monospace ? 'monospace' : null,
-                color: AppTheme.textPrimary,
+                color: AppTheme.label,
               ),
             ),
           ),
@@ -1657,7 +1645,7 @@ class _ActionDetailModal extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// DETAIL MODAL: OUTBOX EVENT INSPECTION (FR-14)
+// DETAIL MODAL: OUTBOX EVENT INSPECTION
 // ---------------------------------------------------------------------------
 class _OutboxDetailModal extends StatelessWidget {
   final OutboxEventItem event;
@@ -1669,7 +1657,7 @@ class _OutboxDetailModal extends StatelessWidget {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -1677,10 +1665,10 @@ class _OutboxDetailModal extends StatelessWidget {
           Container(
             margin: const EdgeInsets.symmetric(vertical: 10),
             width: 36,
-            height: 4,
+            height: 5,
             decoration: BoxDecoration(
-              color: AppTheme.borderSage,
-              borderRadius: BorderRadius.circular(2),
+              color: AppTheme.quaternaryLabel,
+              borderRadius: BorderRadius.circular(2.5),
             ),
           ),
           Padding(
@@ -1694,51 +1682,51 @@ class _OutboxDetailModal extends StatelessWidget {
                       Text(
                         event.eventType,
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.label,
+                          letterSpacing: -0.4,
                         ),
                       ),
-                      Text(
-                        'PostgreSQL Transactional Outbox Event',
-                        style: TextStyle(fontSize: 11, color: AppTheme.textSecondary.withOpacity(0.8)),
+                      const Text(
+                        'Transactional outbox event',
+                        style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 20),
+                  icon: const Icon(Icons.close, size: 20, color: AppTheme.label),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppTheme.borderSage),
+          const Divider(height: 0.5, color: AppTheme.separator),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 _buildInfoRow('Event ID', event.eventId, monospace: true),
                 _buildInfoRow('Status', event.status),
-                _buildInfoRow('Attempts', '${event.attempts} / ${event.maxAttempts}'),
+                _buildInfoRow('Attempts', '${event.attempts} of ${event.maxAttempts}'),
                 _buildInfoRow('Created At', event.createdAt),
                 if (event.processedAt != null)
                   _buildInfoRow('Processed At', event.processedAt!),
                 if (event.nextRetryAt != null)
                   _buildInfoRow('Next Retry At', event.nextRetryAt!),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
 
                 const Text(
                   'Dispatched Message Preview',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.label),
                 ),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppTheme.leaf,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.borderSage),
+                    color: AppTheme.tertiarySystemBackground,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1749,8 +1737,8 @@ class _OutboxDetailModal extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              event.payload['subject'] as String? ?? 'Enterprise Notification: ${event.eventType}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                              event.payload['subject'] as String? ?? 'Flight notification: ${event.eventType}',
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.label),
                             ),
                           ),
                         ],
@@ -1758,49 +1746,47 @@ class _OutboxDetailModal extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         'To: ${event.payload['recipient'] ?? 'marketer@bitloggers.internal'} · From: dispatch@bitloggers.internal',
-                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                        style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Security: TLS 1.3 · HMAC-SHA256 Signed Outbox Payload',
+                        'Encrypted & verified payload',
                         style: TextStyle(fontSize: 10, color: AppTheme.moss, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
 
                 const Text(
-                  'Payload (JSON)',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                  'Payload',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.label),
                 ),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.paper,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.borderSage, width: 1),
+                    color: AppTheme.tertiarySystemBackground,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: SelectableText(
                     const JsonEncoder.withIndent('  ').convert(event.payload),
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.textPrimary),
+                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
                   ),
                 ),
 
                 if (event.errorLog != null) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   const Text(
                     'Error Log',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.statusRejected),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.statusRejected),
                   ),
                   const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppTheme.statusRejected.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.statusRejected.withOpacity(0.3), width: 1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: SelectableText(
                       event.errorLog!,
@@ -1818,7 +1804,7 @@ class _OutboxDetailModal extends StatelessWidget {
 
   Widget _buildInfoRow(String label, String value, {bool monospace = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1826,7 +1812,7 @@ class _OutboxDetailModal extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
@@ -1834,9 +1820,9 @@ class _OutboxDetailModal extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontFamily: monospace ? 'monospace' : null,
-                color: AppTheme.textPrimary,
+                color: AppTheme.label,
               ),
             ),
           ),

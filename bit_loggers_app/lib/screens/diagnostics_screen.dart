@@ -6,7 +6,7 @@ import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
-/// FR-16 / LLD Section 13: Diagnostic Engine Log Viewer
+/// Diagnostic Engine Log Viewer
 /// Cryptographic correlation ID tracing, transaction telemetry,
 /// failure simulation logs, and outbox delivery tracking.
 class DiagnosticsScreen extends StatefulWidget {
@@ -139,8 +139,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           if (_loading)
             const LinearProgressIndicator(
               minHeight: 2.5,
-              color: AppTheme.forge,
-              backgroundColor: AppTheme.borderSage,
+              color: AppTheme.label,
+              backgroundColor: AppTheme.tertiarySystemBackground,
             ),
 
           // Visual Health & Pipeline Telemetry Spectrum
@@ -150,8 +150,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             decoration: const BoxDecoration(
-              color: AppTheme.paper,
-              border: Border(bottom: BorderSide(color: AppTheme.borderSage, width: 1)),
+              color: AppTheme.systemBackground,
+              border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
             child: Column(
               children: [
@@ -159,20 +159,20 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 Container(
                   height: 42,
                   decoration: BoxDecoration(
-                    color: AppTheme.leaf,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppTheme.borderSage, width: 1),
+                    color: AppTheme.secondarySystemBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: AppTheme.appleCardShadow,
                   ),
                   child: TextField(
                     controller: _searchController,
-                    style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                    style: const TextStyle(fontSize: 13, color: AppTheme.label),
                     decoration: InputDecoration(
                       hintText: 'Search by correlation UUID, event, or error...',
-                      hintStyle: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.textSecondary),
+                      hintStyle: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.secondaryLabel),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 16, color: AppTheme.textSecondary),
+                              icon: const Icon(Icons.clear, size: 16, color: AppTheme.secondaryLabel),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -193,15 +193,20 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                   children: [
                     Flexible(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppTheme.forge.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppTheme.tertiarySystemBackground,
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           '${items.length} telemetry entries',
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.label,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
                         ),
                       ),
                     ),
@@ -209,11 +214,10 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
                     // Outcome toggle buttons
                     Container(
-                      padding: const EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        color: AppTheme.leaf,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppTheme.borderSage, width: 1),
+                        color: AppTheme.tertiarySystemBackground,
+                        borderRadius: BorderRadius.circular(9),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -314,18 +318,11 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderSage),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.forge.withOpacity(0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,9 +458,9 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
+        color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: InkWell(
         onTap: () => _showLogDetail(log),
@@ -569,11 +566,11 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             children: [
               Center(
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 36,
+                  height: 5,
                   decoration: BoxDecoration(
-                    color: AppTheme.borderSage,
-                    borderRadius: BorderRadius.circular(2),
+                    color: AppTheme.quaternaryLabel,
+                    borderRadius: BorderRadius.circular(2.5),
                   ),
                 ),
               ),
@@ -583,41 +580,40 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 children: [
                   Text(
                     log.eventType,
-                    style: const TextStyle(fontFamily: 'serif', fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.4),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: _getOutcomeColor(log.outcome).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       log.outcome,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: _getOutcomeColor(log.outcome)),
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: _getOutcomeColor(log.outcome)),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              const Divider(color: AppTheme.borderSage, height: 1),
+              const Divider(color: AppTheme.separator, height: 0.5),
               const SizedBox(height: 12),
               _buildDetailRow('Log ID', log.logId, isMonospace: true),
               _buildDetailRow('Correlation UUID', log.correlationId, isMonospace: true),
               _buildDetailRow('Timestamp', log.timestamp),
               const SizedBox(height: 14),
-              const Text('DIAGNOSTIC MESSAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+              const Text('DIAGNOSTIC MESSAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel)),
               const SizedBox(height: 6),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.paper,
+                  color: AppTheme.tertiarySystemBackground,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderSage),
                 ),
                 child: SelectableText(
                   log.message,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary, height: 1.4),
+                  style: const TextStyle(fontSize: 12, color: AppTheme.label, height: 1.4),
                 ),
               ),
             ],

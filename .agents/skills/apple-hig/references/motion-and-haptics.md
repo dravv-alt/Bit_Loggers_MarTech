@@ -76,3 +76,4 @@ Haptics reinforce physical confidence in digital actions:
   - Success: Rapid double-tap confirmation on flight scheduling or proposal approval.
   - Warning: Resonant pulse on encountering an edit lease contention.
   - Error: Triple vibration buzz on network dispatch timeout.
+

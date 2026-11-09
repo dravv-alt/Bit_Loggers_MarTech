@@ -53,3 +53,4 @@ Widget buildAppleTouchTarget({
 - Group related labels together into a single semantic unit so screen readers don't read disjointed fragments.
 - Use explicit labels on image assets and icons (`tooltip` or `Semantics(label: ...)`).
 - Decorative icons and background images must declare `excludeFromSemantics: true` to avoid cluttering screen readers with visual noise.
+

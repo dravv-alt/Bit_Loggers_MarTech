@@ -5,9 +5,8 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'campaign_detail_screen.dart';
 
-/// FR-11: Campaign Notifications & Real-Time Alerts
-/// Modeled directly on Framer Wireframes (Screen 7: Notifications).
-/// "No multiple subtexts, no pills, and no BS clear design."
+/// Campaign Notifications & Real-Time Alerts
+/// Modeled directly on Apple HIG Notification Center standards.
 class NotificationsScreen extends StatefulWidget {
   final ApiService api;
 
@@ -121,8 +120,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: const BoxDecoration(
-              color: AppTheme.leaf,
-              border: Border(bottom: BorderSide(color: AppTheme.borderSage, width: 1)),
+              color: AppTheme.secondarySystemBackground,
+              border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -213,14 +212,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return GestureDetector(
       onTap: () => setState(() => _filter = filterKey),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.forge : AppTheme.leaf,
+          color: isSelected ? AppTheme.label : AppTheme.tertiarySystemBackground,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppTheme.forge : AppTheme.borderSage,
-            width: 1,
-          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -228,25 +223,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppTheme.leaf : AppTheme.textPrimary,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? Colors.white : AppTheme.label,
               ),
             ),
             if (count != null && count > 0) ...[
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.leaf : AppTheme.forge,
+                  color: isSelected ? Colors.white.withOpacity(0.25) : AppTheme.label.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '$count',
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? AppTheme.forge : AppTheme.leaf,
+                    color: isSelected ? Colors.white : AppTheme.label,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
@@ -285,19 +281,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: notif.isRead ? AppTheme.borderSage : AppTheme.forge.withOpacity(0.3),
-          width: notif.isRead ? 1.0 : 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.forge.withOpacity(notif.isRead ? 0.02 : 0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: InkWell(
         onTap: () {
@@ -313,7 +299,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             );
           }
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(

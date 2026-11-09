@@ -1,18 +1,41 @@
 ---
 name: apple-hig
-description: "Master design skill implementing Apple Human Interface Guidelines (HIG). Non-negotiable principles, dynamic typography, 8pt spacing grid, materials & translucency, 44pt touch targets, and visual hierarchy for crafting world-class, premium UI."
-version: 2.0.0
+description: "Master design skill implementing Apple Human Interface Guidelines (HIG) Foundations. Non-negotiable principles, dynamic typography, 8pt spacing grid, materials & translucency, 44pt touch targets, app icons, color systems, dark mode, gestures, images, inclusion & RTL, and microcopy."
+version: 3.0.0
 ---
 
-# Apple Human Interface Guidelines (HIG) Master Skill
+# Apple Human Interface Guidelines (HIG) Master Foundations Skill
 
-This skill enforces Apple's official **Human Interface Guidelines (HIG)** (`https://developer.apple.com/design/human-interface-guidelines/`) as the non-negotiable architectural standard for UI design, component structures, typography, spatial layout, material physics, and interaction patterns.
+This skill enforces Apple's official **Human Interface Guidelines (HIG) Foundations** (`https://developer.apple.com/design/human-interface-guidelines/foundations`) as the non-negotiable architectural standard for all user interface design, visual styles, component structures, typography, spatial layout, material physics, and interaction patterns across this repository.
 
 ---
 
-## 1. The Core Philosophical Pillars
+## The 15 Apple HIG Foundations Master Index
 
-Every screen must reflect Apple's foundational design benchmarks:
+| # | Apple HIG Foundation Topic | Reference Module | Status |
+| :---: | :--- | :--- | :---: |
+| 1 | **Accessibility** | [`references/accessibility.md`](references/accessibility.md) | ✅ Complete |
+| 2 | **App Icons** | [`references/app-icons.md`](references/app-icons.md) | ✅ Complete |
+| 3 | **Branding** | [`references/branding.md`](references/branding.md) | ✅ Complete |
+| 4 | **Color** | [`references/color-and-dark-mode.md`](references/color-and-dark-mode.md) | ✅ Complete |
+| 5 | **Dark Mode** | [`references/color-and-dark-mode.md`](references/color-and-dark-mode.md) | ✅ Complete |
+| 6 | **Design Principles** | Section 1 below | ✅ Complete |
+| 7 | **Gestures** | [`references/gestures-and-inputs.md`](references/gestures-and-inputs.md) | ✅ Complete |
+| 8 | **Images** | [`references/images.md`](references/images.md) | ✅ Complete |
+| 9 | **Inclusion** | [`references/inclusion-and-rtl.md`](references/inclusion-and-rtl.md) | ✅ Complete |
+| 10 | **Inputs** | [`references/gestures-and-inputs.md`](references/gestures-and-inputs.md) | ✅ Complete |
+| 11 | **Layout** | Section 2 below | ✅ Complete |
+| 12 | **Materials** | [`references/materials-and-elevation.md`](references/materials-and-elevation.md) | ✅ Complete |
+| 13 | **Motion** | [`references/motion-and-haptics.md`](references/motion-and-haptics.md) | ✅ Complete |
+| 14 | **Right-to-Left (RTL)** | [`references/inclusion-and-rtl.md`](references/inclusion-and-rtl.md) | ✅ Complete |
+| 15 | **Typography** | [`references/typography.md`](references/typography.md) | ✅ Complete |
+| 16 | **Writing** | [`references/writing-and-copy.md`](references/writing-and-copy.md) | ✅ Complete |
+
+---
+
+## 1. Philosophical Pillars (HIG Design Principles)
+
+Every screen and interaction must reflect Apple's foundational design benchmarks:
 
 1. **Purpose**: Design with singular clarity. Every screen has one dominant focus. Eliminate visual clutter, extraneous cards, and distracting secondary gadgets.
 2. **Agency**: Users stay in control. Every action provides immediate feedback, clear undo paths, and progressive disclosure without trapping the user.
@@ -22,7 +45,7 @@ Every screen must reflect Apple's foundational design benchmarks:
 
 ---
 
-## 2. Spatial System & The 8-Point Grid
+## 2. Spatial System & The 8-Point Grid (HIG Layout)
 
 All layouts, margins, padding, and gaps strictly adhere to the **8-point spatial system** (with 4-point micro-spacing):
 
@@ -98,21 +121,68 @@ Navigation bars, toolbars, and floating action decks use frosted glass (`Backdro
 
 ---
 
-## 5. Component Patterns & Modality
+## 5. Color Architecture & Dark Mode Luminance Ladder
 
-- **Grouped Inset Lists**: The primary content presentation pattern. Replaces walls of floating disjointed cards with unified inset groups divided by 0.5pt hairlines.
-- **Button Hierarchy**:
-  - **Single Prominent Filled Primary Button**: One dominant action per screen (e.g. `[Commit Schedule]`).
-  - **Tonal / Tinted Buttons**: Secondary actions (e.g. `[Add Flight]`).
-  - **Borderless Plain Buttons**: Tertiary actions (e.g. `[Cancel]`).
-- **Sheets & Modality**: Modal sheets present focused sub-tasks. Always include clear dismissal (`Cancel` vs `Done`). Never use a `Back` button to dismiss a modal sheet.
-- **Alerts**: Reserved strictly for high-severity or destructive, irreversible events. Never interrupt with informational or startup alerts.
+- **Semantic Color Roles**: Always use semantic roles (`Label`, `SecondaryLabel`, `SystemBackground`, `SecondaryGroupedBackground`, `Separator`) rather than hardcoded hex values.
+- **Dark Mode Elevation Ladder**: In Dark Mode, depth is communicated by luminance (the higher the z-index, the lighter the gray: `#000000` -> `#1C1C1E` -> `#2C2C2E` -> `#3A3A3C`).
+- **Color Independence**: Never rely on color alone to indicate state; always pair color with a symbol or text label.
 
-*Detailed specifications: [`references/components.md`](references/components.md)*
+*Detailed specifications: [`references/color-and-dark-mode.md`](references/color-and-dark-mode.md)*
 
 ---
 
-## 6. Motion & Velocity-Aware Spring Physics
+## 6. App Icons & Multi-Layer System
+
+- **Singular Focus**: One simple, iconic motif that communicates the core app identity. No UI screenshots, miniature buttons, or text.
+- **iOS 18 Multi-Layer Appearances**: Separate background, midground, and foreground layers to support Light, Dark, and Tinted system appearances seamlessly.
+- **No Pre-Rendered Borders or Shadows**: iOS applies squircle clipping and elevation dynamically. Assets are delivered full-bleed 1024x1024.
+
+*Detailed specifications: [`references/app-icons.md`](references/app-icons.md)*
+
+---
+
+## 7. Branding & Voice Restraint
+
+- **Never Hijack Navigation**: Keep top navigation titles clean for user context; avoid persistent giant corporate logos in navigation bars.
+- **Accent Restraint**: Use the brand accent color strictly for key interactive affordances, not for solid backgrounds.
+- **Blameless Professional Tone**: Speak like an intelligent human collaborator.
+
+*Detailed specifications: [`references/branding.md`](references/branding.md)*
+
+---
+
+## 8. Gestures, Pointers & Multi-Input System
+
+- **Direct Touch Manipulation**: Minimum 44x44pt hit targets with immediate tap feedback.
+- **Protect System Gestures**: Never place custom gestures along screen edges that interfere with the Home Bar, App Switcher, or Control Center.
+- **Pointer Effects**: Support Highlight and Lift effects on trackpad/mouse hover. Full keyboard navigation with accessible focus rings.
+
+*Detailed specifications: [`references/gestures-and-inputs.md`](references/gestures-and-inputs.md)*
+
+---
+
+## 9. Images & Visual Assets
+
+- **Density Assets**: Deliver assets at `@2x` and `@3x` for Retina/Super Retina displays; use vector SVG/PDF for icons.
+- **Aspect Ratio Integrity**: Zero stretching or distortion (`BoxFit.cover` or `BoxFit.contain`).
+- **Display P3**: Export marketing creatives in Display P3 wide color gamut.
+- **Layout Stability**: Reserve layout dimensions with skeleton shimmer placeholders to prevent layout shift.
+
+*Detailed specifications: [`references/images.md`](references/images.md)*
+
+---
+
+## 10. Inclusion & Right-to-Left (RTL) Mirroring
+
+- **Horizontal Mirroring**: In RTL locales (Arabic, Hebrew), the entire layout mirrors horizontally (origin at top right, chevrons flip, sliders fill right-to-left).
+- **Directional vs Fixed Glyphs**: Flip navigation arrows and chevrons; keep clocks, media controls, and checkmarks non-flipped.
+- **Dynamic Text Expansion**: Allow 30% to 50% flex in containers for localized text expansion.
+
+*Detailed specifications: [`references/inclusion-and-rtl.md`](references/inclusion-and-rtl.md)*
+
+---
+
+## 11. Motion & Velocity-Aware Spring Physics
 
 - **Critically Damped Springs**: Interfaces glide smoothly into place without artificial mechanical bounce.
 - **Interruptible Transitions**: Animations can be redirected mid-flight if the user touches the screen.
@@ -123,7 +193,7 @@ Navigation bars, toolbars, and floating action decks use frosted glass (`Backdro
 
 ---
 
-## 7. Writing & Microcopy Standards
+## 12. Writing & Microcopy Standards
 
 - **Action-Oriented Verbs**: Buttons describe explicit outcomes (*"Approve Version"*, *"Schedule Flight"*, *"Discard Draft"*).
 - **Sentence Case**: All buttons, navigation titles, section headers, and table labels are set in sentence case.
@@ -134,7 +204,7 @@ Navigation bars, toolbars, and floating action decks use frosted glass (`Backdro
 
 ---
 
-## 8. Accessibility & Inclusivity
+## 13. Accessibility & Inclusivity
 
 - Minimum **44x44 pt** touch target on every interactive element.
 - Minimum **4.5:1** text contrast ratio against background (3.0:1 for large text and controls).
@@ -144,7 +214,7 @@ Navigation bars, toolbars, and floating action decks use frosted glass (`Backdro
 
 ---
 
-## 9. The Non-Negotiable Anti-Patterns (The 7 Deadly Sins of AI Slop)
+## The 7 Non-Negotiable Anti-Patterns (The 7 Deadly Sins of AI Slop)
 
 1. **Card Inception**: BANNED. Never put a card inside a card inside a card. Use whitespace and 0.5pt dividers instead of nested bordered boxes.
 2. **Technical Jargon on Screens**: BANNED. Never print `[FR-xx]`, `[ACID]`, `[SKIP LOCKED]`, `[HYPERTABLE]`, or database locking parameters in client UI.
@@ -156,11 +226,17 @@ Navigation bars, toolbars, and floating action decks use frosted glass (`Backdro
 
 ---
 
-## Reference Library Quicklinks
+## Complete Reference Library Quicklinks
 
-- [`references/typography.md`](references/typography.md) — SF Pro & Dynamic Type matrix
-- [`references/materials-and-elevation.md`](references/materials-and-elevation.md) — Squircles, shadows, and translucency
-- [`references/components.md`](references/components.md) — Grouped tables, buttons, and sheets
-- [`references/motion-and-haptics.md`](references/motion-and-haptics.md) — Velocity springs and haptics
-- [`references/writing-and-copy.md`](references/writing-and-copy.md) — Microcopy, tone, and humanized error handling
-- [`references/accessibility.md`](references/accessibility.md) — Touch targets, contrast, and VoiceOver semantics
+- [`references/accessibility.md`](references/accessibility.md) — VoiceOver, contrast ratios, and touch targets
+- [`references/app-icons.md`](references/app-icons.md) — Multi-layer icon geometry, squircle grid, and iOS 18 dynamic appearances
+- [`references/branding.md`](references/branding.md) — Brand identity, accent restraint, and content-first hierarchy
+- [`references/color-and-dark-mode.md`](references/color-and-dark-mode.md) — Semantic color system, Dark Mode elevation ladder, and contrast
+- [`references/components.md`](references/components.md) — Grouped tables, button hierarchy, and modal sheets
+- [`references/gestures-and-inputs.md`](references/gestures-and-inputs.md) — Multi-touch gestures, pointer hover effects, and keyboard navigation
+- [`references/images.md`](references/images.md) — Density scaling (@2x/@3x), Display P3 wide gamut, and skeleton loaders
+- [`references/inclusion-and-rtl.md`](references/inclusion-and-rtl.md) — Right-to-Left (RTL) mirroring, directional glyphs, and text expansion
+- [`references/materials-and-elevation.md`](references/materials-and-elevation.md) — Squircles, ambient dual-layer depth, and translucency
+- [`references/motion-and-haptics.md`](references/motion-and-haptics.md) — Velocity spring physics and multi-modal haptics
+- [`references/typography.md`](references/typography.md) — SF Pro optical sizing matrix and tabular numerals
+- [`references/writing-and-copy.md`](references/writing-and-copy.md) — Human microcopy, tone of voice, and error recovery

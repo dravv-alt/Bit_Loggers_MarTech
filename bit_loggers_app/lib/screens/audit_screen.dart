@@ -9,8 +9,8 @@ import '../theme/app_theme.dart';
 import '../widgets/marketing_visuals.dart';
 import 'campaign_detail_screen.dart';
 
-/// FR-10: Audit Trail & Historical Governance Log Viewer (ADR-008)
-/// TimescaleDB Hypertable append-only ledger for non-repudiation,
+/// Audit Trail & Historical Governance Log Viewer
+/// Append-only ledger for non-repudiation,
 /// cryptographic event verification, actor-based governance filtering,
 /// and deep payload state transition inspection.
 class AuditScreen extends StatefulWidget {
@@ -148,20 +148,19 @@ class _AuditScreenState extends State<AuditScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Audit Trail & Governance',
+              'Audit Ledger',
               style: TextStyle(
-                fontFamily: 'serif',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
-                letterSpacing: -0.3,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.label,
+                letterSpacing: -0.4,
               ),
             ),
             Text(
               widget.initialCampaignId != null
-                  ? 'Anchored to ${widget.initialCampaignId} • TimescaleDB'
-                  : 'TimescaleDB Append-Only Hypertable (ADR-008)',
-              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  ? 'Anchored to ${widget.initialCampaignId}'
+                  : 'Immutable governance ledger',
+              style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
             ),
           ],
         ),
@@ -180,8 +179,8 @@ class _AuditScreenState extends State<AuditScreen> {
           if (_loading)
             const LinearProgressIndicator(
               minHeight: 2.5,
-              color: AppTheme.forge,
-              backgroundColor: AppTheme.borderSage,
+              color: AppTheme.label,
+              backgroundColor: AppTheme.tertiarySystemBackground,
             ),
 
           // Immutable Governance Telemetry Spectrum Card
@@ -191,8 +190,8 @@ class _AuditScreenState extends State<AuditScreen> {
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             decoration: const BoxDecoration(
-              color: AppTheme.paper,
-              border: Border(bottom: BorderSide(color: AppTheme.borderSage, width: 1)),
+              color: AppTheme.systemBackground,
+              border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
             child: Column(
               children: [
@@ -200,20 +199,20 @@ class _AuditScreenState extends State<AuditScreen> {
                 Container(
                   height: 42,
                   decoration: BoxDecoration(
-                    color: AppTheme.leaf,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppTheme.borderSage, width: 1),
+                    color: AppTheme.secondarySystemBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: AppTheme.appleCardShadow,
                   ),
                   child: TextField(
                     controller: _searchController,
-                    style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                    style: const TextStyle(fontSize: 13, color: AppTheme.label),
                     decoration: InputDecoration(
                       hintText: 'Search audit ledger by actor, event, or ID...',
-                      hintStyle: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.textSecondary),
+                      hintStyle: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.secondaryLabel),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 16, color: AppTheme.textSecondary),
+                              icon: const Icon(Icons.clear, size: 16, color: AppTheme.secondaryLabel),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -236,15 +235,20 @@ class _AuditScreenState extends State<AuditScreen> {
                   children: [
                     Flexible(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppTheme.forge.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppTheme.tertiarySystemBackground,
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${items.length} records in hypertable',
+                          '${items.length} verified events',
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.label,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
                         ),
                       ),
                     ),
@@ -252,11 +256,10 @@ class _AuditScreenState extends State<AuditScreen> {
 
                     // Role segment buttons
                     Container(
-                      padding: const EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        color: AppTheme.leaf,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppTheme.borderSage, width: 1),
+                        color: AppTheme.tertiarySystemBackground,
+                        borderRadius: BorderRadius.circular(9),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -295,14 +298,16 @@ class _AuditScreenState extends State<AuditScreen> {
                     label: Text(label),
                     labelStyle: TextStyle(
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? AppTheme.leaf : AppTheme.textPrimary,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: isSelected ? Colors.white : AppTheme.label,
                     ),
                     selected: isSelected,
-                    selectedColor: AppTheme.forge,
-                    backgroundColor: AppTheme.leaf,
-                    side: const BorderSide(color: AppTheme.borderSage, width: 1),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    selectedColor: AppTheme.label,
+                    backgroundColor: AppTheme.tertiarySystemBackground,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide.none,
+                    ),
                     onSelected: (_) {
                       setState(() => _selectedEventType = type);
                       _fetch();
@@ -377,18 +382,11 @@ class _AuditScreenState extends State<AuditScreen> {
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderSage),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.forge.withOpacity(0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,13 +404,12 @@ class _AuditScreenState extends State<AuditScreen> {
               const SizedBox(width: 6),
               const Expanded(
                 child: Text(
-                  'IMMUTABLE GOVERNANCE SPECTRUM',
+                  'Governance ledger breakdown',
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textSecondary,
-                    letterSpacing: 0.6,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.label,
                   ),
                 ),
               ),
@@ -525,9 +522,9 @@ class _AuditScreenState extends State<AuditScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppTheme.leaf,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.borderSage, width: 1),
+        color: AppTheme.secondarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: InkWell(
         onTap: () => _showAuditDetailModal(evt),
@@ -595,9 +592,8 @@ class _AuditScreenState extends State<AuditScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: AppTheme.paper,
+                    color: AppTheme.tertiarySystemBackground,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.borderSage),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -739,11 +735,11 @@ class _AuditScreenState extends State<AuditScreen> {
                   // Grab Handle
                   Center(
                     child: Container(
-                      width: 40,
-                      height: 4,
+                      width: 36,
+                      height: 5,
                       decoration: BoxDecoration(
-                        color: AppTheme.borderSage,
-                        borderRadius: BorderRadius.circular(2),
+                        color: AppTheme.quaternaryLabel,
+                        borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
                   ),
@@ -758,14 +754,14 @@ class _AuditScreenState extends State<AuditScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: _getEventColor(evt.eventType).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             evt.eventType,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: _getEventColor(evt.eventType),
                             ),
                           ),
@@ -777,7 +773,7 @@ class _AuditScreenState extends State<AuditScreen> {
                           evt.occurredAt.length >= 19 ? evt.occurredAt.substring(0, 19).replaceAll('T', ' ') : evt.occurredAt,
                           textAlign: TextAlign.end,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
                         ),
                       ),
                     ],
@@ -787,14 +783,14 @@ class _AuditScreenState extends State<AuditScreen> {
                   Text(
                     evt.summary,
                     style: const TextStyle(
-                      fontFamily: 'serif',
                       fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.label,
+                      letterSpacing: -0.4,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Divider(color: AppTheme.borderSage, height: 1),
+                  const Divider(color: AppTheme.separator, height: 0.5),
                   const SizedBox(height: 14),
 
                   // Governance Metadata Grid
@@ -815,11 +811,11 @@ class _AuditScreenState extends State<AuditScreen> {
 
                   const SizedBox(height: 16),
                   const Text(
-                    'TIMESCALEDB HYPERTABLE PAYLOAD (JSON)',
+                    'VERIFIED EVENT PAYLOAD',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.secondaryLabel,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -830,16 +826,15 @@ class _AuditScreenState extends State<AuditScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.paper,
+                      color: AppTheme.tertiarySystemBackground,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.borderSage),
                     ),
                     child: SelectableText(
                       _formatJson(evt.rawDetails ?? {'details': evt.details}),
                       style: const TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 11,
-                        color: AppTheme.textPrimary,
+                        color: AppTheme.label,
                         height: 1.4,
                       ),
                     ),

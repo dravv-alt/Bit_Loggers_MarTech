@@ -118,12 +118,12 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
           // Test list
           ...results.map((t) {
             final passed = t['passed'] == true;
-            return Card(
+            return Container(
               margin: const EdgeInsets.only(bottom: 10),
-              color: AppTheme.leaf,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: const BorderSide(color: AppTheme.borderSage, width: 1),
+              decoration: BoxDecoration(
+                color: AppTheme.secondarySystemBackground,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: AppTheme.appleCardShadow,
               ),
               child: Padding(
                 padding: const EdgeInsets.all(14),

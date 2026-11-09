@@ -104,10 +104,10 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                 Container(
                   width: 32,
                   height: 32,
-                  decoration: BoxDecoration(
-                    color: AppTheme.leaf,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.secondarySystemBackground,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.borderSage, width: 1),
+                    boxShadow: AppTheme.appleCardShadow,
                   ),
                   child: Center(
                     child: Text(
@@ -300,26 +300,26 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             // ACTION BUTTON: "* Verify & lock V3 snapshot"
             InkWell(
               onTap: _isLocking ? null : _verifyAndLockSnapshot,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppTheme.leaf,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.borderSage, width: 1),
+                  color: AppTheme.forge,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: AppTheme.appleCardShadow,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.star_border, size: 16, color: AppTheme.textPrimary),
+                    const Icon(Icons.star_rounded, size: 18, color: AppTheme.verdictLime),
                     const SizedBox(width: 8),
                     Text(
                       _isLocking ? 'Locking snapshot…' : 'Verify & lock V3 snapshot',
                       style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.leaf,
                       ),
                     ),
                   ],
@@ -357,19 +357,18 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: AppTheme.leaf,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppTheme.borderSage, width: 1),
+                color: AppTheme.secondarySystemBackground,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: AppTheme.appleCardShadow,
               ),
               child: Row(
                 children: [
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: BoxDecoration(
-                      color: AppTheme.paper,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.tertiarySystemBackground,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppTheme.borderSage, width: 1),
                     ),
                     child: const Center(
                       child: Icon(Icons.language, size: 18, color: AppTheme.forge),
@@ -419,19 +418,18 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: AppTheme.leaf,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppTheme.borderSage, width: 1),
+                color: AppTheme.secondarySystemBackground,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: AppTheme.appleCardShadow,
               ),
               child: Row(
                 children: [
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: BoxDecoration(
-                      color: AppTheme.paper,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.tertiarySystemBackground,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppTheme.borderSage, width: 1),
                     ),
                     child: const Center(
                       child: Icon(Icons.gps_fixed, size: 18, color: AppTheme.forge),
