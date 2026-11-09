@@ -104,10 +104,10 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
         backgroundColor: AppTheme.paper,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.forge),
+          icon: Icon(Icons.arrow_back, color: AppTheme.forge),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -128,7 +128,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppTheme.forge),
+            icon: Icon(Icons.refresh, color: AppTheme.forge),
             tooltip: 'Refresh telemetry',
             onPressed: _fetch,
           ),
@@ -137,7 +137,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
       body: Column(
         children: [
           if (_loading)
-            const LinearProgressIndicator(
+            LinearProgressIndicator(
               minHeight: 2.5,
               color: AppTheme.label,
               backgroundColor: AppTheme.tertiarySystemBackground,
@@ -149,7 +149,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           // Search & Filter Bar
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppTheme.systemBackground,
               border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
@@ -165,14 +165,14 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                   ),
                   child: TextField(
                     controller: _searchController,
-                    style: const TextStyle(fontSize: 13, color: AppTheme.label),
+                    style: TextStyle(fontSize: 13, color: AppTheme.label),
                     decoration: InputDecoration(
                       hintText: 'Search by correlation UUID, event, or error...',
-                      hintStyle: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
-                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.secondaryLabel),
+                      hintStyle: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                      prefixIcon: Icon(Icons.search, size: 18, color: AppTheme.secondaryLabel),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 16, color: AppTheme.secondaryLabel),
+                              icon: Icon(Icons.clear, size: 16, color: AppTheme.secondaryLabel),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -201,7 +201,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                         child: Text(
                           '${items.length} telemetry entries',
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.label,
@@ -238,7 +238,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           // Diagnostic Log Cards List
           Expanded(
             child: items.isEmpty && !_loading
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -338,7 +338,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 ),
               ),
               const SizedBox(width: 6),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'SYSTEM HEALTH & PIPELINE TELEMETRY',
                   overflow: TextOverflow.ellipsis,
@@ -427,7 +427,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
         const SizedBox(width: 4),
         Text(
           '$label: ',
-          style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+          style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
         ),
         Text(
           count,
@@ -495,7 +495,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                       timeStr,
                       textAlign: TextAlign.end,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                      style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                     ),
                   ),
                 ],
@@ -505,7 +505,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               // Log Message
               Text(
                 log.message,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: AppTheme.textPrimary,
                   height: 1.35,
@@ -516,13 +516,13 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               // Bottom Row: Correlation ID
               Row(
                 children: [
-                  const Icon(Icons.fingerprint, size: 12, color: AppTheme.textSecondary),
+                  Icon(Icons.fingerprint, size: 12, color: AppTheme.textSecondary),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       log.correlationId,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 10,
                         color: AppTheme.forge,
@@ -580,7 +580,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 children: [
                   Text(
                     log.eventType,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.4),
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.4),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -596,13 +596,13 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              const Divider(color: AppTheme.separator, height: 0.5),
+              Divider(color: AppTheme.separator, height: 0.5),
               const SizedBox(height: 12),
               _buildDetailRow('Log ID', log.logId, isMonospace: true),
               _buildDetailRow('Correlation UUID', log.correlationId, isMonospace: true),
               _buildDetailRow('Timestamp', log.timestamp),
               const SizedBox(height: 14),
-              const Text('DIAGNOSTIC MESSAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel)),
+              Text('DIAGNOSTIC MESSAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel)),
               const SizedBox(height: 6),
               Container(
                 width: double.infinity,
@@ -613,7 +613,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 ),
                 child: SelectableText(
                   log.message,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.label, height: 1.4),
+                  style: TextStyle(fontSize: 12, color: AppTheme.label, height: 1.4),
                 ),
               ),
             ],
@@ -629,7 +629,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
           Flexible(
             child: Text(
               value,

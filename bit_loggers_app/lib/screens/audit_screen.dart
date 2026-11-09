@@ -141,13 +141,13 @@ class _AuditScreenState extends State<AuditScreen> {
         backgroundColor: AppTheme.paper,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.forge),
+          icon: Icon(Icons.arrow_back, color: AppTheme.forge),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Audit Ledger',
               style: TextStyle(
                 fontSize: 17,
@@ -160,13 +160,13 @@ class _AuditScreenState extends State<AuditScreen> {
               widget.initialCampaignId != null
                   ? 'Anchored to ${widget.initialCampaignId}'
                   : 'Immutable governance ledger',
-              style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
+              style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppTheme.forge),
+            icon: Icon(Icons.refresh, color: AppTheme.forge),
             tooltip: 'Reload ledger',
             onPressed: _fetch,
           ),
@@ -177,7 +177,7 @@ class _AuditScreenState extends State<AuditScreen> {
         children: [
           // Loading indicator line
           if (_loading)
-            const LinearProgressIndicator(
+            LinearProgressIndicator(
               minHeight: 2.5,
               color: AppTheme.label,
               backgroundColor: AppTheme.tertiarySystemBackground,
@@ -189,7 +189,7 @@ class _AuditScreenState extends State<AuditScreen> {
           // Search & Filter Header
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppTheme.systemBackground,
               border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
@@ -205,14 +205,14 @@ class _AuditScreenState extends State<AuditScreen> {
                   ),
                   child: TextField(
                     controller: _searchController,
-                    style: const TextStyle(fontSize: 13, color: AppTheme.label),
+                    style: TextStyle(fontSize: 13, color: AppTheme.label),
                     decoration: InputDecoration(
                       hintText: 'Search audit ledger by actor, event, or ID...',
-                      hintStyle: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
-                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.secondaryLabel),
+                      hintStyle: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                      prefixIcon: Icon(Icons.search, size: 18, color: AppTheme.secondaryLabel),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 16, color: AppTheme.secondaryLabel),
+                              icon: Icon(Icons.clear, size: 16, color: AppTheme.secondaryLabel),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -243,7 +243,7 @@ class _AuditScreenState extends State<AuditScreen> {
                         child: Text(
                           '${items.length} verified events',
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.label,
@@ -396,13 +396,13 @@ class _AuditScreenState extends State<AuditScreen> {
               Container(
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppTheme.moss,
                 ),
               ),
               const SizedBox(width: 6),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Governance ledger breakdown',
                   overflow: TextOverflow.ellipsis,
@@ -419,7 +419,7 @@ class _AuditScreenState extends State<AuditScreen> {
                   color: AppTheme.statusApprovedBg,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   '100% Cryptographic Seal',
                   style: TextStyle(
                     fontSize: 9,
@@ -489,7 +489,7 @@ class _AuditScreenState extends State<AuditScreen> {
         const SizedBox(width: 4),
         Text(
           '$label: ',
-          style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+          style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
         ),
         Text(
           count,
@@ -568,7 +568,7 @@ class _AuditScreenState extends State<AuditScreen> {
                       dateStr,
                       textAlign: TextAlign.end,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                     ),
                   ),
                 ],
@@ -578,7 +578,7 @@ class _AuditScreenState extends State<AuditScreen> {
               // Summary Text
               Text(
                 evt.summary,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textPrimary,
@@ -600,15 +600,15 @@ class _AuditScreenState extends State<AuditScreen> {
                     children: [
                       Text(
                         evt.previousState ?? 'Initial',
-                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                        style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 6),
                         child: Icon(Icons.arrow_forward, size: 12, color: AppTheme.forge),
                       ),
                       Text(
                         evt.newState ?? 'Updated',
-                        style: const TextStyle(fontSize: 11, color: AppTheme.forge, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 11, color: AppTheme.forge, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -633,17 +633,17 @@ class _AuditScreenState extends State<AuditScreen> {
                         child: Text(
                           evt.actorName,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
                         ),
                       ),
                       if (evt.campaignId != null) ...[
-                        const Text(' • ', style: TextStyle(color: AppTheme.textSecondary)),
+                        Text(' • ', style: TextStyle(color: AppTheme.textSecondary)),
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 100),
                           child: Text(
                             evt.campaignId!,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.forge),
+                            style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.forge),
                           ),
                         ),
                       ],
@@ -652,11 +652,11 @@ class _AuditScreenState extends State<AuditScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.fingerprint, size: 12, color: AppTheme.textSecondary),
+                      Icon(Icons.fingerprint, size: 12, color: AppTheme.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         evt.eventId.length > 12 ? '${evt.eventId.substring(0, 10)}...' : evt.eventId,
-                        style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: AppTheme.textSecondary),
+                        style: TextStyle(fontSize: 10, fontFamily: 'monospace', color: AppTheme.textSecondary),
                       ),
                     ],
                   ),
@@ -676,14 +676,14 @@ class _AuditScreenState extends State<AuditScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.history_edu_outlined, size: 48, color: AppTheme.textSecondary),
+            Icon(Icons.history_edu_outlined, size: 48, color: AppTheme.textSecondary),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No Audit Records Match Filters',
               style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Try clearing search keywords or switching event type filters.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
@@ -701,7 +701,7 @@ class _AuditScreenState extends State<AuditScreen> {
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppTheme.forge,
-                side: const BorderSide(color: AppTheme.forge),
+                side: BorderSide(color: AppTheme.forge),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: const Text('Reset All Filters', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
@@ -773,7 +773,7 @@ class _AuditScreenState extends State<AuditScreen> {
                           evt.occurredAt.length >= 19 ? evt.occurredAt.substring(0, 19).replaceAll('T', ' ') : evt.occurredAt,
                           textAlign: TextAlign.end,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
+                          style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
                         ),
                       ),
                     ],
@@ -782,7 +782,7 @@ class _AuditScreenState extends State<AuditScreen> {
 
                   Text(
                     evt.summary,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.label,
@@ -790,7 +790,7 @@ class _AuditScreenState extends State<AuditScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Divider(color: AppTheme.separator, height: 0.5),
+                  Divider(color: AppTheme.separator, height: 0.5),
                   const SizedBox(height: 14),
 
                   // Governance Metadata Grid
@@ -810,7 +810,7 @@ class _AuditScreenState extends State<AuditScreen> {
                     _buildModalMetaRow('New State', evt.newState!),
 
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'VERIFIED EVENT PAYLOAD',
                     style: TextStyle(
                       fontSize: 10,
@@ -831,7 +831,7 @@ class _AuditScreenState extends State<AuditScreen> {
                     ),
                     child: SelectableText(
                       _formatJson(evt.rawDetails ?? {'details': evt.details}),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 11,
                         color: AppTheme.label,
@@ -849,7 +849,7 @@ class _AuditScreenState extends State<AuditScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppTheme.forge.withOpacity(0.2)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Icon(Icons.verified_outlined, size: 16, color: AppTheme.forge),
                         SizedBox(width: 8),
@@ -907,7 +907,7 @@ class _AuditScreenState extends State<AuditScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
           Flexible(
             child: Text(
               value,

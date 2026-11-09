@@ -166,7 +166,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     children: [
                       Text(
                         dateStr.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.phosphorChartreuse,
@@ -176,7 +176,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                       const SizedBox(height: 3),
                       Text(
                         'Good morning, $userName',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimary,
@@ -264,7 +264,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Needs your attention',
                   style: TextStyle(
                     fontSize: 16,
@@ -282,7 +282,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   ),
                   child: Text(
                     '${displayAttention.length} active',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.celadonSage),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.celadonSage),
                   ),
                 ),
               ],
@@ -291,7 +291,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
 
             // Inset Grouped Table of Attention Cards
             if (_loading)
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.phosphorChartreuse)))
+              Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.phosphorChartreuse)))
             else if (displayAttention.isEmpty)
               _buildEmptyOverviewState()
             else
@@ -300,7 +300,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             const SizedBox(height: 22),
 
             // Upcoming Schedule strip
-            const Text(
+            Text(
               'Upcoming schedule',
               style: TextStyle(
                 fontSize: 16,
@@ -364,7 +364,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   children: [
                     Row(
                       children: [
-                        const PulseStatusGlow(
+                        PulseStatusGlow(
                           color: AppTheme.phosphorChartreuse,
                           size: 7,
                         ),
@@ -404,7 +404,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 // Campaign Title
                 Text(
                   camp.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
@@ -418,7 +418,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 // Marketer & Recency
                 Text(
                   '${camp.ownerName} · Submitted ${_formatRelativeTime(camp.updatedAt)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,
                   ),
@@ -475,7 +475,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
@@ -514,7 +514,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 9,
             fontWeight: FontWeight.w600,
             color: AppTheme.textSecondary,
@@ -578,7 +578,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             numeric != null
                 ? CountUp(
                     end: numeric,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
@@ -587,7 +587,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   )
                 : Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
@@ -601,7 +601,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimary,
@@ -611,7 +611,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             ),
             Text(
               subtext,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 color: AppTheme.textSecondary,
               ),
@@ -639,7 +639,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           itemCount: campaigns.length,
-          separatorBuilder: (_, __) => const Divider(
+          separatorBuilder: (_, __) => Divider(
             height: 0.5,
             thickness: 0.5,
             indent: 58,
@@ -690,7 +690,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                         children: [
                           Text(
                             c.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.textPrimary,
@@ -702,7 +702,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                           const SizedBox(height: 2),
                           Text(
                             '${c.ownerName} · $ch · ${_formatRelativeTime(c.updatedAt)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: AppTheme.textSecondary,
                             ),
@@ -717,7 +717,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     // Status Pill
                     AppTheme.buildStatusIndicator(c.status),
                     const SizedBox(width: 6),
-                    const Icon(Icons.chevron_right, size: 18, color: AppTheme.textMuted),
+                    Icon(Icons.chevron_right, size: 18, color: AppTheme.textMuted),
                   ],
                 ),
               ),
@@ -771,7 +771,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'WORKSPACE PACING · 75% CEILING',
                 style: TextStyle(
                   fontSize: 10,
@@ -807,7 +807,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 decimals: 1,
                 prefix: '\$',
                 suffix: 'K',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
@@ -816,7 +816,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               ),
               Text(
                 'Total Allocated · $burnStr',
-                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
               ),
             ],
           ),
@@ -864,12 +864,12 @@ class _KanbanScreenState extends State<KanbanScreen> {
               Expanded(
                 child: Text(
                   'Current flight: $burnStr',
-                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Ceiling: 75%',
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.signalCoral),
               ),
@@ -924,7 +924,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'CHANNEL FLIGHT DISTRIBUTION',
             style: TextStyle(
               fontSize: 10,
@@ -977,7 +977,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   const SizedBox(width: 4),
                   Text(
                     "${ch['name']} ${((ch['share'] as double) * 100).toInt()}%",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textPrimary,
@@ -1008,7 +1008,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             Expanded(
               child: Text(
                 '\$$budgetStr budget cap',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
@@ -1092,7 +1092,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             ),
             child: Text(
               format,
-              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
             ),
           ),
         ],
@@ -1168,7 +1168,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
         children: [
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppTheme.textPrimary,
@@ -1178,7 +1178,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: AppTheme.textSecondary,
@@ -1253,7 +1253,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                             Expanded(
                               child: Text(
                                 camp.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.textPrimary,
@@ -1275,7 +1275,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                             Expanded(
                               child: Text(
                                 '${camp.ownerName} · $channel · $submittedTime',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   color: AppTheme.textSecondary,
                                 ),
@@ -1306,7 +1306,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   AppTheme.buildStatusIndicator(camp.status),
-                  const Text(
+                  Text(
                     'Needs review',
                     style: TextStyle(
                       fontSize: 11,
@@ -1335,7 +1335,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               const SizedBox(height: 12),
 
               // Hairline separator
-              const Divider(color: AppTheme.separator, height: 0.5),
+              Divider(color: AppTheme.separator, height: 0.5),
               const SizedBox(height: 10),
 
               // Footer: Version on left, View details ↗ on right
@@ -1344,13 +1344,13 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 children: [
                   Text(
                     verText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: AppTheme.textSecondary,
                     ),
                   ),
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
@@ -1400,12 +1400,12 @@ class _KanbanScreenState extends State<KanbanScreen> {
               children: [
                 Text(
                   dayName,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   dayNum,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
@@ -1479,7 +1479,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
         border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.35), width: 0.75),
         boxShadow: AppTheme.appleCardShadow,
       ),
-      child: const Center(
+      child: Center(
         child: Text(
           'All caught up. No campaigns currently awaiting your decision.',
           textAlign: TextAlign.center,
@@ -1532,7 +1532,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
             // Main Content Area (Ledger List vs Board)
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.phosphorChartreuse))
+                  ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.phosphorChartreuse))
                   : filtered.isEmpty
                       ? _buildEmptyState(isMarketer)
                       : _isKanbanView
@@ -1574,7 +1574,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.slabQuartz,
         border: Border(bottom: BorderSide(color: AppTheme.borderCard, width: 0.75)),
       ),
@@ -1590,7 +1590,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.textPrimary,
@@ -1600,7 +1600,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                      style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                     ),
                   ],
                 ),
@@ -1647,10 +1647,10 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     color: awaitingCount > 0 ? AppTheme.solarTangerine : AppTheme.textSecondary,
                   ),
                 ),
-                const Text('  ·  ', style: TextStyle(color: AppTheme.separator)),
+                Text('  ·  ', style: TextStyle(color: AppTheme.separator)),
                 Text(
                   '$scheduledCount Scheduled flights',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textSecondary,
@@ -1711,15 +1711,15 @@ class _KanbanScreenState extends State<KanbanScreen> {
             ),
             child: TextField(
               onChanged: (val) => setState(() => _searchQuery = val),
-              style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+              style: TextStyle(fontSize: 12, color: AppTheme.textPrimary),
               decoration: InputDecoration(
                 isDense: true,
                 hintText: 'Search campaigns...',
-                hintStyle: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                prefixIcon: const Icon(Icons.search, size: 16, color: AppTheme.textSecondary),
+                hintStyle: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                prefixIcon: Icon(Icons.search, size: 16, color: AppTheme.textSecondary),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 14, color: AppTheme.textSecondary),
+                        icon: Icon(Icons.clear, size: 14, color: AppTheme.textSecondary),
                         onPressed: () => setState(() => _searchQuery = ''),
                       )
                     : null,
@@ -1739,7 +1739,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 _buildFilterTab('Submitted', 'Active ${_campaigns.where((c) => c.status != 'Draft').length}'),
                 _buildFilterTab('Draft', 'Drafts $draftCount'),
                 const SizedBox(width: 8),
-                const Text('·', style: TextStyle(color: AppTheme.separator)),
+                Text('·', style: TextStyle(color: AppTheme.separator)),
                 const SizedBox(width: 8),
                 _buildChannelFilterChip('All', 'All'),
                 _buildChannelFilterChip('Social', 'Social'),
@@ -1915,7 +1915,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                             Expanded(
                               child: Text(
                                 camp.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.textPrimary,
@@ -1937,7 +1937,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                             Expanded(
                               child: Text(
                                 '$channel · ${camp.ownerName} · Updated $updatedTime',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   color: AppTheme.textSecondary,
                                 ),
@@ -1972,7 +1972,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   if (curVer?.budget != null && curVer!.budget > 0)
                     Text(
                       '\$${curVer.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.phosphorChartreuse,
@@ -2017,7 +2017,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   ),
                   child: Text(
                     'Note: ${latestDecision.reason}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.statusChanges,
                       fontWeight: FontWeight.w500,
@@ -2029,7 +2029,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               ],
 
               const SizedBox(height: 12),
-              const Divider(color: AppTheme.separator, height: 0.5),
+              Divider(color: AppTheme.separator, height: 0.5),
               const SizedBox(height: 10),
 
               // Row 3: Version 04 on left, Open record ↗ on right
@@ -2038,13 +2038,13 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 children: [
                   Text(
                     verText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: AppTheme.textSecondary,
                     ),
                   ),
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
@@ -2132,7 +2132,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           // Column Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
             child: Row(
@@ -2140,7 +2140,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
@@ -2156,7 +2156,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   ),
                   child: Text(
                     '${campaigns.length}'.padLeft(2, '0'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.phosphorChartreuse,
@@ -2171,7 +2171,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           // Cards List
           Expanded(
             child: campaigns.isEmpty
-                ? const Padding(
+                ? Padding(
                     padding: EdgeInsets.all(24),
                     child: Center(
                       child: Text(
@@ -2281,7 +2281,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                             Expanded(
                               child: Text(
                                 camp.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.textPrimary,
@@ -2295,7 +2295,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                         const SizedBox(height: 4),
                         Text(
                           kpiChip.isNotEmpty ? '$channel · $kpiChip' : channel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w500,
                             color: AppTheme.textSecondary,
@@ -2323,7 +2323,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 children: [
                   Text(
                     budgetStr,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
@@ -2332,7 +2332,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   ),
                   Text(
                     dateDisplay,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       color: AppTheme.textSecondary,
                     ),
@@ -2370,12 +2370,12 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     backgroundColor: AppTheme.slabPill,
                     child: Text(
                       initials,
-                      style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                      style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                     ),
                   ),
                   Text(
                     burnRatePct > 0 ? '${burnRatePct.toInt()}% burned · $dateDisplay' : dateDisplay,
-                    style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                    style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -2393,14 +2393,14 @@ class _KanbanScreenState extends State<KanbanScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.inbox_outlined, size: 36, color: AppTheme.textSecondary),
+            Icon(Icons.inbox_outlined, size: 36, color: AppTheme.textSecondary),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No campaigns found',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Try adjusting your search query or filter tags.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),

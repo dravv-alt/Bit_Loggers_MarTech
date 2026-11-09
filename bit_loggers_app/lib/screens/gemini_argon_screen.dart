@@ -31,7 +31,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: const TextStyle(color: AppTheme.leaf)),
+        content: Text(msg, style: TextStyle(color: AppTheme.leaf)),
         backgroundColor: isError ? AppTheme.statusRejected : AppTheme.forge,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
@@ -91,7 +91,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'CampaignGrid',
                   style: TextStyle(
                     fontFamily: 'serif',
@@ -104,7 +104,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                 Container(
                   width: 32,
                   height: 32,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppTheme.secondarySystemBackground,
                     shape: BoxShape.circle,
                     boxShadow: AppTheme.appleCardShadow,
@@ -112,7 +112,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                   child: Center(
                     child: Text(
                       userInitials,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textPrimary,
@@ -125,7 +125,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             const SizedBox(height: 20),
 
             // Subtitle Eyebrow: PROPOSAL INTELLIGENCE
-            const Text(
+            Text(
               'PROPOSAL INTELLIGENCE',
               style: TextStyle(
                 fontSize: 10,
@@ -137,7 +137,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             const SizedBox(height: 4),
 
             // Large Editorial Serif Headline
-            const Text(
+            Text(
               'On your terms.',
               style: TextStyle(
                 fontFamily: 'serif',
@@ -171,7 +171,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Gemini 4 Argon',
                         style: TextStyle(
                           fontSize: 18,
@@ -187,7 +187,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: AppTheme.forge.withOpacity(0.2), width: 1),
                         ),
-                        child: const Text(
+                        child: Text(
                           'VERIFIED',
                           style: TextStyle(
                             fontSize: 9,
@@ -204,7 +204,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                   // Middle Summary
                   Text(
                     _audienceSummary,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: AppTheme.forge,
@@ -244,7 +244,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                         children: [
                           Text(
                             _cardMask,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.forge,
@@ -252,7 +252,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
+                          Text(
                             'DEMO CARD',
                             style: TextStyle(
                               fontSize: 9,
@@ -274,7 +274,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'ACTIVE • MODEL V4.2',
                   style: TextStyle(
                     fontSize: 10,
@@ -287,7 +287,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                   widget.api.currentUser.name.isNotEmpty
                       ? widget.api.currentUser.name
                       : 'Alan Lee',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: AppTheme.textSecondary,
@@ -312,11 +312,11 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.star_rounded, size: 18, color: AppTheme.verdictLime),
+                    Icon(Icons.star_rounded, size: 18, color: AppTheme.verdictLime),
                     const SizedBox(width: 8),
                     Text(
                       _isLocking ? 'Locking snapshot…' : 'Verify & lock V3 snapshot',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.leaf,
@@ -329,7 +329,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             const SizedBox(height: 8),
 
             // Explanatory Caption
-            const Center(
+            Center(
               child: Text(
                 'Pause automatic model adjustments instantly. Your verified baseline stays locked.',
                 style: TextStyle(
@@ -343,7 +343,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
             const SizedBox(height: 26),
 
             // SECTION: Controls
-            const Text(
+            Text(
               'Controls',
               style: TextStyle(
                 fontSize: 16,
@@ -366,11 +366,11 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppTheme.tertiarySystemBackground,
                       shape: BoxShape.circle,
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(Icons.language, size: 18, color: AppTheme.forge),
                     ),
                   ),
@@ -379,7 +379,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Immutable version lock',
                           style: TextStyle(
                             fontSize: 13,
@@ -392,7 +392,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                           _versionLockEnabled
                               ? 'Active lease held by Sarah'
                               : 'Unlocked (Concurrent revisions allowed)',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             color: AppTheme.textSecondary,
                           ),
@@ -427,11 +427,11 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppTheme.tertiarySystemBackground,
                       shape: BoxShape.circle,
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(Icons.gps_fixed, size: 18, color: AppTheme.forge),
                     ),
                   ),
@@ -440,7 +440,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Idempotency protection',
                           style: TextStyle(
                             fontSize: 13,
@@ -453,7 +453,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
                           _idempotencyEnabled
                               ? 'Deduplication & replay safe'
                               : 'Idempotency keys disabled',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             color: AppTheme.textSecondary,
                           ),

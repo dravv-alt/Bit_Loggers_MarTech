@@ -51,7 +51,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String _selectedMetric = 'roi';
   int? _hoveredIndex;
 
-  static const Map<String, _MetricInfo> _metrics = {
+  static Map<String, _MetricInfo> _metrics = {
     'roi': _MetricInfo(
       key: 'roi',
       title: 'Return on Investment',
@@ -169,7 +169,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: AppTheme.forge,
               onPrimary: AppTheme.leaf,
               surface: AppTheme.leaf,
@@ -213,7 +213,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Intelligence & Analytics',
               style: TextStyle(
                 fontSize: 17,
@@ -222,7 +222,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 letterSpacing: -0.4,
               ),
             ),
-            const Text(
+            Text(
               'Live performance telemetry',
               style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w400),
             ),
@@ -230,14 +230,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppTheme.textPrimary),
+            icon: Icon(Icons.refresh_rounded, color: AppTheme.textPrimary),
             tooltip: 'Refresh Telemetry',
             onPressed: _fetch,
           ),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.forge))
+          ? Center(child: CircularProgressIndicator(color: AppTheme.forge))
           : _errorMessage != null
               ? _buildErrorView()
               : RefreshIndicator(
@@ -274,7 +274,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.warning_amber_rounded, size: 48, color: AppTheme.statusRejected),
+            Icon(Icons.warning_amber_rounded, size: 48, color: AppTheme.statusRejected),
             const SizedBox(height: 12),
             Text(
               'Telemetry Feed Error',
@@ -284,7 +284,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Text(
               _errorMessage ?? 'Failed to load telemetry snapshots.',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -318,12 +318,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           // Row 1: Date Range Presets & Custom Picker Trigger
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 16, color: AppTheme.textSecondary),
+              Icon(Icons.calendar_today_outlined, size: 16, color: AppTheme.textSecondary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   dateRangeStr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
@@ -365,12 +365,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               _presetChip('Quarter to Date', '90D'),
             ],
           ),
-          const Divider(height: 16, color: AppTheme.separator),
+          Divider(height: 16, color: AppTheme.separator),
 
           // Row 2: Channel filter pills
           Row(
             children: [
-              const Text(
+              Text(
                 'CHANNEL:',
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel, letterSpacing: 0.5),
               ),
@@ -539,7 +539,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ? Container(
                   height: 180,
                   alignment: Alignment.center,
-                  child: const Text('No time-series snapshots recorded for this range.', style: TextStyle(color: AppTheme.textSecondary)),
+                  child: Text('No time-series snapshots recorded for this range.', style: TextStyle(color: AppTheme.textSecondary)),
                 )
               : SizedBox(
                   height: 190,
@@ -566,7 +566,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
 
           const SizedBox(height: 12),
-          const Divider(height: 0.5, color: AppTheme.separator),
+          Divider(height: 0.5, color: AppTheme.separator),
           const SizedBox(height: 10),
 
           // Statistical Summary Chips (Min, Max, Avg)
@@ -610,11 +610,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.touch_app, size: 14, color: AppTheme.forge),
+                Icon(Icons.touch_app, size: 14, color: AppTheme.forge),
                 const SizedBox(width: 4),
                 Text(
                   date,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                 ),
               ],
             ),
@@ -625,11 +625,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Text(
                   'Actual: ${activeMetric.formatValue(actualVal)}',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
                 ),
                 Text(
                   'Target: ${activeMetric.formatValue(projVal)}',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
@@ -667,9 +667,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 14, height: 3, decoration: const BoxDecoration(color: AppTheme.forge, borderRadius: BorderRadius.all(Radius.circular(2)))),
+                Container(width: 14, height: 3, decoration: BoxDecoration(color: AppTheme.forge, borderRadius: BorderRadius.all(Radius.circular(2)))),
                 const SizedBox(width: 5),
-                const Text('Actual Telemetry', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                Text('Actual Telemetry', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
               ],
             ),
             Row(
@@ -681,12 +681,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   decoration: const BoxDecoration(color: Color(0xFF94A3B8)),
                 ),
                 const SizedBox(width: 5),
-                const Text('Projected Baseline', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                Text('Projected Baseline', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
               ],
             ),
           ],
         ),
-        const Text(
+        Text(
           'Drag/Tap to inspect',
           style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: AppTheme.textSecondary),
         ),
@@ -719,12 +719,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
+          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
         ),
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
@@ -748,7 +748,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           spacing: 8,
           runSpacing: 4,
           children: [
-            const Text(
+            Text(
               'Performance benchmarks (projected vs actual)',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
             ),
@@ -820,7 +820,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             color: AppTheme.forge,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text('ACTIVE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
+                          child: Text('ACTIVE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
                         ),
                       ],
                     ],
@@ -851,7 +851,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Text(
                   info.formatValue(act),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
@@ -862,7 +862,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 const SizedBox(width: 8),
                 Text(
                   'Target: ${info.formatValue(proj)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color: AppTheme.textSecondary,
                   ),
@@ -872,7 +872,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const SizedBox(height: 12),
 
             // Spend wave burn bar with red needle at 75% ceiling
-            const Text(
+            Text(
               'Spend wave pacing · 75% budget ceiling',
               style: TextStyle(
                 fontSize: 11,
@@ -925,7 +925,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Expanded(
                   child: Text(
                     'Current flight: 62% burned',
-                    style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                    style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -1014,7 +1014,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       color: AppTheme.forge,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('ACTIVE', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
+                    child: Text('ACTIVE', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
                   ),
                 ],
               ],
@@ -1035,7 +1035,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Text(
                   'Tgt: ${info.formatValue(proj)}',
-                  style: const TextStyle(fontSize: 9, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 9, color: AppTheme.textSecondary),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
@@ -1124,7 +1124,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               Expanded(
                 child: Text(
                   'CONVERSION FUNNEL (${formatVolume(impressions)} VOLUME)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.12,
@@ -1134,7 +1134,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'TimescaleDB rollup',
                 style: TextStyle(fontSize: 9, color: AppTheme.textSecondary),
               ),
@@ -1153,7 +1153,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       Expanded(
                         child: Text(
                           st['name'] as String,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -1162,7 +1162,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         children: [
                           Text(
                             st['volume'] as String,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1172,7 +1172,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           const SizedBox(width: 4),
                           Text(
                             '(${st['pct']})',
-                            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                            style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                           ),
                         ],
                       ),
@@ -1185,7 +1185,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       value: barVal,
                       minHeight: 4,
                       backgroundColor: AppTheme.paper,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.forge),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.forge),
                     ),
                   ),
                 ],
@@ -1223,7 +1223,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
               Text(
                 'Total: \$${NumberFormat('#,###').format(totalBudget)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.forge,
@@ -1235,12 +1235,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           const SizedBox(height: 4),
           Text(
             'Aggregated spend across $totalCampaigns active campaign flight(s)',
-            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+            style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 14),
 
           if (breakdown.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text('No active channel campaigns match current filter.', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
             )
@@ -1267,19 +1267,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               Flexible(
                                 child: Text(
                                   name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              Text('($count)', style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                              Text('($count)', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                             ],
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           "\$${NumberFormat('#,###').format(budget)} (${(percent * 100).toStringAsFixed(0)}%)",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
@@ -1379,7 +1379,7 @@ class _HistoricalTrendPainter extends CustomPainter {
       // Label
       final labelSpan = TextSpan(
         text: value >= 100 ? value.round().toString() : value.toStringAsFixed(1),
-        style: const TextStyle(fontSize: 9, color: AppTheme.textSecondary, fontFamily: 'monospace'),
+        style: TextStyle(fontSize: 9, color: AppTheme.textSecondary, fontFamily: 'monospace'),
       );
       final tp = TextPainter(text: labelSpan, textDirection: TextDirection.ltr);
       tp.layout();
@@ -1485,7 +1485,7 @@ class _HistoricalTrendPainter extends CustomPainter {
     }
     final span = TextSpan(
       text: dateStr,
-      style: const TextStyle(fontSize: 9, color: AppTheme.textSecondary, fontFamily: 'monospace'),
+      style: TextStyle(fontSize: 9, color: AppTheme.textSecondary, fontFamily: 'monospace'),
     );
     final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
     tp.layout();

@@ -80,7 +80,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: const TextStyle(color: AppTheme.leaf)),
+        content: Text(msg, style: TextStyle(color: AppTheme.leaf)),
         backgroundColor: isError ? AppTheme.statusRejected : AppTheme.forge,
         behavior: SnackBarBehavior.floating,
       ),
@@ -215,7 +215,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: AppTheme.verdictLimeDark, width: 0.5),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.auto_awesome, color: AppTheme.forge, size: 14),
@@ -232,7 +232,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Enter a campaign theme or goal. Gemini will structure your objective, target persona, and forecast 5 KPIs.',
                   style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
                 ),
@@ -259,7 +259,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
                       icon: _isGeneratingAi
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf))
+                          ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf))
                           : const Icon(Icons.bolt, size: 16),
                       label: const Text('Draft AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
@@ -271,7 +271,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           const SizedBox(height: 20),
 
           // Title
-          const Text(
+          Text(
             'CAMPAIGN TITLE *',
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
           ),
@@ -280,7 +280,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           const SizedBox(height: 16),
 
           // Visual Channel Selector
-          const Text(
+          Text(
             'SELECT CHANNEL DESTINATION',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
           ),
@@ -295,7 +295,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'CHANNEL',
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
                     ),
@@ -306,7 +306,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                       decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10)),
                       dropdownColor: AppTheme.leaf,
                       items: ['Social', 'Email', 'Search', 'Display', 'Influencer', 'Video']
-                          .map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary))))
+                          .map((c) => DropdownMenuItem(value: c, child: Text(c, style: TextStyle(fontSize: 12, color: AppTheme.textPrimary))))
                           .toList(),
                       onChanged: (val) {
                         if (val != null) setState(() => _channel = val);
@@ -320,7 +320,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'BUDGET (USD \$) *',
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
                     ),
@@ -342,7 +342,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           const SizedBox(height: 16),
 
           // Objective
-          const Text(
+          Text(
             'STRATEGIC OBJECTIVE *',
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
           ),
@@ -351,7 +351,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           const SizedBox(height: 16),
 
           // Target Audience
-          const Text(
+          Text(
             'TARGET AUDIENCE PERSONA *',
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary, letterSpacing: 0.5),
           ),
@@ -374,7 +374,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Projected performance benchmarks',
                   style: TextStyle(
                     fontSize: 14,
@@ -384,7 +384,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
+                Text(
                   'Estimated conversion, engagement, and returns',
                   style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                 ),
@@ -403,7 +403,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Divider(height: 0.5, color: AppTheme.separator),
+                Divider(height: 0.5, color: AppTheme.separator),
                 const SizedBox(height: 10),
                 _buildKpiSummaryBenchmark(),
               ],
@@ -415,7 +415,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
     ),
     bottomNavigationBar: Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.secondarySystemBackground,
         border: Border(top: BorderSide(color: AppTheme.separator, width: 0.5)),
       ),
@@ -432,7 +432,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text(
+                child: Text(
                   'Save Draft',
                   style: TextStyle(
                     fontSize: 14,
@@ -454,14 +454,14 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: _submitting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(color: AppTheme.leaf, strokeWidth: 2),
                       )
                     : Text(
                         isEditing ? 'Submit Revision' : 'Submit for Review',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.leaf,
@@ -488,20 +488,20 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           children: [
             Text(
               label,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
             ),
             const SizedBox(height: 4),
             TextFormField(
               initialValue: val.toString(),
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.label,
                 fontFeatures: [FontFeature.tabularFigures()],
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
                 filled: true,
                 fillColor: AppTheme.secondarySystemBackground,
@@ -572,7 +572,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppTheme.warmAmber,
                           ),
@@ -629,7 +629,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Pacing & daily run-rate',
                   overflow: TextOverflow.ellipsis,
@@ -649,7 +649,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 ),
                 child: Text(
                   '\$${dailyRate.toStringAsFixed(0)}/day (14d flight)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.moss,
@@ -714,7 +714,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 child: Container(
                   height: 8,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [AppTheme.moss, AppTheme.warmAmber],
                     ),
                     borderRadius: BorderRadius.circular(4),
@@ -754,14 +754,14 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
             children: [
               Text(
                 'Allocated: \$${currentBudget.toStringAsFixed(0)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textSecondary,
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
-              const Row(
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.warning_amber_rounded, size: 10, color: AppTheme.crimsonNeedle),
@@ -815,7 +815,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 ),
                 child: Text(
                   _channel.toUpperCase(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
                     color: AppTheme.leaf,
@@ -824,7 +824,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'AD CREATIVE CANVAS · LIVE FLIGHT PREVIEW',
                   overflow: TextOverflow.ellipsis,
@@ -842,7 +842,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                   color: AppTheme.moss.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.fiber_manual_record, size: 7, color: AppTheme.moss),
@@ -874,12 +874,12 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           // Audience Persona & Budget Cap Chip
           Row(
             children: [
-              const Icon(Icons.people_alt_outlined, size: 14, color: AppTheme.textSecondary),
+              Icon(Icons.people_alt_outlined, size: 14, color: AppTheme.textSecondary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   'Audience: $audience · Cap: \$${currentBudget.toInt()}',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -898,7 +898,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 'BENCHMARK TELEMETRY & PROJECTED HEALTH',
                 overflow: TextOverflow.ellipsis,
@@ -916,7 +916,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
                 color: AppTheme.moss.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
+              child: Text(
                 '5/5 Monitored',
                 style: TextStyle(
                   fontSize: 9,
@@ -955,7 +955,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
         children: [
           Text(
             '$label: ',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: AppTheme.secondaryLabel,
@@ -963,7 +963,7 @@ class _CampaignWizardScreenState extends State<CampaignWizardScreen> {
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
               color: AppTheme.label,

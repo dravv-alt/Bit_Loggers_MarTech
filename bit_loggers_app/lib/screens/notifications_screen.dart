@@ -92,13 +92,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: AppTheme.leaf,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 20, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back, size: 20, color: AppTheme.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Notifications',
               style: TextStyle(
                 fontSize: 16,
@@ -107,7 +107,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 letterSpacing: -0.3,
               ),
             ),
-            const Text(
+            Text(
               'Updates from across your workspace.',
               style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
             ),
@@ -119,7 +119,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           // Toolbar: All updates · X unread | Mark all read
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppTheme.secondarySystemBackground,
               border: Border(bottom: BorderSide(color: AppTheme.separator, width: 0.5)),
             ),
@@ -128,12 +128,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               children: [
                 Text(
                   'All updates  ·  $_unreadCount unread',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
                 ),
                 if (_unreadCount > 0)
                   InkWell(
                     onTap: _markAllRead,
-                    child: const Text(
+                    child: Text(
                       'Mark all read',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                     ),
@@ -155,7 +155,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 _buildFilterChip('Unread', 'UNREAD', _unreadCount),
                 const SizedBox(width: 6),
                 _buildFilterChip('Decisions', 'DECISIONS', null),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 _buildFilterChip('Flights', 'FLIGHTS', null),
               ],
             ),
@@ -164,14 +164,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           // Notifications List
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
+                ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
                 : _filteredNotifications.isEmpty
                     ? Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(32),
+                          padding: EdgeInsets.all(32),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(Icons.notifications_none, size: 36, color: AppTheme.textSecondary),
                               SizedBox(height: 12),
                               Text(
@@ -339,7 +339,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           Container(
                             width: 6,
                             height: 6,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: AppTheme.brandAccent,
                               shape: BoxShape.circle,
                             ),
@@ -349,7 +349,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     const SizedBox(height: 4),
                     Text(
                       notif.message,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondary,
                         height: 1.35,
@@ -368,7 +368,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                         ),
                         if (notif.campaignId != null)
-                          const Row(
+                          Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(

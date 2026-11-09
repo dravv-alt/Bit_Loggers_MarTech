@@ -1,88 +1,36 @@
-import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 // ============================================================================
 // REACT BITS IN FLUTTER: MICRO-INTERACTIONS & MEMORABLE COMPONENTS
+// Refactored per heydamir/unslop: quiet chrome, no neon glowing sweeps,
+// no rainbow gradients, crisp typography, and purposeful micro-physics.
 // ============================================================================
 
-/// 1. SHINY TEXT (React Bits: Text Animations / Shiny Text)
-/// Sweeps a beam of luminous sheen across text, from soft bands to chrome reflection.
-class ShinyText extends StatefulWidget {
+/// 1. SHINY TEXT (React Bits: Text Animations / Clean Typography)
+/// Replaces the AI-slop neon sweep with clean, crisp typography.
+class ShinyText extends StatelessWidget {
   final String text;
   final TextStyle? style;
-  final Color shimmerColor;
-  final Duration duration;
+  final Color? shimmerColor;
+  final Duration? duration;
 
   const ShinyText({
     super.key,
     required this.text,
     this.style,
-    this.shimmerColor = AppTheme.phosphorChartreuse,
-    this.duration = const Duration(milliseconds: 2400),
+    this.shimmerColor,
+    this.duration,
   });
 
   @override
-  State<ShinyText> createState() => _ShinyTextState();
-}
-
-class _ShinyTextState extends State<ShinyText> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration)..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final baseStyle = widget.style ?? const TextStyle(color: AppTheme.textPrimary, fontSize: 14);
-
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return ShaderMask(
-          blendMode: BlendMode.srcATop,
-          shaderCallback: (bounds) {
-            final sweep = _controller.value;
-            final width = bounds.width;
-            final start = -width + (sweep * width * 2.5);
-            return LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                baseStyle.color ?? AppTheme.textPrimary,
-                widget.shimmerColor,
-                baseStyle.color ?? AppTheme.textPrimary,
-              ],
-              stops: const [0.35, 0.50, 0.65],
-              transform: _SlidingGradientTransform(slidePercent: sweep),
-            ).createShader(bounds);
-          },
-          child: child,
-        );
-      },
-      child: Text(widget.text, style: baseStyle),
+    return Text(
+      text,
+      style: (style ?? const TextStyle(fontSize: 14)).copyWith(
+        color: style?.color ?? AppTheme.textPrimary,
+      ),
     );
-  }
-}
-
-class _SlidingGradientTransform extends GradientTransform {
-  final double slidePercent;
-  const _SlidingGradientTransform({required this.slidePercent});
-
-  @override
-  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
-    final distance = bounds.width * 2;
-    return Matrix4.translationValues(-bounds.width + (slidePercent * distance), 0.0, 0.0);
   }
 }
 
@@ -147,7 +95,7 @@ class _CountUpState extends State<CountUp> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveStyle = (widget.style ?? const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)).copyWith(
+    final effectiveStyle = (widget.style ?? TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)).copyWith(
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
@@ -182,7 +130,7 @@ class ElasticPressable extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.scaleDown = 0.96,
+    this.scaleDown = 0.97,
     this.duration = const Duration(milliseconds: 120),
   });
 
@@ -205,18 +153,19 @@ class _ElasticPressableState extends State<ElasticPressable> {
       child: AnimatedScale(
         scale: _pressed ? widget.scaleDown : 1.0,
         duration: widget.duration,
-        curve: Curves.easeOutCubic,
+        curve: const Cubic(0.22, 1.0, 0.36, 1.0),
         child: widget.child,
       ),
     );
   }
 }
 
-/// 4. BORDER GLOW CARD (React Bits: Components / Border Glow & Spotlight Card)
-/// Smoked quartz card featuring a specular animated rim sweep.
-class BorderGlowCard extends StatefulWidget {
+/// 4. BORDER GLOW CARD (Refactored to Unslop Clean Architectural Card)
+/// Strips out rotating sweep neon gradients and 20px fuzzy glowing halos.
+/// Renders an authentic, quiet card adhering to current theme tokens.
+class BorderGlowCard extends StatelessWidget {
   final Widget child;
-  final Color glowColor;
+  final Color? glowColor;
   final EdgeInsetsGeometry padding;
   final BorderRadius? borderRadius;
   final VoidCallback? onTap;
@@ -224,88 +173,47 @@ class BorderGlowCard extends StatefulWidget {
   const BorderGlowCard({
     super.key,
     required this.child,
-    this.glowColor = AppTheme.phosphorChartreuse,
+    this.glowColor,
     this.padding = const EdgeInsets.all(16),
     this.borderRadius,
     this.onTap,
   });
 
   @override
-  State<BorderGlowCard> createState() => _BorderGlowCardState();
-}
-
-class _BorderGlowCardState extends State<BorderGlowCard> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 4000))..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final radius = widget.borderRadius ?? BorderRadius.circular(16);
+    final radius = borderRadius ?? BorderRadius.circular(AppTheme.tokens.radiusCard);
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final angle = _controller.value * 2 * math.pi;
-        return ElasticPressable(
-          onTap: widget.onTap,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              gradient: SweepGradient(
-                center: Alignment.center,
-                transform: GradientRotation(angle),
-                colors: [
-                  AppTheme.rimKeyLight.withOpacity(0.15),
-                  widget.glowColor.withOpacity(0.55),
-                  AppTheme.rimKeyLight.withOpacity(0.15),
-                  widget.glowColor.withOpacity(0.20),
-                  AppTheme.rimKeyLight.withOpacity(0.15),
-                ],
-                stops: const [0.0, 0.25, 0.50, 0.75, 1.0],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.glowColor.withOpacity(0.08),
-                  blurRadius: 20,
-                  spreadRadius: 1,
-                ),
-                ...AppTheme.appleCardShadow,
-              ],
-            ),
-            child: Container(
-              margin: const EdgeInsets.all(1.0), // 1px border reveal
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                color: AppTheme.slabQuartz,
-                borderRadius: BorderRadius.circular(radius.topLeft.x - 1),
-              ),
-              child: widget.child,
-            ),
-          ),
-        );
-      },
+    final cardContent = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppTheme.card,
+        borderRadius: radius,
+        border: Border.all(
+          color: AppTheme.hairline,
+          width: AppTheme.tokens.structuralRuleWidth,
+        ),
+        boxShadow: AppTheme.appleCardShadow,
+      ),
+      child: child,
     );
+
+    if (onTap != null) {
+      return ElasticPressable(
+        onTap: onTap,
+        child: cardContent,
+      );
+    }
+    return cardContent;
   }
 }
 
 /// 5. LIQUID HOLD BUTTON (React Bits: Micro / Hold Button)
-/// Press-and-hold action button with rising bioluminescent fill before confirmation.
+/// Press-and-hold action button with clean solid fill confirmation.
 class LiquidHoldButton extends StatefulWidget {
   final String label;
   final VoidCallback onComplete;
   final Duration holdDuration;
-  final Color fillColor;
+  final Color? fillColor;
   final IconData? icon;
 
   const LiquidHoldButton({
@@ -313,7 +221,7 @@ class LiquidHoldButton extends StatefulWidget {
     required this.label,
     required this.onComplete,
     this.holdDuration = const Duration(milliseconds: 1000),
-    this.fillColor = AppTheme.phosphorChartreuse,
+    this.fillColor,
     this.icon,
   });
 
@@ -361,6 +269,8 @@ class _LiquidHoldButtonState extends State<LiquidHoldButton> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final effectiveFill = widget.fillColor ?? AppTheme.accent;
+
     return GestureDetector(
       onTapDown: (_) => _onDown(),
       onTapUp: (_) => _onUp(),
@@ -373,32 +283,23 @@ class _LiquidHoldButtonState extends State<LiquidHoldButton> with SingleTickerPr
             height: 48,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppTheme.slabElevated,
-              borderRadius: BorderRadius.circular(12),
+              color: AppTheme.well,
+              borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
               border: Border.all(
-                color: widget.fillColor.withOpacity(0.4 + (progress * 0.6)),
-                width: 1.0,
+                color: effectiveFill.withOpacity(0.4 + (progress * 0.6)),
+                width: AppTheme.tokens.structuralRuleWidth,
               ),
-              boxShadow: progress > 0
-                  ? [
-                      BoxShadow(
-                        color: widget.fillColor.withOpacity(0.3 * progress),
-                        blurRadius: 16 * progress,
-                        spreadRadius: 1 * progress,
-                      )
-                    ]
-                  : null,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl > 1 ? AppTheme.tokens.radiusControl - 1 : 0),
               child: Stack(
                 children: [
-                  // Liquid fill rising
+                  // Progress fill
                   FractionallySizedBox(
                     alignment: Alignment.centerLeft,
                     widthFactor: progress,
                     child: Container(
-                      color: widget.fillColor,
+                      color: effectiveFill,
                     ),
                   ),
                   // Button Text
@@ -416,7 +317,7 @@ class _LiquidHoldButtonState extends State<LiquidHoldButton> with SingleTickerPr
                         ],
                         Text(
                           _completed
-                              ? 'Confirmed!'
+                              ? 'Confirmed'
                               : (progress > 0.05
                                   ? 'Hold to confirm (${(progress * 100).toInt()}%)'
                                   : widget.label),
@@ -440,84 +341,33 @@ class _LiquidHoldButtonState extends State<LiquidHoldButton> with SingleTickerPr
   }
 }
 
-/// 6. PULSE STATUS GLOW (React Bits: Micro / Status Mark & Backgrounds / Magic Rings)
-/// A glowing status node with concentric breathing aura.
-class PulseStatusGlow extends StatefulWidget {
-  final Color color;
+/// 6. PULSE STATUS GLOW (Clean Crisp Status Mark per Unslop)
+/// Strips out animated concentric expanding rings and fuzzy drop-shadows.
+/// Renders a calm, solid status dot with clean hairline outline.
+class PulseStatusGlow extends StatelessWidget {
+  final Color? color;
   final double size;
 
   const PulseStatusGlow({
     super.key,
-    this.color = AppTheme.phosphorChartreuse,
+    this.color,
     this.size = 8.0,
   });
 
   @override
-  State<PulseStatusGlow> createState() => _PulseStatusGlowState();
-}
-
-class _PulseStatusGlowState extends State<PulseStatusGlow> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final val = _controller.value;
-        return SizedBox(
-          width: widget.size * 2.2,
-          height: widget.size * 2.2,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Concentric expanding ring
-              Transform.scale(
-                scale: 1.0 + (val * 1.2),
-                child: Container(
-                  width: widget.size,
-                  height: widget.size,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: widget.color.withOpacity((1.0 - val) * 0.7),
-                      width: 1.0,
-                    ),
-                  ),
-                ),
-              ),
-              // Solid core dot
-              Container(
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  color: widget.color,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.color.withOpacity(0.6),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    final dotColor = color ?? AppTheme.statusApproved;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: dotColor,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: dotColor.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
     );
   }
 }
-

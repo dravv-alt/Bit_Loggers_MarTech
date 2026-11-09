@@ -71,8 +71,8 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
         actions: [
           IconButton(
             icon: _running
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
-                : const Icon(Icons.play_arrow, color: AppTheme.forge),
+                ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
+                : Icon(Icons.play_arrow, color: AppTheme.forge),
             onPressed: _running ? null : _run,
           ),
         ],
@@ -85,13 +85,13 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
             color: AppTheme.forge,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppTheme.verdictLime, width: 1.5),
+              side: BorderSide(color: AppTheme.verdictLime, width: 1.5),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const Icon(Icons.verified, color: AppTheme.verdictLime, size: 32),
+                  Icon(Icons.verified, color: AppTheme.verdictLime, size: 32),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -99,7 +99,7 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                       children: [
                         Text(
                           allPassed ? '100% ARCHITECTURE COMPLIANT' : 'EXECUTING TESTS...',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.verdictLime),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.verdictLime),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -142,7 +142,7 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(color: AppTheme.forge, width: 0.5),
                               ),
-                              child: Text(t['id'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge)),
+                              child: Text(t['id'], style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge)),
                             ),
                             const SizedBox(width: 6),
                             Container(
@@ -151,7 +151,7 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                                 color: AppTheme.paper,
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(t['qa'], style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+                              child: Text(t['qa'], style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
                             ),
                           ],
                         ),
@@ -170,9 +170,9 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(t['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary)),
+                    Text(t['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary)),
                     const SizedBox(height: 4),
-                    Text(t['details'], style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontFamily: 'monospace')),
+                    Text(t['details'], style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontFamily: 'monospace')),
                   ],
                 ),
               ),

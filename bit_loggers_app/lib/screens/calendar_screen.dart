@@ -87,7 +87,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       await _fetch();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Sample multi-channel flights seeded successfully.'),
             backgroundColor: AppTheme.slabElevated,
           ),
@@ -200,7 +200,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
             // Subtle loading indicator
             if (_loading)
-              const LinearProgressIndicator(
+              LinearProgressIndicator(
                 minHeight: 2.0,
                 color: AppTheme.phosphorChartreuse,
                 backgroundColor: AppTheme.slabPill,
@@ -236,7 +236,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.calendar_month_rounded, size: 18, color: AppTheme.textInverse),
@@ -269,7 +269,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.slabQuartz,
         border: Border(bottom: BorderSide(color: AppTheme.borderCard, width: 0.75)),
       ),
@@ -285,7 +285,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const ShinyText(
+                    ShinyText(
                       text: 'FLIGHT CAPACITY BOARD',
                       shimmerColor: AppTheme.phosphorChartreuse,
                       style: TextStyle(
@@ -296,7 +296,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    const Text(
+                    Text(
                       'Flight Calendar',
                       style: TextStyle(
                         fontSize: 20,
@@ -310,7 +310,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       _activeView == 'month'
                           ? monthFormat.format(_focusedDate)
                           : weekFormat,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         color: AppTheme.textSecondary,
                         fontWeight: FontWeight.w500,
@@ -364,7 +364,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(Icons.chevron_left_rounded, color: AppTheme.textPrimary, size: 18),
                   ),
                 ),
@@ -385,7 +385,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       PulseStatusGlow(color: AppTheme.glacialCyan, size: 5),
@@ -421,7 +421,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(Icons.chevron_right_rounded, color: AppTheme.textPrimary, size: 18),
                   ),
                 ),
@@ -438,7 +438,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppTheme.phosphorChartreuse.withOpacity(0.4), width: 0.75),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.auto_awesome, size: 11, color: AppTheme.phosphorChartreuse),
@@ -462,11 +462,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const PulseStatusGlow(color: AppTheme.phosphorChartreuse, size: 5),
+                      PulseStatusGlow(color: AppTheme.phosphorChartreuse, size: 5),
                       SizedBox(width: 5),
                       Text(
                         '${_filteredEvents.length} flights booked',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textPrimary,
@@ -538,13 +538,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const PulseStatusGlow(color: AppTheme.signalCoral, size: 8),
+          PulseStatusGlow(color: AppTheme.signalCoral, size: 8),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'CHANNEL COLLISION DETECTED',
                   style: TextStyle(
                     fontSize: 11,
@@ -556,7 +556,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 const SizedBox(height: 2),
                 Text(
                   '${conflicts.length} overlapping booking(s) on ${conflicts.map((c) => c['channel']).toSet().join(', ')}. Post-review flight adjustment required.',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
                 ),
               ],
             ),
@@ -678,7 +678,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   _DayHeader('S'),
                 ],
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Divider(color: AppTheme.borderCard, height: 0.75),
               ),
@@ -806,7 +806,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               child: Text(
                 DateFormat('EEEE, d MMMM').format(_selectedDay),
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
@@ -858,17 +858,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(Icons.event_available_rounded, size: 22, color: AppTheme.phosphorChartreuse),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'No flights scheduled for ${DateFormat('d MMMM yyyy').format(_selectedDay)}',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary, letterSpacing: -0.2),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary, letterSpacing: -0.2),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'All channel lanes are open for scheduling on this date.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
@@ -882,7 +882,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       color: AppTheme.phosphorChartreuse,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.add_rounded, size: 16, color: AppTheme.textInverse),
@@ -933,7 +933,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           child: Row(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 80,
                 child: Center(
                   child: Text(
@@ -948,7 +948,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: [
                       Text(
                         DateFormat('E').format(day),
-                        style: const TextStyle(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
+                        style: TextStyle(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -1000,7 +1000,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'CHANNEL OCCUPANCY & DENSITY',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: AppTheme.textMuted),
@@ -1015,7 +1015,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: AppTheme.celadonSage.withOpacity(0.4), width: 0.75),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     PulseStatusGlow(color: AppTheme.celadonSage, size: 5),
@@ -1040,7 +1040,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: [
                       Text(
                         ch['name'] as String,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.textSecondary),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppTheme.textSecondary),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
@@ -1058,7 +1058,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       const SizedBox(height: 6),
                       Text(
                         '$pct%',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimary,
@@ -1107,7 +1107,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 const SizedBox(width: 8),
                 Text(
                   channel,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.textPrimary),
                 ),
                 const Spacer(),
                 Container(
@@ -1118,7 +1118,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   child: Text(
                     '${laneEvents.length} flight(s)',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.textSecondary,
                       fontFeatures: [FontFeature.tabularFigures()],
@@ -1128,7 +1128,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ],
             ),
           ),
-          const Divider(color: AppTheme.borderCard, height: 0.75),
+          Divider(color: AppTheme.borderCard, height: 0.75),
 
           // Flight Lane Board
           if (laneEvents.isEmpty) ...[
@@ -1141,7 +1141,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     child: Text(
                       'No $channel flights scheduled this week',
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textMuted, fontStyle: FontStyle.italic),
+                      style: TextStyle(fontSize: 11, color: AppTheme.textMuted, fontStyle: FontStyle.italic),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1156,7 +1156,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                       child: Text(
                         '+ Book $channel slot',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.phosphorChartreuse),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.phosphorChartreuse),
                       ),
                     ),
                   ),
@@ -1380,7 +1380,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                         child: Text(
                           'v${event.versionNo}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textSecondary,
                             fontWeight: FontWeight.w600,
                             fontSize: 11,
@@ -1399,7 +1399,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: AppTheme.celadonSage.withOpacity(0.4), width: 0.75),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         PulseStatusGlow(color: AppTheme.celadonSage, size: 5),
@@ -1425,7 +1425,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       children: [
                         Text(
                           event.title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.textPrimary,
@@ -1435,13 +1435,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(Icons.flight_takeoff_rounded, size: 12, color: AppTheme.textSecondary),
+                            Icon(Icons.flight_takeoff_rounded, size: 12, color: AppTheme.textSecondary),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 '${dateFormat.format(start)} – ${dateFormat.format(end)}',
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   color: AppTheme.textSecondary,
                                   fontFeatures: [FontFeature.tabularFigures()],
@@ -1454,7 +1454,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         // HIGH CONTRAST LUMINOUS BUDGET (Tabular Phosphor Chartreuse)
                         Text(
                           '\$${event.budget.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.phosphorChartreuse,
@@ -1485,7 +1485,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'Pacing ${(burnRatio * 100).toInt()}%',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -1536,7 +1536,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppTheme.borderCard, width: 0.75),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.north_east_rounded, size: 14, color: AppTheme.phosphorChartreuse),
@@ -1567,13 +1567,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'SPEND BURN PACING',
               style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: AppTheme.textMuted, letterSpacing: 0.6),
             ),
             Text(
               '${(burnRatio * 100).toInt()}% burned · 75% limit',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textSecondary,
@@ -1601,7 +1601,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: Container(
                   height: 4,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [AppTheme.glacialCyan, AppTheme.phosphorChartreuse],
                     ),
                     borderRadius: BorderRadius.circular(2),
@@ -1675,12 +1675,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
             const SizedBox(height: 16),
             Text(
               evt.title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
             ),
             const SizedBox(height: 6),
             Text(
               'Channel: ${evt.channel} • Version v${evt.versionNo}',
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
             _buildModalDetailRow('Flight starts', evt.startsAt.substring(0, 10)),
@@ -1708,7 +1708,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   color: AppTheme.phosphorChartreuse,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
                     'Open campaign dossier',
                     style: TextStyle(color: AppTheme.textInverse, fontWeight: FontWeight.w700, fontSize: 14),
@@ -1728,10 +1728,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: AppTheme.textPrimary,
@@ -1749,7 +1749,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _showScheduleDialog({DateTime? initialDate, String? initialChannel}) {
     if (_approvedCampaigns.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('No approved campaigns pending scheduling. Only approved proposals can be scheduled.'),
           backgroundColor: AppTheme.slabElevated,
         ),
@@ -1794,19 +1794,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                const Text(
+                Text(
                   'Schedule Campaign Flight',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.4),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Schedules the campaign flight with continuous collision and capacity protection.',
                   style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 16),
 
                 // Select Approved Campaign
-                const Text('Approved Campaign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                Text('Approved Campaign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1825,7 +1825,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           value: c.campaignId,
                           child: Text(
                             '${c.title} (v${c.currentVersion?.versionNo ?? 1})',
-                            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                            style: TextStyle(fontSize: 13, color: AppTheme.textPrimary),
                           ),
                         );
                       }).toList(),
@@ -1850,7 +1850,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Flight Start', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                          Text('Flight Start', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                           const SizedBox(height: 4),
                           ElasticPressable(
                             onTap: () async {
@@ -1873,7 +1873,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ),
                               child: Text(
                                 DateFormat('yyyy-MM-dd').format(startDate),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   color: AppTheme.textPrimary,
                                   fontFeatures: [FontFeature.tabularFigures()],
@@ -1889,7 +1889,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Flight End', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                          Text('Flight End', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                           const SizedBox(height: 4),
                           ElasticPressable(
                             onTap: () async {
@@ -1912,7 +1912,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ),
                               child: Text(
                                 DateFormat('yyyy-MM-dd').format(endDate),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   color: AppTheme.textPrimary,
                                   fontFeatures: [FontFeature.tabularFigures()],
@@ -1978,8 +1978,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                     child: Center(
                       child: scheduling
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2))
-                          : const Text('Commit flight schedule', style: TextStyle(color: AppTheme.textInverse, fontWeight: FontWeight.w700, fontSize: 14)),
+                          ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2))
+                          : Text('Commit flight schedule', style: TextStyle(color: AppTheme.textInverse, fontWeight: FontWeight.w700, fontSize: 14)),
                     ),
                   ),
                 ),
@@ -2002,7 +2002,7 @@ class _DayHeader extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
             color: AppTheme.textMuted,

@@ -235,7 +235,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading || _campaign == null) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppTheme.canvasVoid,
         body: Center(
           child: CircularProgressIndicator(color: AppTheme.phosphorChartreuse, strokeWidth: 2),
@@ -254,17 +254,17 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.slabQuartz,
         elevation: 0,
-        bottom: const PreferredSize(
+        bottom: PreferredSize(
           preferredSize: Size.fromHeight(0.75),
           child: Divider(color: AppTheme.borderCard, height: 0.75),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           isReviewer && isSubmitted ? 'Review Proposal' : (isApproved ? 'Schedule Flight' : 'Proposal Dossier'),
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary, letterSpacing: -0.3),
         ),
         actions: [
           if (isMarketer && curVer != null)
@@ -280,7 +280,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   ),
                 ).then((_) => _fetch());
               },
-              child: const Text(
+              child: Text(
                 '+ Revise',
                 style: TextStyle(color: AppTheme.phosphorChartreuse, fontWeight: FontWeight.w700, fontSize: 13),
               ),
@@ -333,7 +333,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Apple Dynamic Headline with ShinyText
-        const ShinyText(
+        ShinyText(
           text: 'Proposal Review & Verification',
           style: TextStyle(
             fontSize: 24,
@@ -364,7 +364,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       children: [
                         Text(
                           widget.api.currentUser.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -390,7 +390,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   ),
                 ],
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
                 child: Divider(color: AppTheme.borderCard, height: 0.75),
               ),
@@ -413,7 +413,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 '"${_reasonController.text.trim()}"',
                 italicValue: true,
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
                 child: Divider(color: AppTheme.borderCard, height: 0.75),
               ),
@@ -422,12 +422,12 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Projected ROI', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  Text('Projected ROI', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                   CountUp(
                     end: kpis.roi,
                     decimals: 1,
                     suffix: 'x',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.phosphorChartreuse,
@@ -448,7 +448,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.25), width: 0.5),
           ),
-          child: const Row(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.info_outline, size: 16, color: AppTheme.textSecondary),
@@ -479,7 +479,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: _submittingDecision
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2),
@@ -513,7 +513,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               side: BorderSide(color: AppTheme.solarTangerine.withOpacity(0.5), width: 1.0),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text(
+            child: Text(
               'Request changes or reject',
               style: TextStyle(
                 fontSize: 13,
@@ -537,7 +537,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           borderRadius: BorderRadius.circular(18),
           side: BorderSide(color: AppTheme.rimKeyLight.withOpacity(0.4), width: 0.75),
         ),
-        title: const Text(
+        title: Text(
           'Review Decision',
           style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
         ),
@@ -545,7 +545,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Enter mandatory written justification reason:',
               style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
@@ -559,8 +559,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               child: TextField(
                 controller: _reasonController,
                 maxLines: 3,
-                style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+                decoration: InputDecoration(
                   hintText: 'Specify required adjustments or policy reason…',
                   hintStyle: TextStyle(fontSize: 12, color: AppTheme.textMuted),
                   border: InputBorder.none,
@@ -636,7 +636,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
             ],
           ),
-          child: const Center(
+          child: Center(
             child: Icon(Icons.check_rounded, size: 34, color: AppTheme.phosphorChartreuse),
           ),
         ),
@@ -645,7 +645,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         // Dynamic Headline
         Text(
           isScheduled ? 'Scheduled, version v${curVer?.versionNo ?? 3}.' : 'Approved, version v${curVer?.versionNo ?? 3}.',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: AppTheme.textPrimary,
@@ -657,7 +657,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           isScheduled
               ? 'Flight schedule confirmed and locked across delivery channels.'
               : 'Flight version approved and prepared for launch execution.',
-          style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+          style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
         ),
         const SizedBox(height: 24),
 
@@ -678,14 +678,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               Center(
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'Target flight launch',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.textSecondary),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Oct 24 · 10:00 AM',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.phosphorChartreuse,
@@ -695,7 +695,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   ],
                 ),
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
                 child: Divider(color: AppTheme.borderCard, height: 0.75),
               ),
@@ -730,7 +730,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Status', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  Text('Status', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
@@ -775,7 +775,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _submittingSchedule
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2),
@@ -845,7 +845,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               children: [
                 Text(
                   _campaign!.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
@@ -863,7 +863,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                         children: [
                           Text(
                             _campaign!.ownerName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.textPrimary,
@@ -892,7 +892,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                               const SizedBox(width: 6),
                               Text(
                                 'CG-$idPrefix',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   color: AppTheme.textSecondary,
                                   fontWeight: FontWeight.w500,
@@ -988,7 +988,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Campaign specifications',
                 style: TextStyle(
                   fontSize: 15,
@@ -1006,7 +1006,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 ),
                 child: Text(
                   'v0${curVer?.versionNo ?? 1}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.phosphorChartreuse,
@@ -1028,11 +1028,11 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             child: Column(
               children: [
                 _buildAppleSpecRow('Channel & placement', curVer?.channel ?? 'Paid Social', isFirst: true),
-                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
+                Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
                 _buildAppleSpecRow('Budget cap', '\$$budgetStr allocated', isNumeric: true),
-                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
+                Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
                 _buildAppleSpecRow('Flight window', '12–26 Nov (14 days)'),
-                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
+                Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
                 _buildAppleSpecRow('Approval state', _campaign!.status, isLast: true),
               ],
             ),
@@ -1043,7 +1043,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Spend wave pacing',
                 style: TextStyle(
                   fontSize: 13,
@@ -1058,7 +1058,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: AppTheme.celadonSage.withOpacity(0.35), width: 0.5),
                 ),
-                child: const Text(
+                child: Text(
                   'Active flight',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.celadonSage),
                 ),
@@ -1104,7 +1104,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
@@ -1118,7 +1118,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 0.5, thickness: 0.5, color: AppTheme.borderCard),
+          Divider(height: 0.5, thickness: 0.5, color: AppTheme.borderCard),
           const SizedBox(height: 14),
 
           // Visual Flight Gantt Timeline Track
@@ -1136,7 +1136,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               color: AppTheme.textSecondary,
               fontWeight: FontWeight.w400,
@@ -1163,7 +1163,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 'FLIGHT TIMELINE · 14 DAYS',
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.2, color: AppTheme.textSecondary),
@@ -1176,10 +1176,10 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: const BoxDecoration(color: AppTheme.celadonSage, shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: AppTheme.celadonSage, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 4),
-                const Text(
+                Text(
                   'Conflict-free',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.celadonSage),
                 ),
@@ -1190,7 +1190,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         const SizedBox(height: 8),
         Row(
           children: [
-            const Text(
+            Text(
               '12 Nov',
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
             ),
@@ -1222,7 +1222,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     child: Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppTheme.phosphorChartreuse,
                         shape: BoxShape.circle,
                       ),
@@ -1232,14 +1232,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               '26 Nov',
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
             ),
           ],
         ),
         const SizedBox(height: 4),
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Start: 12 Nov', style: TextStyle(fontSize: 9, color: AppTheme.textSecondary)),
@@ -1264,7 +1264,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               color: AppTheme.textSecondary,
               fontWeight: FontWeight.w500,
@@ -1275,7 +1275,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: AppTheme.textPrimary,
@@ -1310,7 +1310,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Version lineage',
                 style: TextStyle(
                   fontSize: 15,
@@ -1322,7 +1322,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               InkWell(
                 onTap: () => setState(() => _activeTab = 'Versions'),
                 borderRadius: BorderRadius.circular(6),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                   child: Row(
                     children: [
@@ -1418,7 +1418,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             children: [
               Text(
                 'Changes in version 0$verNo',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
@@ -1434,7 +1434,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 ),
                 child: Text(
                   'Audited v$verNo',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.phosphorChartreuse,
@@ -1456,9 +1456,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             child: Column(
               children: [
                 _buildDiffRow('Audience exclusions', 'Updated demographic filters', isUpdated: true),
-                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
+                Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
                 _buildDiffRow('Primary CTA copy', 'Refined for conversion', isChanged: true),
-                const Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
+                Divider(height: 0.5, thickness: 0.5, indent: 14, color: AppTheme.borderCard),
                 _buildDiffRow('Budget allocation', 'Preserved at ceiling', isUnchanged: true),
               ],
             ),
@@ -1485,7 +1485,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               const SizedBox(width: 8),
               Text(
                 'Creative mockup canvas · $channel',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
@@ -1513,14 +1513,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           const SizedBox(height: 16),
 
           // Target Audience Persona
-          const Text(
+          Text(
             'Target audience demographic',
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 6),
           Text(
             audience,
-            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.35),
+            style: TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.35),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -1547,7 +1547,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       ),
       child: Text(
         '$label: $value',
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
       ),
     );
   }
@@ -1570,7 +1570,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, fontWeight: FontWeight.w400),
+            style: TextStyle(fontSize: 13, color: AppTheme.textPrimary, fontWeight: FontWeight.w400),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1610,7 +1610,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Projected campaign metrics',
                 style: TextStyle(
                   fontSize: 15,
@@ -1626,7 +1626,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: AppTheme.celadonSage.withOpacity(0.35), width: 0.5),
                 ),
-                child: const Text(
+                child: Text(
                   'Top quartile',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.celadonSage),
                 ),
@@ -1658,7 +1658,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: AppTheme.textPrimary),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: AppTheme.textPrimary),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -1668,7 +1668,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.phosphorChartreuse,
@@ -1735,7 +1735,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Review decision',
                 style: TextStyle(
                   fontSize: 15,
@@ -1746,7 +1746,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
               Text(
                 'Version 0$verNo',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.phosphorChartreuse,
@@ -1756,7 +1756,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Approve flight release or request revisions from the campaign author.',
             style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
@@ -1779,7 +1779,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _submittingDecision
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2),
@@ -1850,7 +1850,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 spacing: 8,
                 runSpacing: 4,
                 children: [
-                  const Text(
+                  Text(
                     'Discussions & Threads',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                   ),
@@ -1863,7 +1863,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     ),
                     child: Text(
                       '${_discussions.length}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.phosphorChartreuse,
@@ -1873,7 +1873,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   ),
                 ],
               ),
-              const Text(
+              Text(
                 'Version Anchored',
                 style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
               ),
@@ -1887,7 +1887,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
 
           // Message list
           if (_discussions.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(
                 child: Text(
@@ -1927,7 +1927,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             }),
 
           const SizedBox(height: 12),
-          const Divider(height: 0.5, color: AppTheme.borderCard),
+          Divider(height: 0.5, color: AppTheme.borderCard),
           const SizedBox(height: 12),
 
           // Replying banner
@@ -1942,18 +1942,18 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.reply_rounded, size: 14, color: AppTheme.phosphorChartreuse),
+                  Icon(Icons.reply_rounded, size: 14, color: AppTheme.phosphorChartreuse),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'Replying to ${_replyingTo!.authorName}: "${_replyingTo!.content.length > 32 ? '${_replyingTo!.content.substring(0, 30)}...' : _replyingTo!.content}"',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   InkWell(
                     onTap: () => setState(() => _replyingTo = null),
-                    child: const Icon(Icons.close, size: 14, color: AppTheme.textSecondary),
+                    child: Icon(Icons.close, size: 14, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -2037,7 +2037,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 ),
               ],
               const Spacer(),
-              const Text(
+              Text(
                 'Type @ to mention',
                 style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: AppTheme.textMuted),
               ),
@@ -2060,16 +2060,16 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     controller: _commentController,
                     maxLines: 3,
                     minLines: 1,
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textPrimary),
                     decoration: InputDecoration(
                       hintText: _isInternalOnlyNote
                           ? 'Write internal reviewer note (hidden from marketer)…'
                           : (_replyingTo != null ? 'Write reply to ${_replyingTo!.authorName}…' : 'Add note, feedback, or @mention…'),
-                      hintStyle: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                      hintStyle: TextStyle(fontSize: 12, color: AppTheme.textMuted),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       border: InputBorder.none,
                       prefixIcon: IconButton(
-                        icon: const Icon(Icons.alternate_email, size: 16, color: AppTheme.textSecondary),
+                        icon: Icon(Icons.alternate_email, size: 16, color: AppTheme.textSecondary),
                         onPressed: () {
                           final text = _commentController.text;
                           _commentController.text = '$text@';
@@ -2094,7 +2094,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   ),
                   onPressed: _submittingComment ? null : _postComment,
                   child: _submittingComment
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2))
+                      ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2))
                       : const Icon(Icons.send_rounded, size: 18),
                 ),
               ),
@@ -2189,7 +2189,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(vertical: 4),
         itemCount: filtered.length,
-        separatorBuilder: (_, __) => const Divider(height: 0.5, color: AppTheme.borderCard),
+        separatorBuilder: (_, __) => Divider(height: 0.5, color: AppTheme.borderCard),
         itemBuilder: (context, idx) {
           final c = filtered[idx];
           return InkWell(
@@ -2203,14 +2203,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     backgroundColor: AppTheme.phosphorChartreuse,
                     child: Text(
                       c.name.isNotEmpty ? c.name[0] : '?',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textInverse),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textInverse),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       c.name,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                     ),
                   ),
                   Container(
@@ -2221,7 +2221,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     ),
                     child: Text(
                       c.role.toUpperCase(),
-                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
                     ),
                   ),
                 ],
@@ -2282,7 +2282,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   children: [
                     Text(
                       msg.authorName,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppTheme.textPrimary),
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppTheme.textPrimary),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
@@ -2309,7 +2309,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                         ),
                         child: Text(
                           'v${msg.versionNo}.0',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                             fontFeatures: [FontFeature.tabularFigures()],
@@ -2325,7 +2325,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(color: AppTheme.solarTangerine.withOpacity(0.4), width: 0.5),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.lock, size: 9, color: AppTheme.solarTangerine),
@@ -2351,7 +2351,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     });
                   },
                   borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -2385,7 +2385,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         spans.add(
           TextSpan(
             text: '$word$space',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               color: AppTheme.phosphorChartreuse,
               backgroundColor: Color(0x2BD4FF38),
@@ -2396,7 +2396,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         spans.add(
           TextSpan(
             text: '$word$space',
-            style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.35),
+            style: TextStyle(fontSize: 13, color: AppTheme.textPrimary, height: 1.35),
           ),
         );
       }
@@ -2412,7 +2412,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -2427,7 +2427,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             ),
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.phosphorChartreuse,
@@ -2454,7 +2454,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+        Text(label, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
         Container(
           padding: badgeBg != null ? const EdgeInsets.symmetric(horizontal: 8, vertical: 2) : EdgeInsets.zero,
           decoration: badgeBg != null

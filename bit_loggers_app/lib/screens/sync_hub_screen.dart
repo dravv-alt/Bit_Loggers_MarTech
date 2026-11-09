@@ -93,7 +93,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       SnackBar(
         content: Text(
           'Sync finished: $synced synced, $failed failed ($processed total).',
-          style: const TextStyle(color: AppTheme.textInverse),
+          style: TextStyle(color: AppTheme.textInverse),
         ),
         backgroundColor: failed > 0 ? AppTheme.statusRejected : AppTheme.forge,
         duration: const Duration(seconds: 3),
@@ -118,7 +118,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               _isEmailFailing
                   ? 'Worker ran with outage injected: ${_outboxStats.failed} event(s) recorded as FAILED (EmailProviderGatewayTimeout).'
                   : 'Worker ran: ${processed.length} event(s) dispatched successfully to recipients.',
-              style: const TextStyle(color: AppTheme.textInverse),
+              style: TextStyle(color: AppTheme.textInverse),
             ),
             backgroundColor: _isEmailFailing ? AppTheme.statusRejected : AppTheme.forge,
             duration: const Duration(seconds: 3),
@@ -151,7 +151,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             updated
                 ? 'Email Provider Outage injected (worker will encounter retry backoff)'
                 : 'Email Provider restored to healthy state (worker ready to dispatch)',
-            style: const TextStyle(color: AppTheme.textInverse),
+            style: TextStyle(color: AppTheme.textInverse),
           ),
           backgroundColor: updated ? AppTheme.statusRejected : AppTheme.forge,
           duration: const Duration(seconds: 2),
@@ -173,7 +173,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             _isEmailFailing
                 ? 'Queued test notification (Pending: ${_outboxStats.pending}). With outage injected, worker will record failure.'
                 : 'Queued test notification (Pending: ${_outboxStats.pending}). Outbox worker will dispatch successfully.',
-            style: const TextStyle(color: AppTheme.textInverse),
+            style: TextStyle(color: AppTheme.textInverse),
           ),
           backgroundColor: _isEmailFailing ? AppTheme.statusChanges : AppTheme.forge,
           duration: const Duration(seconds: 3),
@@ -182,7 +182,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       );
     } else {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Failed to queue test notification.'),
           backgroundColor: AppTheme.statusRejected,
         ),
@@ -198,7 +198,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       await _fetchOutbox();
       if (!mounted) return;
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Outbox ledger reset to clean slate (3 curated enterprise events).'),
           backgroundColor: AppTheme.forge,
           duration: Duration(seconds: 2),
@@ -246,7 +246,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       SnackBar(
         content: Text(
           'Enqueued offline action "${action.actionType}" with Idempotency Key: ${action.idempotencyKey.substring(0, 16)}...',
-          style: const TextStyle(color: AppTheme.textInverse),
+          style: TextStyle(color: AppTheme.textInverse),
         ),
         backgroundColor: AppTheme.forge,
         duration: const Duration(seconds: 2),
@@ -285,7 +285,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Sync & Outbox Hub',
               style: TextStyle(
                 fontFamily: 'serif',
@@ -306,7 +306,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, size: 20, color: AppTheme.textPrimary),
+            icon: Icon(Icons.refresh, size: 20, color: AppTheme.textPrimary),
             tooltip: 'Refresh Hub',
             onPressed: () {
               _fetchOutbox();
@@ -341,7 +341,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                       ),
                       child: Text(
                         '$pendingCount',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.leaf,
@@ -370,7 +370,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                       ),
                       child: Text(
                         '${_outboxStats.pending}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.leaf,
@@ -429,7 +429,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             children: [
               Text(
                 'Queued Actions (${filtered.length})',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
@@ -501,7 +501,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                       isSimulating
                           ? 'Campaign updates queue locally with cryptographic keys'
                           : 'Mutations sync automatically with the cloud service',
-                      style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
+                      style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                     ),
                   ],
                 ),
@@ -524,7 +524,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             ),
             child: Row(
               children: [
-                const Icon(Icons.fingerprint, size: 14, color: AppTheme.secondaryLabel),
+                Icon(Icons.fingerprint, size: 14, color: AppTheme.secondaryLabel),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -581,7 +581,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 color: AppTheme.secondaryLabel,
                 fontWeight: FontWeight.w500,
@@ -613,7 +613,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               elevation: 0,
             ),
             icon: isDraining
-                ? const SizedBox(
+                ? SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf),
@@ -650,7 +650,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           IconButton(
             onPressed: _syncQueue.clearSynced,
             tooltip: 'Clear synced items',
-            icon: const Icon(Icons.cleaning_services_outlined, size: 18, color: AppTheme.secondaryLabel),
+            icon: Icon(Icons.cleaning_services_outlined, size: 18, color: AppTheme.secondaryLabel),
           ),
         ],
       ],
@@ -705,7 +705,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         children: [
           Icon(Icons.inbox_outlined, size: 40, color: AppTheme.secondaryLabel.withOpacity(0.5)),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Offline queue is empty',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.3),
           ),
@@ -713,7 +713,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           Text(
             'When offline mode is active, campaign edits and submissions are safely stored locally and synchronized automatically when connection is restored.',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: AppTheme.secondaryLabel, height: 1.4),
+            style: TextStyle(fontSize: 13, color: AppTheme.secondaryLabel, height: 1.4),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -785,7 +785,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                       ),
                       child: Text(
                         action.method,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.leaf,
@@ -796,7 +796,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     Expanded(
                       child: Text(
                         action.actionType,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
@@ -850,9 +850,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.key_rounded, size: 12, color: AppTheme.secondaryLabel),
+                      Icon(Icons.key_rounded, size: 12, color: AppTheme.secondaryLabel),
                       const SizedBox(width: 5),
-                      const Text(
+                      Text(
                         'Sync Token: ',
                         style: TextStyle(
                           fontSize: 10,
@@ -865,7 +865,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                           action.idempotencyKey,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontFeatures: [FontFeature.tabularFigures()],
                             color: AppTheme.label,
@@ -920,12 +920,12 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.warning_amber_rounded, size: 14, color: AppTheme.statusRejected),
+                        Icon(Icons.warning_amber_rounded, size: 14, color: AppTheme.statusRejected),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             action.error!,
-                            style: const TextStyle(fontSize: 11, color: AppTheme.statusRejected),
+                            style: TextStyle(fontSize: 11, color: AppTheme.statusRejected),
                           ),
                         ),
                       ],
@@ -1002,7 +1002,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             children: [
               Text(
                 'Outbox Ledger (${filtered.length})',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
@@ -1019,7 +1019,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
           // Events Feed
           if (_loadingOutbox)
-            const Center(
+            Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: CircularProgressIndicator(color: AppTheme.forge),
@@ -1051,13 +1051,13 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               Container(
                 width: 9,
                 height: 9,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppTheme.verdictLimeDark,
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Background Dispatch Service',
                   style: TextStyle(
@@ -1105,7 +1105,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Simulate email delivery failure',
                         style: TextStyle(
                           fontSize: 13,
@@ -1171,7 +1171,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               elevation: 0,
             ),
             icon: _processingWorker
-                ? const SizedBox(
+                ? SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf),
@@ -1198,8 +1198,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                icon: const Icon(Icons.mark_email_unread_outlined, size: 16, color: AppTheme.label),
-                label: const Text(
+                icon: Icon(Icons.mark_email_unread_outlined, size: 16, color: AppTheme.label),
+                label: Text(
                   'Queue test notification',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.label),
                   overflow: TextOverflow.ellipsis,
@@ -1219,8 +1219,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                icon: const Icon(Icons.restart_alt, size: 15, color: AppTheme.secondaryLabel),
-                label: const Text(
+                icon: Icon(Icons.restart_alt, size: 15, color: AppTheme.secondaryLabel),
+                label: Text(
                   'Reset queue',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel),
                   overflow: TextOverflow.ellipsis,
@@ -1281,12 +1281,12 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         children: [
           Icon(Icons.outbox, size: 40, color: AppTheme.secondaryLabel.withOpacity(0.5)),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'No outbox events recorded',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.label, letterSpacing: -0.3),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Campaign updates and decisions are synchronized automatically with guaranteed single-delivery for emails and notifications.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: AppTheme.secondaryLabel, height: 1.4),
@@ -1343,7 +1343,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     Expanded(
                       child: Text(
                         evt.eventType,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
@@ -1397,7 +1397,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.mail_outline, size: 14, color: AppTheme.secondaryLabel),
+                        Icon(Icons.mail_outline, size: 14, color: AppTheme.secondaryLabel),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -1405,7 +1405,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                                 (evt.payload['campaign_title'] != null
                                     ? 'Flight Notification · ${evt.payload['campaign_title']}'
                                     : 'Enterprise Dispatch · ${evt.eventType.replaceAll('_', ' ')}'),
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1416,7 +1416,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                             constraints: const BoxConstraints(maxWidth: 80),
                             child: Text(
                               evt.payload['recipient'] as String,
-                              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                              style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),
@@ -1439,7 +1439,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                       'Error: ${evt.errorLog}',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.statusRejected),
+                      style: TextStyle(fontSize: 11, color: AppTheme.statusRejected),
                     ),
                   ),
                 ],
@@ -1490,7 +1490,7 @@ class _ActionDetailModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1515,14 +1515,14 @@ class _ActionDetailModal extends StatelessWidget {
                     children: [
                       Text(
                         action.actionType,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.label,
                           letterSpacing: -0.4,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Offline action record',
                         style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                       ),
@@ -1530,13 +1530,13 @@ class _ActionDetailModal extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 20, color: AppTheme.label),
+                  icon: Icon(Icons.close, size: 20, color: AppTheme.label),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(height: 0.5, color: AppTheme.separator),
+          Divider(height: 0.5, color: AppTheme.separator),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -1550,7 +1550,7 @@ class _ActionDetailModal extends StatelessWidget {
                 _buildInfoRow('Created At', action.createdAt),
                 const SizedBox(height: 16),
 
-                const Text(
+                Text(
                   'Payload',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.label),
                 ),
@@ -1563,13 +1563,13 @@ class _ActionDetailModal extends StatelessWidget {
                   ),
                   child: SelectableText(
                     const JsonEncoder.withIndent('  ').convert(action.payload),
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
+                    style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
                   ),
                 ),
 
                 if (action.serverResponse != null) ...[
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Server Response',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.verdictLimeDark),
                   ),
@@ -1582,14 +1582,14 @@ class _ActionDetailModal extends StatelessWidget {
                     ),
                     child: SelectableText(
                       const JsonEncoder.withIndent('  ').convert(action.serverResponse),
-                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
+                      style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
                     ),
                   ),
                 ],
 
                 if (action.error != null) ...[
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Error Message',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.statusRejected),
                   ),
@@ -1602,7 +1602,7 @@ class _ActionDetailModal extends StatelessWidget {
                     ),
                     child: SelectableText(
                       action.error!,
-                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.statusRejected),
+                      style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.statusRejected),
                     ),
                   ),
                 ],
@@ -1624,7 +1624,7 @@ class _ActionDetailModal extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
@@ -1656,7 +1656,7 @@ class _OutboxDetailModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1681,14 +1681,14 @@ class _OutboxDetailModal extends StatelessWidget {
                     children: [
                       Text(
                         event.eventType,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.label,
                           letterSpacing: -0.4,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Transactional outbox event',
                         style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                       ),
@@ -1696,13 +1696,13 @@ class _OutboxDetailModal extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 20, color: AppTheme.label),
+                  icon: Icon(Icons.close, size: 20, color: AppTheme.label),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(height: 0.5, color: AppTheme.separator),
+          Divider(height: 0.5, color: AppTheme.separator),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -1717,7 +1717,7 @@ class _OutboxDetailModal extends StatelessWidget {
                   _buildInfoRow('Next Retry At', event.nextRetryAt!),
                 const SizedBox(height: 16),
 
-                const Text(
+                Text(
                   'Dispatched Message Preview',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.label),
                 ),
@@ -1733,12 +1733,12 @@ class _OutboxDetailModal extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.mark_email_read_outlined, size: 16, color: AppTheme.brandAccent),
+                          Icon(Icons.mark_email_read_outlined, size: 16, color: AppTheme.brandAccent),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               event.payload['subject'] as String? ?? 'Flight notification: ${event.eventType}',
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.label),
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.label),
                             ),
                           ),
                         ],
@@ -1746,10 +1746,10 @@ class _OutboxDetailModal extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         'To: ${event.payload['recipient'] ?? 'marketer@bitloggers.internal'} · From: dispatch@bitloggers.internal',
-                        style: const TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
+                        style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
+                      Text(
                         'Encrypted & verified payload',
                         style: TextStyle(fontSize: 10, color: AppTheme.moss, fontWeight: FontWeight.w600),
                       ),
@@ -1758,7 +1758,7 @@ class _OutboxDetailModal extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                const Text(
+                Text(
                   'Payload',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.label),
                 ),
@@ -1771,13 +1771,13 @@ class _OutboxDetailModal extends StatelessWidget {
                   ),
                   child: SelectableText(
                     const JsonEncoder.withIndent('  ').convert(event.payload),
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
+                    style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.label),
                   ),
                 ),
 
                 if (event.errorLog != null) ...[
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Error Log',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.statusRejected),
                   ),
@@ -1790,7 +1790,7 @@ class _OutboxDetailModal extends StatelessWidget {
                     ),
                     child: SelectableText(
                       event.errorLog!,
-                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.statusRejected),
+                      style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.statusRejected),
                     ),
                   ),
                 ],
@@ -1812,7 +1812,7 @@ class _OutboxDetailModal extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
