@@ -110,3 +110,4 @@ TextStyle get tabularMetricStyle => AppleTypography.title1.copyWith(
   fontFeatures: const [FontFeature.tabularFigures()],
 );
 ```
+

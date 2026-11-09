@@ -17,3 +17,4 @@ All user interface code, visual styles, component structures, typography, and in
    - Ban engineering requirement tags (`[FR-xx]`, `[ACID]`, `[SKIP LOCKED]`, `[HYPERTABLE]`) from client UI screens. Speak pure brand and marketing intelligence.
 6. **Grouped Scannability**:
    - Present lists and options in clean grouped inset rows with 0.5pt hairline dividers rather than walls of floating disjointed cards.
+
