@@ -309,7 +309,7 @@ export function ProposalStudioModal({
             variant="secondary"
             leadingIcon={RiSaveLine}
             onClick={() => handleCommit(false)}
-            disabled={saving}
+            disabled={saving || generatingAi}
           >
             Save draft
           </Button>
@@ -317,9 +317,9 @@ export function ProposalStudioModal({
             variant="primary"
             leadingIcon={RiSendPlaneLine}
             onClick={() => handleCommit(true)}
-            disabled={saving}
+            disabled={saving || generatingAi}
           >
-            {saving ? 'Submitting…' : 'Save & submit for review'}
+            {saving ? 'Submitting…' : generatingAi ? 'Drafting with AI…' : 'Save & submit for review'}
           </Button>
         </div>
       </div>

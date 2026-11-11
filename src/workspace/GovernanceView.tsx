@@ -29,6 +29,7 @@ import {
   TableRow,
 } from '@/components/base/table/table';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/base/tabs/tabs';
+import { diagnosticDotColor, normalizeDiagnosticOutcome } from './stateMachine';
 import type {
   AuditEventItem,
   DiagnosticLogItem,
@@ -123,7 +124,9 @@ export function GovernanceView({
     );
   });
 
-  const filteredDiag = diagList.filter((d) => diagFilter === 'ALL' || d.outcome === diagFilter);
+  const filteredDiag = diagList.filter(
+    (d) => diagFilter === 'ALL' || normalizeDiagnosticOutcome(d.outcome) === diagFilter,
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -138,7 +141,7 @@ export function GovernanceView({
           <Tab id="diagnostics" icon={RiTerminalBoxLine} count={diagList.length}>
             Diagnostics
           </Tab>
-          <Tab id="tests" icon={RiShieldCheckLine} count={report?.total ?? 14}>
+          <Tab id="tests" icon={RiShieldCheckLine} count={report?.total ?? 16}>
             Verification suite
           </Tab>
         </TabList>
@@ -295,6 +298,7 @@ export function GovernanceView({
               }}
             >
               <SegmentedControlItem id="ALL">All</SegmentedControlItem>
+              <SegmentedControlItem id="INFO">Info</SegmentedControlItem>
               <SegmentedControlItem id="SUCCESS">Success</SegmentedControlItem>
               <SegmentedControlItem id="WARNING">Warning</SegmentedControlItem>
               <SegmentedControlItem id="FAILURE">Failure</SegmentedControlItem>
@@ -320,16 +324,8 @@ export function GovernanceView({
                     <TableCell className="text-text-primary">{log.event_type}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center gap-1.5">
-                        <StatusDot
-                          color={
-                            log.outcome === 'SUCCESS'
-                              ? 'green'
-                              : log.outcome === 'WARNING'
-                                ? 'yellow'
-                                : 'indigo'
-                          }
-                        />
-                        {log.outcome}
+                        <StatusDot color={diagnosticDotColor(log.outcome)} />
+                        {normalizeDiagnosticOutcome(log.outcome)}
                       </span>
                     </TableCell>
                     <TableCell>

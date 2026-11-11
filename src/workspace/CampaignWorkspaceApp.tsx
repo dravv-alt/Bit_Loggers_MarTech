@@ -32,6 +32,7 @@ import { GovernanceView } from './GovernanceView';
 import { NotificationsView, toBoardUINotification } from './NotificationsView';
 import { PipelineView } from './PipelineView';
 import { ProposalStudioModal } from './ProposalStudioModal';
+import { canCreateCampaign } from './stateMachine';
 import type { Campaign, WorkspaceNotification, WorkspaceUser } from './types';
 import { workspaceApi } from './workspaceApi';
 
@@ -308,17 +309,19 @@ export function CampaignWorkspaceApp({ onOpenOverview }: { onOpenOverview: () =>
                       }
                     }}
                   />
-                  <Button
-                    variant="primary"
-                    size="medium"
-                    leadingIcon={RiAddFill}
-                    onClick={() => {
-                      setEditingCampaign(null);
-                      setStudioOpen(true);
-                    }}
-                  >
-                    New brief
-                  </Button>
+                  {canCreateCampaign(currentUser) && (
+                    <Button
+                      variant="primary"
+                      size="medium"
+                      leadingIcon={RiAddFill}
+                      onClick={() => {
+                        setEditingCampaign(null);
+                        setStudioOpen(true);
+                      }}
+                    >
+                      New brief
+                    </Button>
+                  )}
                 </div>
               </div>
             </header>

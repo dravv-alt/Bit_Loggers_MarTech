@@ -26,6 +26,7 @@ import {
 import { Select, SelectItem } from '@/components/base/select/select';
 import { Tab, TabList, TabPanel, Tabs } from '@/components/base/tabs/tabs';
 import { Textarea } from '@/components/base/textarea/textarea';
+import { evaluateCampaignCapabilities } from './stateMachine';
 import type { Campaign, DiscussionMessage, WorkspaceUser } from './types';
 import {
   STATUS_CHIP_COLOR,
@@ -79,6 +80,7 @@ export function CampaignDetailDrawer({
   // Comment state
   const [commentText, setCommentText] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
+  const [togglingLock, setTogglingLock] = useState(false);
 
   const load = async (id: string) => {
     setLoading(true);
@@ -108,22 +110,41 @@ export function CampaignDetailDrawer({
   const versions = [...(campaign?.versions || [])].sort((a, b) => a.version_no - b.version_no);
   const curVer = campaign?.current_version || versions[versions.length - 1];
   const prevVer = versions.length > 1 ? versions[versions.length - 2] : null;
-  const isOwner = campaign?.owner_id === currentUser.id;
-  const canApprove = !isOwner || currentUser.role === 'admin';
-  const canEdit = isOwner || currentUser.role === 'admin';
-  const isLockedByMe = campaign?.active_lock?.holder_id === currentUser.id;
+  const caps = campaign ? evaluateCampaignCapabilities(campaign, currentUser) : null;
+  const canEdit = Boolean(caps?.canEdit);
+  const canApprove = Boolean(caps?.canReview);
+  const isLockedByMe = caps?.lockInfo.status === 'held_by_me';
 
   const handleToggleLock = async () => {
-    if (!campaign) return;
-    if (isLockedByMe) {
-      await workspaceApi.releaseLock(campaign.campaign_id, currentUser);
-      onNotify('Edit lease released', 'Other authors can now revise this brief.', 'information');
-    } else {
-      await workspaceApi.acquireLock(campaign.campaign_id, currentUser);
-      onNotify('5-minute edit lease acquired', 'Your draft edits are protected from concurrent overwrites.', 'success');
+    if (!campaign || togglingLock) return;
+    setTogglingLock(true);
+    try {
+      if (isLockedByMe) {
+        await workspaceApi.releaseLock(campaign.campaign_id, currentUser);
+        onNotify('Edit lease released', 'Other authors can now revise this brief.', 'information');
+      } else {
+        const res = await workspaceApi.acquireLock(campaign.campaign_id, currentUser);
+        if (res && res.granted === false) {
+          onNotify(
+            'Edit lease unavailable',
+            res.holder_name ? `Held by ${res.holder_name}.` : 'Held by another editor.',
+            'error',
+          );
+          return;
+        }
+        onNotify(
+          '5-minute edit lease acquired',
+          'Your draft edits are protected from concurrent overwrites.',
+          'success',
+        );
+      }
+      await load(campaign.campaign_id);
+      await onMutated();
+    } catch (err: unknown) {
+      onNotify('Lease action failed', (err as Error).message, 'error');
+    } finally {
+      setTogglingLock(false);
     }
-    await load(campaign.campaign_id);
-    await onMutated();
   };
 
   const handleSubmitForReview = async () => {
@@ -249,9 +270,14 @@ export function CampaignDetailDrawer({
                   size="small"
                   variant="secondary"
                   leadingIcon={isLockedByMe ? RiLockUnlockLine : RiLockLine}
+                  disabled={togglingLock}
                   onClick={handleToggleLock}
                 >
-                  {isLockedByMe ? 'Release lock' : 'Lease edit'}
+                  {togglingLock
+                    ? 'Updating…'
+                    : isLockedByMe
+                      ? 'Release lock'
+                      : 'Lease edit'}
                 </Button>
                 <Button
                   size="small"
@@ -367,7 +393,7 @@ export function CampaignDetailDrawer({
                   )}
                 </div>
 
-                {(campaign.status === 'Draft' || campaign.status === 'ChangesRequested') && canEdit && (
+                {caps?.canSubmit && (
                   <div className="flex justify-end">
                     <Button
                       variant="primary"
@@ -436,11 +462,18 @@ export function CampaignDetailDrawer({
 
               {/* TAB 3: REVIEW GATE */}
               <TabPanel id="review" className="flex flex-col gap-4 pt-2">
-                {!canApprove && (
+                {!caps?.canReview && (
                   <Notification
                     status="information"
-                    title="Owner self-approval lock active"
-                    description="Separation of duties prevents campaign authors from approving their own brief. Switch to Marcus Vance (Reviewer) from the sidebar menu to record a signoff."
+                    title={
+                      caps?.isOwner && !caps.isAdmin
+                        ? 'Owner self-approval lock active'
+                        : 'Review gate locked'
+                    }
+                    description={
+                      caps?.reviewBlockedReason ||
+                      'Separation of duties prevents campaign authors from approving their own brief.'
+                    }
                     dismissible={false}
                     className="w-full max-w-none"
                   />
@@ -492,7 +525,7 @@ export function CampaignDetailDrawer({
                       leadingIcon={
                         decisionType === 'REJECTED' ? RiErrorWarningFill : RiCheckDoubleLine
                       }
-                      disabled={!canApprove || submittingDecision}
+                      disabled={!caps?.canReview || submittingDecision}
                       onClick={handleRecordDecision}
                     >
                       {submittingDecision
@@ -505,11 +538,18 @@ export function CampaignDetailDrawer({
 
               {/* TAB 4: SCHEDULE */}
               <TabPanel id="schedule" className="flex flex-col gap-4 pt-2">
-                {campaign.status !== 'Approved' && campaign.status !== 'Scheduled' && (
+                {!caps?.canSchedule && (
                   <Notification
                     status="error"
-                    title="Approval required before scheduling"
-                    description="Only approved versions can lock a slot on the production channel calendar."
+                    title={
+                      caps?.stage !== 'Approved' && caps?.stage !== 'Scheduled'
+                        ? 'Approval required before scheduling'
+                        : 'Schedule permission restricted'
+                    }
+                    description={
+                      caps?.scheduleBlockedReason ||
+                      'Only approved versions can lock a slot on the production channel calendar.'
+                    }
                     dismissible={false}
                     className="w-full max-w-none"
                   />
@@ -542,10 +582,7 @@ export function CampaignDetailDrawer({
                     <Button
                       variant="primary"
                       leadingIcon={RiCalendarLine}
-                      disabled={
-                        (campaign.status !== 'Approved' && campaign.status !== 'Scheduled') ||
-                        submittingSchedule
-                      }
+                      disabled={!caps?.canSchedule || submittingSchedule}
                       onClick={handleSchedule}
                     >
                       {submittingSchedule ? 'Checking collisions…' : 'Confirm flight window'}

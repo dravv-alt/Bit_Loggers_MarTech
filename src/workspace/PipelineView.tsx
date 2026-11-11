@@ -40,6 +40,7 @@ import {
   TableRow,
 } from '@/components/base/table/table';
 import { cx } from '@/utils/cx';
+import { evaluateCampaignCapabilities, normalizeCampaignStage } from './stateMachine';
 import type { Campaign, WorkspaceUser } from './types';
 import {
   STATUS_CHIP_COLOR,
@@ -92,8 +93,7 @@ export function PipelineView({
         (c.owner_name || '').toLowerCase().includes(q);
       const matchesChannel = channelFilter === 'All' || c.channel === channelFilter;
       const matchesStatus =
-        statusFilter === 'All' ||
-        (statusFilter === 'Draft' ? c.status === 'Draft' || c.status === 'Revised' : c.status === statusFilter);
+        statusFilter === 'All' || normalizeCampaignStage(c.status) === statusFilter;
       return matchesQ && matchesChannel && matchesStatus;
     });
   }, [campaigns, searchQuery, channelFilter, statusFilter]);
@@ -103,11 +103,15 @@ export function PipelineView({
     [campaigns],
   );
   const reviewCount = useMemo(
-    () => campaigns.filter((c) => c.status === 'Submitted').length,
+    () => campaigns.filter((c) => normalizeCampaignStage(c.status) === 'Submitted').length,
     [campaigns],
   );
   const approvedOrLiveCount = useMemo(
-    () => campaigns.filter((c) => c.status === 'Approved' || c.status === 'Scheduled').length,
+    () =>
+      campaigns.filter((c) => {
+        const st = normalizeCampaignStage(c.status);
+        return st === 'Approved' || st === 'Scheduled';
+      }).length,
     [campaigns],
   );
   const avgProjectedRoi = useMemo(() => {
@@ -255,8 +259,8 @@ export function PipelineView({
       {viewMode === 'board' ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {PIPELINE_COLUMNS.map((col) => {
-            const colItems = filtered.filter((c) =>
-              col.id === 'Draft' ? c.status === 'Draft' || c.status === 'Revised' : c.status === col.id,
+            const colItems = filtered.filter(
+              (c) => normalizeCampaignStage(c.status) === col.id,
             );
             return (
               <section
@@ -282,10 +286,8 @@ export function PipelineView({
                       const ver = camp.current_version;
                       const roi = ver?.kpi_projected?.roi ?? 0;
                       const cpa = ver?.kpi_projected?.cpa ?? 0;
-                      const canEdit =
-                        currentUser.id === camp.owner_id || currentUser.role === 'admin';
-                      const isLockedByOther =
-                        camp.active_lock && camp.active_lock.holder_id !== currentUser.id;
+                      const caps = evaluateCampaignCapabilities(camp, currentUser);
+                      const isLockedByOther = caps.lockInfo.status === 'held_by_other';
 
                       return (
                         <article
@@ -356,28 +358,29 @@ export function PipelineView({
                             </span>
 
                             <div className="flex items-center gap-1.5">
-                              {(camp.status === 'Draft' || camp.status === 'ChangesRequested') && canEdit && (
-                                <>
-                                  <Button
-                                    size="xs"
-                                    variant="secondary"
-                                    leadingIcon={RiEditLine}
-                                    onClick={() => onEditCampaign(camp)}
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    size="xs"
-                                    variant="primary"
-                                    leadingIcon={RiSendPlaneLine}
-                                    onClick={() => onSubmitCampaign(camp.campaign_id)}
-                                  >
-                                    Submit
-                                  </Button>
-                                </>
+                              {caps.stage !== 'Approved' && caps.stage !== 'Scheduled' && caps.stage !== 'Completed' && caps.canEdit && (
+                                <Button
+                                  size="xs"
+                                  variant="secondary"
+                                  leadingIcon={RiEditLine}
+                                  onClick={() => onEditCampaign(camp)}
+                                >
+                                  Edit
+                                </Button>
                               )}
 
-                              {camp.status === 'Submitted' && currentUser.role !== 'marketer' && (
+                              {caps.canSubmit && (
+                                <Button
+                                  size="xs"
+                                  variant="primary"
+                                  leadingIcon={RiSendPlaneLine}
+                                  onClick={() => onSubmitCampaign(camp.campaign_id)}
+                                >
+                                  Submit
+                                </Button>
+                              )}
+
+                              {caps.canReview && (
                                 <Button
                                   size="xs"
                                   variant="primary"
@@ -388,7 +391,7 @@ export function PipelineView({
                                 </Button>
                               )}
 
-                              {camp.status === 'Approved' && canEdit && (
+                              {caps.canSchedule && caps.stage === 'Approved' && (
                                 <Button
                                   size="xs"
                                   variant="primary"
@@ -399,7 +402,7 @@ export function PipelineView({
                                 </Button>
                               )}
 
-                              {camp.status === 'Scheduled' && (
+                              {caps.stage === 'Scheduled' && (
                                 <Button
                                   size="xs"
                                   variant="secondary"

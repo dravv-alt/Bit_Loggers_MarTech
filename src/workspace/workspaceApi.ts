@@ -1,4 +1,11 @@
 import { api } from '../api.js';
+import {
+  canCreateCampaign,
+  evaluateCampaignCapabilities,
+  evaluateLockState,
+  isScheduleActive,
+  normalizeCampaignStage,
+} from './stateMachine';
 import type {
   AnalyticsPayload,
   ApprovalDecision,
@@ -537,11 +544,20 @@ function normalizeCampaign(raw: Record<string, unknown>): Campaign {
   const c = raw as unknown as Campaign;
   return {
     ...c,
+    status: normalizeCampaignStage(c.status),
     channel: c.channel || c.current_version?.channel || 'Social',
     budget: Number(c.budget ?? c.current_version?.budget ?? 0),
     objective: c.objective ?? c.current_version?.objective ?? '',
     target_audience: c.target_audience ?? c.current_version?.target_audience ?? '',
   };
+}
+
+function hydrateLock(c: Campaign, user: WorkspaceUser): Campaign {
+  const lockState = evaluateLockState(c.active_lock, user.id);
+  if (lockState.status === 'expired') {
+    return { ...c, active_lock: null };
+  }
+  return c;
 }
 
 export const workspaceApi = {
@@ -567,12 +583,14 @@ export const workspaceApi = {
       const res = await api.getCampaigns({}, user);
       if (Array.isArray(res?.campaigns)) {
         store.usingOfflineFallback = false;
-        return res.campaigns.map((c: Record<string, unknown>) => normalizeCampaign(c));
+        return res.campaigns.map((c: Record<string, unknown>) =>
+          hydrateLock(normalizeCampaign(c), user),
+        );
       }
     } catch {
       store.usingOfflineFallback = true;
     }
-    return store.campaigns.map((c) => ({ ...c }));
+    return store.campaigns.map((c) => hydrateLock({ ...c }, user));
   },
 
   async getCampaign(id: string, user: WorkspaceUser): Promise<Campaign> {
@@ -580,13 +598,13 @@ export const workspaceApi = {
       const res = await api.getCampaign(id, user);
       if (res?.campaign_id) {
         store.usingOfflineFallback = false;
-        return normalizeCampaign(res);
+        return hydrateLock(normalizeCampaign(res), user);
       }
     } catch {
       store.usingOfflineFallback = true;
     }
     const found = store.campaigns.find((c) => c.campaign_id === id) || store.campaigns[0];
-    return { ...found };
+    return hydrateLock({ ...found }, user);
   },
 
   async createCampaign(
@@ -604,8 +622,14 @@ export const workspaceApi = {
     try {
       const res = await api.createCampaign(payload, user);
       if (res?.campaign_id) return normalizeCampaign(res);
-    } catch {
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status && status < 500 && status !== 401) throw err;
       store.usingOfflineFallback = true;
+    }
+
+    if (!canCreateCampaign(user)) {
+      throw new Error('Only marketers or administrators can create campaign proposals.');
     }
 
     const now = new Date().toISOString();
@@ -676,7 +700,11 @@ export const workspaceApi = {
 
     const idx = store.campaigns.findIndex((c) => c.campaign_id === id);
     if (idx < 0) throw new Error('Campaign not found');
-    const prev = store.campaigns[idx];
+    const prev = hydrateLock(store.campaigns[idx], user);
+    const caps = evaluateCampaignCapabilities(prev, user);
+    if (!caps.canEdit) {
+      throw new Error(caps.editBlockedReason || 'Only the campaign owner can edit this proposal.');
+    }
     const currentNo = prev.current_version?.version_no || 1;
     if (expectedVersion !== undefined && expectedVersion !== currentNo) {
       throw new Error(`Version conflict: expected v${expectedVersion}, current is v${currentNo}.`);
@@ -695,7 +723,7 @@ export const workspaceApi = {
       created_by: user.id,
       created_at: now,
     };
-    const nextStatus = prev.status === 'ChangesRequested' ? 'Draft' : prev.status;
+    const nextStatus = 'Draft';
     const updated: Campaign = {
       ...prev,
       title: payload.title,
@@ -722,7 +750,8 @@ export const workspaceApi = {
   },
 
   async submitCampaign(id: string, user: WorkspaceUser): Promise<void> {
-    const idemKey = `submit-${id}-${Date.now()}`;
+    const campPreview = store.campaigns.find((c) => c.campaign_id === id);
+    const idemKey = `submit-${id}-v${campPreview?.current_version?.version_no || 1}`;
     try {
       await api.submitCampaign(id, user, idemKey);
       return;
@@ -734,6 +763,10 @@ export const workspaceApi = {
 
     const camp = store.campaigns.find((c) => c.campaign_id === id);
     if (!camp) throw new Error('Campaign not found');
+    const caps = evaluateCampaignCapabilities(hydrateLock(camp, user), user);
+    if (!caps.canSubmit) {
+      throw new Error(caps.submitBlockedReason || 'Campaign cannot be submitted in its current state.');
+    }
     const prev = camp.status;
     camp.status = 'Submitted';
     camp.updated_at = new Date().toISOString();
@@ -769,8 +802,12 @@ export const workspaceApi = {
 
     const camp = store.campaigns.find((c) => c.campaign_id === id);
     if (!camp) throw new Error('Campaign not found');
-    if (user.id === camp.owner_id && user.role !== 'admin') {
-      throw new Error('Policy guard: campaign owners cannot approve their own proposals.');
+    if (!data.reason || !data.reason.trim()) {
+      throw new Error('A non-empty justification reason is required for every review decision.');
+    }
+    const caps = evaluateCampaignCapabilities(hydrateLock(camp, user), user);
+    if (!caps.canReview) {
+      throw new Error(caps.reviewBlockedReason || 'Review signoff cannot be recorded in this state.');
     }
     const prevState = camp.status;
     const nextState =
@@ -787,7 +824,7 @@ export const workspaceApi = {
       reviewer_id: user.id,
       reviewer_name: user.name,
       decision,
-      reason: data.reason,
+      reason: data.reason.trim(),
       policy_reference: data.policy_reference,
       decided_at: camp.updated_at,
     };
@@ -800,9 +837,9 @@ export const workspaceApi = {
       previousState: prevState,
       newState: nextState,
       summary: `${user.name} marked ${camp.title} as ${statusLabel(nextState)}.`,
-      details: data.reason,
+      details: data.reason.trim(),
       notifTitle: `${camp.title} — ${statusLabel(nextState)}`,
-      notifMessage: `${user.name}: ${data.reason}`,
+      notifMessage: `${user.name}: ${data.reason.trim()}`,
       priority: decision === 'APPROVED' ? 'medium' : 'high',
     });
   },
@@ -823,17 +860,27 @@ export const workspaceApi = {
 
     const camp = store.campaigns.find((c) => c.campaign_id === id);
     if (!camp) throw new Error('Campaign not found');
-    if (camp.status !== 'Approved' && camp.status !== 'Scheduled') {
-      throw new Error('Only approved campaigns can be scheduled onto the channel calendar.');
+    const caps = evaluateCampaignCapabilities(hydrateLock(camp, user), user);
+    if (!caps.canSchedule) {
+      throw new Error(
+        caps.scheduleBlockedReason || 'Only approved campaigns can be scheduled onto the channel calendar.',
+      );
+    }
+    if (camp.current_version_id !== payload.version_id) {
+      throw new Error('Scheduling blocked: this version has been superseded by a newer draft.');
     }
     const startMs = Date.parse(payload.starts_at);
     const endMs = Date.parse(payload.ends_at);
+    if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs <= startMs) {
+      throw new Error('Invalid schedule window: end date must be strictly after start date.');
+    }
     const conflict = store.calendar.find(
       (ev) =>
-        ev.channel === payload.channel &&
+        isScheduleActive(ev) &&
+        ev.channel.toLowerCase() === payload.channel.toLowerCase() &&
         ev.campaign_id !== id &&
-        Date.parse(ev.starts_at) <= endMs &&
-        Date.parse(ev.ends_at) >= startMs,
+        Date.parse(ev.starts_at) < endMs &&
+        Date.parse(ev.ends_at) > startMs,
     );
     if (conflict) {
       throw new Error(
@@ -851,7 +898,7 @@ export const workspaceApi = {
       version_no: camp.current_version?.version_no || 1,
       title: camp.title,
       channel: payload.channel,
-      status: 'Scheduled',
+      status: 'ACTIVE',
       starts_at: payload.starts_at,
       ends_at: payload.ends_at,
     });
@@ -871,16 +918,36 @@ export const workspaceApi = {
   async acquireLock(id: string, user: WorkspaceUser) {
     try {
       return await api.acquireLock(id, user);
-    } catch {
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 409) {
+        const body = (err as { data?: { error?: Record<string, unknown> } })?.data?.error;
+        return {
+          granted: false,
+          holder_name: (body?.holder as string) || 'Another editor',
+          expires_at: body?.expires_at as string | undefined,
+          message: (body?.message as string) || 'Campaign is currently locked by another editor.',
+        };
+      }
       const camp = store.campaigns.find((c) => c.campaign_id === id);
       if (camp) {
+        const lockState = evaluateLockState(camp.active_lock, user.id);
+        if (lockState.status === 'held_by_other') {
+          return {
+            granted: false,
+            holder_id: lockState.holderId,
+            holder_name: lockState.holderName,
+            expires_at: lockState.expiresAt,
+            message: `Campaign is currently locked by ${lockState.holderName}.`,
+          };
+        }
         camp.active_lock = {
           campaign_id: id,
           holder_id: user.id,
           holder_name: user.name,
           expires_at: new Date(Date.now() + 5 * 60000).toISOString(),
         };
-        return camp.active_lock;
+        return { granted: true, ...camp.active_lock };
       }
       return null;
     }
@@ -891,7 +958,9 @@ export const workspaceApi = {
       await api.releaseLock(id, user);
     } catch {
       const camp = store.campaigns.find((c) => c.campaign_id === id);
-      if (camp) camp.active_lock = null;
+      if (camp && (!camp.active_lock || camp.active_lock.holder_id === user.id)) {
+        camp.active_lock = null;
+      }
     }
   },
 

@@ -12,7 +12,7 @@ import { cx, sortCx } from "@/utils/cx";
  * In dark mode only the halo drops to 40% opacity; the center dot stays solid.
  */
 
-type StatusDotColor = "green" | "yellow" | "indigo";
+type StatusDotColor = "green" | "yellow" | "indigo" | "rose";
 
 export interface StatusDotProps extends HTMLAttributes<HTMLSpanElement> {
   color?: StatusDotColor;
@@ -25,11 +25,13 @@ const styles = sortCx({
     green: "bg-status-dot-green-halo",
     yellow: "bg-status-dot-yellow-halo",
     indigo: "bg-status-dot-indigo-halo",
+    rose: "bg-rose-500/20",
   },
   dot: {
     green: "bg-green-500",
     yellow: "bg-yellow-500",
     indigo: "bg-indigo-500",
+    rose: "bg-rose-500",
   },
 });
 
