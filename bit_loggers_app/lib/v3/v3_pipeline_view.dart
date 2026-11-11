@@ -16,6 +16,7 @@ class V3PipelineView extends StatefulWidget {
   final List<Campaign> campaigns;
   final User currentUser;
   final V3Palette palette;
+  final String initialViewMode;
   final void Function(String campaignId, {String initialTab}) onInspectCampaign;
   final ValueChanged<Campaign> onEditCampaign;
   final ValueChanged<String> onSubmitCampaign;
@@ -25,6 +26,7 @@ class V3PipelineView extends StatefulWidget {
     required this.campaigns,
     required this.currentUser,
     required this.palette,
+    this.initialViewMode = 'board',
     required this.onInspectCampaign,
     required this.onEditCampaign,
     required this.onSubmitCampaign,
@@ -50,15 +52,24 @@ class _V3PipelineViewState extends State<V3PipelineView> {
   String _searchQuery = '';
   String _channelFilter = 'All';
   String _stageFilter = 'All';
-  String _viewMode = 'board'; // 'board' | 'table'
+  late String _viewMode; // 'board' | 'table'
+  String _sortBy = 'updated'; // 'title' | 'budget' | 'roi' | 'updated'
+  bool _sortAsc = false;
   int _page = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewMode = widget.initialViewMode == 'table' ? 'table' : 'board';
+  }
 
   List<Campaign> get _filtered {
     final q = _searchQuery.trim().toLowerCase();
-    return widget.campaigns.where((c) {
+    final matched = widget.campaigns.where((c) {
       final matchesQ = q.isEmpty ||
           c.title.toLowerCase().contains(q) ||
           (c.currentVersion?.objective ?? '').toLowerCase().contains(q) ||
+          c.ownerName.toLowerCase().contains(q) ||
           c.ownerId.toLowerCase().contains(q);
       final ch = c.currentVersion?.channel ?? 'Social';
       final matchesCh =
@@ -69,6 +80,39 @@ class _V3PipelineViewState extends State<V3PipelineView> {
               : c.status == _stageFilter);
       return matchesQ && matchesCh && matchesStage;
     }).toList();
+
+    matched.sort((a, b) {
+      int cmp;
+      switch (_sortBy) {
+        case 'title':
+          cmp = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          break;
+        case 'budget':
+          cmp = (a.currentVersion?.budget ?? 0).compareTo(b.currentVersion?.budget ?? 0);
+          break;
+        case 'roi':
+          cmp = (a.currentVersion?.kpiProjected.roi ?? 0)
+              .compareTo(b.currentVersion?.kpiProjected.roi ?? 0);
+          break;
+        default:
+          cmp = a.updatedAt.compareTo(b.updatedAt);
+          break;
+      }
+      return _sortAsc ? cmp : -cmp;
+    });
+    return matched;
+  }
+
+  void _toggleSort(String col) {
+    setState(() {
+      if (_sortBy == col) {
+        _sortAsc = !_sortAsc;
+      } else {
+        _sortBy = col;
+        _sortAsc = col == 'title';
+      }
+      _page = 1;
+    });
   }
 
   String _ownerLabel(String ownerId) {
@@ -379,15 +423,11 @@ class _V3PipelineViewState extends State<V3PipelineView> {
             ),
           ),
           if (items.isEmpty)
-            Container(
-              height: 118,
-              alignment: Alignment.center,
+            V3DashedBox(
+              palette: p,
+              minHeight: 118,
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: p.bgInner.withOpacity(0.55),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: p.borderDefault, width: 1),
-              ),
+              borderRadius: 14,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -395,6 +435,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                   const SizedBox(height: 6),
                   Text(
                     'No proposals in ${col.title.toLowerCase()}',
+                    textAlign: TextAlign.center,
                     style: V3Tokens.bodyMedium(p, color: p.textTertiary),
                   ),
                 ],
@@ -418,52 +459,53 @@ class _V3PipelineViewState extends State<V3PipelineView> {
     final lockedByOther =
         camp.activeLock != null && camp.activeLock!.holderId != widget.currentUser.id;
 
-    return InkWell(
+    final ownerDisplay = V3Tokens.cleanPersonName(
+      camp.ownerName.isNotEmpty ? camp.ownerName : _ownerLabel(camp.ownerId),
+    );
+
+    return V3HoverCard(
+      palette: p,
       onTap: () => widget.onInspectCampaign(camp.campaignId),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: p.bgInner,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: p.borderDefault, width: 1),
-          boxShadow: [
-            BoxShadow(color: p.cardShadowColor, blurRadius: 2, offset: const Offset(0, 1)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    V3Chip(
-                      label: ver?.channel ?? 'Social',
-                      tone: V3Tokens.channelChipTone(ver?.channel ?? 'Social'),
-                      palette: p,
-                    ),
-                    const SizedBox(width: 6),
-                    V3Badge(label: 'v${ver?.versionNo ?? 1}', palette: p),
-                  ],
-                ),
-                if (lockedByOther)
+      padding: const EdgeInsets.all(14),
+      borderRadius: 16,
+      builder: (hovered) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
                   V3Chip(
-                    label: 'Editing',
-                    tone: 'orange',
+                    label: ver?.channel ?? 'Social',
+                    tone: V3Tokens.channelChipTone(ver?.channel ?? 'Social'),
                     palette: p,
-                    leadingIcon: Icons.lock_outline_rounded,
-                  )
-                else
-                  Text(
-                    V3Tokens.formatRelativeTime(camp.updatedAt),
-                    style: V3Tokens.caption(p, color: p.textTertiary),
                   ),
-              ],
+                  const SizedBox(width: 6),
+                  V3Badge(label: 'v${ver?.versionNo ?? 1}', palette: p),
+                ],
+              ),
+              if (lockedByOther)
+                V3Chip(
+                  label: 'Editing',
+                  tone: 'orange',
+                  palette: p,
+                  leadingIcon: Icons.lock_outline_rounded,
+                )
+              else
+                Text(
+                  V3Tokens.formatRelativeTime(camp.updatedAt),
+                  style: V3Tokens.caption(p, color: p.textTertiary),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            camp.title,
+            style: V3Tokens.headline(p).copyWith(
+              color: hovered ? p.accentText : p.textPrimary,
             ),
-            const SizedBox(height: 10),
-            Text(camp.title, style: V3Tokens.headline(p)),
+          ),
             const SizedBox(height: 4),
             Text(
               ver?.objective.isNotEmpty == true ? ver!.objective : 'No objective recorded yet.',
@@ -495,7 +537,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_ownerLabel(camp.ownerId), style: V3Tokens.caption(p)),
+                  Text(ownerDisplay, style: V3Tokens.caption(p)),
                   Wrap(
                     spacing: 6,
                     children: [
@@ -551,8 +593,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _kpiCol(V3Palette p, String label, String val) {
@@ -583,11 +624,12 @@ class _V3PipelineViewState extends State<V3PipelineView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 820),
-              child: Table(
+          LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: math.max(constraints.maxWidth, 880)),
+                child: Table(
                 columnWidths: const {
                   0: FlexColumnWidth(2.4),
                   1: FixedColumnWidth(100),
@@ -606,22 +648,15 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     children: [
-                      'Campaign',
-                      'Channel',
-                      'Stage',
-                      'Version',
-                      'Budget',
-                      'ROI',
-                      'Updated',
-                      'Action',
-                    ]
-                        .map(
-                          (h) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                            child: Text(h, style: V3Tokens.caption(p)),
-                          ),
-                        )
-                        .toList(),
+                      _sortHeader(p, 'Campaign', sortKey: 'title'),
+                      _sortHeader(p, 'Channel'),
+                      _sortHeader(p, 'Stage'),
+                      _sortHeader(p, 'Version'),
+                      _sortHeader(p, 'Budget', sortKey: 'budget'),
+                      _sortHeader(p, 'ROI', sortKey: 'roi'),
+                      _sortHeader(p, 'Updated', sortKey: 'updated'),
+                      _sortHeader(p, 'Action'),
+                    ],
                   ),
                   ...rows.map((camp) {
                     return TableRow(
@@ -653,7 +688,14 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: V3Tokens.bodyMedium(p)),
-                                      Text(_ownerLabel(camp.ownerId), style: V3Tokens.caption(p)),
+                                      Text(
+                                        V3Tokens.cleanPersonName(
+                                          camp.ownerName.isNotEmpty
+                                              ? camp.ownerName
+                                              : _ownerLabel(camp.ownerId),
+                                        ),
+                                        style: V3Tokens.caption(p),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -730,6 +772,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                 ],
               ),
             ),
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -764,6 +807,40 @@ class _V3PipelineViewState extends State<V3PipelineView> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _sortHeader(V3Palette p, String label, {String? sortKey}) {
+    final active = sortKey != null && _sortBy == sortKey;
+    final child = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: V3Tokens.caption(p, color: active ? p.textPrimary : p.textSecondary),
+          ),
+          if (sortKey != null) ...[
+            const SizedBox(width: 3),
+            Icon(
+              active
+                  ? (_sortAsc ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded)
+                  : Icons.unfold_more_rounded,
+              size: 13,
+              color: active ? p.accentText : p.textTertiary,
+            ),
+          ],
+        ],
+      ),
+    );
+    if (sortKey == null) return child;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => _toggleSort(sortKey),
+        child: child,
       ),
     );
   }

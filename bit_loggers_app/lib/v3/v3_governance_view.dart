@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
@@ -10,6 +11,7 @@ class V3GovernanceView extends StatefulWidget {
   final V3Palette palette;
   final ValueChanged<String> onInspectCampaign;
   final void Function(String title, String description, String status) onNotify;
+  final String initialTab;
 
   const V3GovernanceView({
     super.key,
@@ -17,6 +19,7 @@ class V3GovernanceView extends StatefulWidget {
     required this.palette,
     required this.onInspectCampaign,
     required this.onNotify,
+    this.initialTab = 'audit',
   });
 
   @override
@@ -24,7 +27,7 @@ class V3GovernanceView extends StatefulWidget {
 }
 
 class _V3GovernanceViewState extends State<V3GovernanceView> {
-  String _activeTab = 'audit'; // 'audit' | 'outbox' | 'diagnostics' | 'tests'
+  late String _activeTab; // 'audit' | 'outbox' | 'diagnostics' | 'tests'
   String _auditQuery = '';
   String _diagFilter = 'ALL';
 
@@ -39,6 +42,8 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
   @override
   void initState() {
     super.initState();
+    const allowed = {'audit', 'outbox', 'diagnostics', 'tests'};
+    _activeTab = allowed.contains(widget.initialTab) ? widget.initialTab : 'audit';
     _loadAll();
   }
 
@@ -311,18 +316,19 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: p.borderDefault),
           ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 780),
-              child: Table(
-                columnWidths: const {
-                  0: FixedColumnWidth(175),
-                  1: FixedColumnWidth(130),
-                  2: FixedColumnWidth(205),
-                  3: FlexColumnWidth(2),
-                  4: FixedColumnWidth(84),
-                },
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: math.max(constraints.maxWidth, 840)),
+                child: Table(
+                  columnWidths: const {
+                    0: FixedColumnWidth(166),
+                    1: FixedColumnWidth(124),
+                    2: FixedColumnWidth(276),
+                    3: FlexColumnWidth(2.0),
+                    4: FixedColumnWidth(84),
+                  },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
                   TableRow(
@@ -346,6 +352,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                                     evt.eventType.contains('REJECTED'))
                                 ? 'rose'
                                 : 'yellow';
+                    final actorClean = V3Tokens.cleanPersonName(evt.actorName);
                     return TableRow(
                       decoration: BoxDecoration(
                         border: Border(bottom: BorderSide(color: p.separator, width: 1)),
@@ -369,12 +376,19 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(evt.actorName, style: V3Tokens.bodyMedium(p)),
+                          child: Text(
+                            actorClean,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: V3Tokens.bodyMedium(p),
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Text(
                             '${evt.previousState ?? '—'} → ${evt.newState ?? '—'}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: V3Tokens.bodyRegular(p),
                           ),
                         ),
@@ -399,6 +413,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                   }),
                 ],
               ),
+            ),
             ),
           ),
         ),
@@ -426,12 +441,46 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Switch(
-                    value: _isEmailFailing,
-                    onChanged: _toggleEmailFailure,
-                    activeColor: p.accent500,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () => _toggleEmailFailure(!_isEmailFailing),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 160),
+                        width: 40,
+                        height: 22,
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          color: _isEmailFailing
+                              ? p.accent500
+                              : (p.isDark ? const Color(0xFF404040) : const Color(0xFFD4D4D8)),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: AnimatedAlign(
+                          duration: const Duration(milliseconds: 160),
+                          curve: Curves.easeOutCubic,
+                          alignment:
+                              _isEmailFailing ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            width: 17,
+                            height: 17,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.18),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 10),
                   Text('Simulate SMTP gateway outage', style: V3Tokens.bodyMedium(p)),
                   if (_isEmailFailing) ...[
                     const SizedBox(width: 10),
@@ -472,19 +521,20 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: p.borderDefault),
           ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 740),
-              child: Table(
-                columnWidths: const {
-                  0: FixedColumnWidth(155),
-                  1: FixedColumnWidth(155),
-                  2: FixedColumnWidth(115),
-                  3: FixedColumnWidth(88),
-                  4: FlexColumnWidth(1.5),
-                  5: FixedColumnWidth(84),
-                },
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: math.max(constraints.maxWidth, 860)),
+                child: Table(
+                  columnWidths: const {
+                    0: FixedColumnWidth(148),
+                    1: FixedColumnWidth(236),
+                    2: FixedColumnWidth(116),
+                    3: FixedColumnWidth(84),
+                    4: FlexColumnWidth(1.6),
+                    5: FixedColumnWidth(88),
+                  },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
                   TableRow(
@@ -516,7 +566,10 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(evt.eventType, style: V3Tokens.bodyMedium(p)),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: V3Badge(label: evt.eventType, palette: p),
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -550,6 +603,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                   }),
                 ],
               ),
+            ),
             ),
           ),
         ),
@@ -611,18 +665,19 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: p.borderDefault),
           ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 740),
-              child: Table(
-                columnWidths: const {
-                  0: FixedColumnWidth(165),
-                  1: FixedColumnWidth(115),
-                  2: FixedColumnWidth(140),
-                  3: FlexColumnWidth(2),
-                  4: FixedColumnWidth(84),
-                },
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: math.max(constraints.maxWidth, 840)),
+                child: Table(
+                  columnWidths: const {
+                    0: FixedColumnWidth(215),
+                    1: FixedColumnWidth(115),
+                    2: FixedColumnWidth(145),
+                    3: FlexColumnWidth(2.0),
+                    4: FixedColumnWidth(88),
+                  },
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
                   TableRow(
@@ -698,6 +753,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                 ],
               ),
             ),
+            ),
           ),
         ),
       ],
@@ -739,27 +795,38 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                   ),
                 ],
               ),
-              V3Button(
-                label: _runningTests ? 'Running…' : 'Run 14 scenarios',
-                icon: Icons.play_arrow_rounded,
-                variant: V3ButtonVariant.primary,
-                palette: p,
-                onTap: _runningTests ? null : _runTests,
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (_report != null)
+                    V3Chip(
+                      label:
+                          '${_report!['passedCount'] ?? 14}/${_report!['total'] ?? 14} passed',
+                      tone: _report!['allPassed'] == true ? 'lime' : 'rose',
+                      palette: p,
+                      leadingIcon: Icons.check_circle_outline_rounded,
+                    ),
+                  V3Button(
+                    label: _runningTests ? 'Running…' : 'Run 14 scenarios',
+                    icon: Icons.play_arrow_rounded,
+                    variant: V3ButtonVariant.primary,
+                    palette: p,
+                    onTap: _runningTests ? null : _runTests,
+                  ),
+                ],
               ),
             ],
           ),
         ),
         const SizedBox(height: 14),
         if (results.isEmpty)
-          Container(
-            height: 170,
-            alignment: Alignment.center,
+          V3DashedBox(
+            palette: p,
+            minHeight: 170,
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: p.bgSecondary,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: p.borderDefault),
-            ),
+            borderRadius: 16,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

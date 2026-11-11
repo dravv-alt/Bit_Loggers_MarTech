@@ -119,15 +119,11 @@ class _V3CalendarViewState extends State<V3CalendarView> {
         const SizedBox(height: 16),
 
         if (filtered.isEmpty)
-          Container(
-            height: 220,
-            alignment: Alignment.center,
+          V3DashedBox(
+            palette: p,
+            minHeight: 220,
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: p.bgSecondary,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: p.borderDefault),
-            ),
+            borderRadius: 16,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -148,24 +144,12 @@ class _V3CalendarViewState extends State<V3CalendarView> {
             final r = _formatRange(evt.startsAt, evt.endsAt);
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: InkWell(
+              child: V3HoverCard(
+                palette: p,
                 onTap: () => widget.onInspectCampaign(evt.campaignId),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: p.bgPrimary,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: p.borderDefault),
-                    boxShadow: [
-                      BoxShadow(
-                        color: p.cardShadowColor,
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  child: LayoutBuilder(
+                padding: const EdgeInsets.all(16),
+                borderRadius: 16,
+                builder: (hovered) => LayoutBuilder(
                     builder: (context, constraints) {
                       final wide = constraints.maxWidth >= 560;
                       final leftInfo = Column(
@@ -193,7 +177,13 @@ class _V3CalendarViewState extends State<V3CalendarView> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Text(evt.title, style: V3Tokens.title2(p).copyWith(fontSize: 17)),
+                          Text(
+                            evt.title,
+                            style: V3Tokens.title2(p).copyWith(
+                              fontSize: 17,
+                              color: hovered ? p.accentText : p.textPrimary,
+                            ),
+                          ),
                           const SizedBox(height: 3),
                           Text(
                             'Flight lock bound to exact approved version v${evt.versionNo}',
@@ -255,7 +245,6 @@ class _V3CalendarViewState extends State<V3CalendarView> {
                       );
                     },
                   ),
-                ),
               ),
             );
           }),

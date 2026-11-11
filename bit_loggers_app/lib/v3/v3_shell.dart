@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import 'v3_analytics_view.dart';
@@ -41,6 +42,8 @@ class V3Shell extends StatefulWidget {
   final bool isDark;
   final ValueChanged<bool> onToggleDark;
   final String initialSection;
+  final String initialPipelineView;
+  final String initialGovernanceTab;
 
   const V3Shell({
     super.key,
@@ -49,6 +52,8 @@ class V3Shell extends StatefulWidget {
     required this.isDark,
     required this.onToggleDark,
     this.initialSection = 'pipeline',
+    this.initialPipelineView = 'board',
+    this.initialGovernanceTab = 'audit',
   });
 
   @override
@@ -87,6 +92,7 @@ class _V3ShellState extends State<V3Shell> {
   late String _activeSection;
   bool _mobileDrawerOpen = false;
   bool _loading = true;
+  int _searchFocusTrigger = 0;
 
   List<User> _users = [];
   List<Campaign> _campaigns = [];
@@ -211,99 +217,138 @@ class _V3ShellState extends State<V3Shell> {
     final meta = _meta[_activeSection] ?? _meta['pipeline']!;
     final user = widget.api.currentUser;
 
-    return Scaffold(
-      backgroundColor: p.bgFull,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main Desktop Row or Mobile Body
-            Padding(
-              padding: EdgeInsets.all(isDesktop ? 12 : 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (isDesktop) ...[
-                    V3Sidebar(
-                      palette: p,
-                      selectedSection: _activeSection,
-                      onSelectSection: (s) => setState(() => _activeSection = s),
-                      users: _users,
-                      currentUser: user,
-                      onSelectUser: _selectUser,
-                      pipelineCount: _campaigns.length,
-                      unreadCount: _unreadCount,
-                      isDark: widget.isDark,
-                      onToggleDark: widget.onToggleDark,
-                      activeVersion: 'v3',
-                      onSwitchVersion: widget.onSwitchVersion,
-                    ),
-                    const SizedBox(width: 16),
-                  ],
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          if (_studioOpen) {
+            setState(() {
+              _studioOpen = false;
+              _editingCampaign = null;
+            });
+          } else if (_inspectCampaignId != null) {
+            setState(() => _inspectCampaignId = null);
+          } else if (_mobileDrawerOpen) {
+            setState(() => _mobileDrawerOpen = false);
+          }
+        },
+        const SingleActivator(LogicalKeyboardKey.keyL, control: true): () {
+          setState(() {
+            if (!isDesktop) _mobileDrawerOpen = true;
+            _searchFocusTrigger++;
+          });
+        },
+        const SingleActivator(LogicalKeyboardKey.keyL, meta: true): () {
+          setState(() {
+            if (!isDesktop) _mobileDrawerOpen = true;
+            _searchFocusTrigger++;
+          });
+        },
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          backgroundColor: p.bgFull,
+          body: SafeArea(
+            child: Stack(
+              children: [
+                // Main Desktop Row or Mobile Body
+                Padding(
+                  padding: EdgeInsets.all(isDesktop ? 12 : 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (isDesktop) ...[
+                        V3Sidebar(
+                          palette: p,
+                          selectedSection: _activeSection,
+                          onSelectSection: (s) => setState(() => _activeSection = s),
+                          users: _users,
+                          currentUser: user,
+                          onSelectUser: _selectUser,
+                          pipelineCount: _campaigns.length,
+                          unreadCount: _unreadCount,
+                          isDark: widget.isDark,
+                          onToggleDark: widget.onToggleDark,
+                          activeVersion: 'v3',
+                          onSwitchVersion: widget.onSwitchVersion,
+                          searchFocusTrigger: _searchFocusTrigger,
+                        ),
+                        const SizedBox(width: 16),
+                      ],
 
-                  // 1300px Max Centered Canvas
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1300),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildHeader(p, meta, user, isDesktop: isDesktop, isCompact: isCompact),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: _loading
-                                  ? Center(
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: p.accent500,
-                                      ),
-                                    )
-                                  : SingleChildScrollView(
-                                      padding: const EdgeInsets.only(bottom: 28),
-                                      child: _buildActiveSection(p, user),
-                                    ),
+                      // 1300px Max Centered Canvas
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 1300),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildHeader(p, meta, user, isDesktop: isDesktop, isCompact: isCompact),
+                                const SizedBox(height: 16),
+                                Expanded(
+                                  child: _loading
+                                      ? Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: p.accent500,
+                                          ),
+                                        )
+                                      : SingleChildScrollView(
+                                          padding: const EdgeInsets.only(bottom: 28),
+                                          child: AnimatedSwitcher(
+                                            duration: const Duration(milliseconds: 160),
+                                            switchInCurve: Curves.easeOutCubic,
+                                            switchOutCurve: Curves.easeInCubic,
+                                            child: KeyedSubtree(
+                                              key: ValueKey(_activeSection),
+                                              child: _buildActiveSection(p, user),
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+
+                // Mobile Drawer Sidebar Overlay
+                if (!isDesktop && _mobileDrawerOpen)
+                  Positioned.fill(
+                    child: Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: () => setState(() => _mobileDrawerOpen = false),
+                          child: Container(color: Colors.black.withOpacity(0.45)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: V3Sidebar(
+                            palette: p,
+                            mobileDrawer: true,
+                            onCloseDrawer: () => setState(() => _mobileDrawerOpen = false),
+                            selectedSection: _activeSection,
+                            onSelectSection: (s) => setState(() => _activeSection = s),
+                            users: _users,
+                            currentUser: user,
+                            onSelectUser: _selectUser,
+                            pipelineCount: _campaigns.length,
+                            unreadCount: _unreadCount,
+                            isDark: widget.isDark,
+                            onToggleDark: widget.onToggleDark,
+                            activeVersion: 'v3',
+                            onSwitchVersion: widget.onSwitchVersion,
+                            searchFocusTrigger: _searchFocusTrigger,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            // Mobile Drawer Sidebar Overlay
-            if (!isDesktop && _mobileDrawerOpen)
-              Positioned.fill(
-                child: Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () => setState(() => _mobileDrawerOpen = false),
-                      child: Container(color: Colors.black.withOpacity(0.45)),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: V3Sidebar(
-                        palette: p,
-                        mobileDrawer: true,
-                        onCloseDrawer: () => setState(() => _mobileDrawerOpen = false),
-                        selectedSection: _activeSection,
-                        onSelectSection: (s) => setState(() => _activeSection = s),
-                        users: _users,
-                        currentUser: user,
-                        onSelectUser: _selectUser,
-                        pipelineCount: _campaigns.length,
-                        unreadCount: _unreadCount,
-                        isDark: widget.isDark,
-                        onToggleDark: widget.onToggleDark,
-                        activeVersion: 'v3',
-                        onSwitchVersion: widget.onSwitchVersion,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
             // Detail Slide-Over Drawer
             if (_inspectCampaignId != null)
@@ -427,6 +472,8 @@ class _V3ShellState extends State<V3Shell> {
           ],
         ),
       ),
+    ),
+    ),
     );
   }
 
@@ -449,7 +496,7 @@ class _V3ShellState extends State<V3Shell> {
             Icon(Icons.dashboard_outlined, size: 14, color: p.iconSecondary),
             Text('CampaignGrid v3', style: V3Tokens.caption(p)),
             Icon(Icons.chevron_right_rounded, size: 14, color: p.textTertiary),
-            Text(user.name, style: V3Tokens.caption(p)),
+            Text(V3Tokens.cleanPersonName(user.name), style: V3Tokens.caption(p)),
             Icon(Icons.chevron_right_rounded, size: 14, color: p.textTertiary),
             Icon(meta.icon, size: 14, color: p.textPrimary),
             Text(meta.title, style: V3Tokens.caption(p, color: p.textPrimary, weight: FontWeight.w600)),
@@ -718,6 +765,7 @@ class _V3ShellState extends State<V3Shell> {
         return V3GovernanceView(
           api: widget.api,
           palette: p,
+          initialTab: widget.initialGovernanceTab,
           onInspectCampaign: (cid) => setState(() {
             _inspectInitialTab = 'overview';
             _inspectCampaignId = cid;
@@ -729,6 +777,7 @@ class _V3ShellState extends State<V3Shell> {
           campaigns: _campaigns,
           currentUser: user,
           palette: p,
+          initialViewMode: widget.initialPipelineView,
           onInspectCampaign: (cid, {initialTab = 'overview'}) => setState(() {
             _inspectInitialTab = initialTab;
             _inspectCampaignId = cid;

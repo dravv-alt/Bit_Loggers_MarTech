@@ -153,14 +153,13 @@ class _V3NotificationsViewState extends State<V3NotificationsView> {
               const SizedBox(height: 14),
 
               if (shown.isEmpty)
-                Container(
+                V3DashedBox(
+                  palette: p,
+                  minHeight: 130,
                   padding: const EdgeInsets.all(28),
-                  decoration: BoxDecoration(
-                    color: p.bgSecondary,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: p.borderDefault),
-                  ),
+                  borderRadius: 14,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.notifications_none_rounded, size: 28, color: p.iconTertiary),
                       const SizedBox(height: 8),

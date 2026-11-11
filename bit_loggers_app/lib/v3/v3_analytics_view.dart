@@ -65,6 +65,11 @@ class _V3AnalyticsViewState extends State<V3AnalyticsView> {
     final aovAct = _num(kpis['aov']?['actual'], 118.0);
     final aovProj = _num(kpis['aov']?['projected'], 110.0);
 
+    final ctrDiffPct = (((ctrAct - ctrProj) / math.max(0.1, ctrProj)) * 100);
+    final ctrSign = ctrDiffPct > 0 ? '+' : '';
+    final cpaDiffPct = (((cpaAct - cpaProj) / math.max(0.1, cpaProj)) * 100);
+    final cpaSign = cpaDiffPct > 0 ? '+' : '';
+
     final stats = [
       V3StatItem(
         icon: Icons.percent_rounded,
@@ -78,7 +83,7 @@ class _V3AnalyticsViewState extends State<V3AnalyticsView> {
         icon: Icons.ads_click_rounded,
         label: 'Click-through rate',
         value: '${ctrAct.toStringAsFixed(1)}%',
-        delta: '${(((ctrAct - ctrProj) / math.max(0.1, ctrProj)) * 100).toStringAsFixed(1)}%',
+        delta: '$ctrSign${ctrDiffPct.toStringAsFixed(1)}%',
         deltaTone: ctrAct >= ctrProj ? 'lime' : 'rose',
       ),
       V3StatItem(
@@ -93,7 +98,7 @@ class _V3AnalyticsViewState extends State<V3AnalyticsView> {
         icon: Icons.monetization_on_outlined,
         label: 'Actual CPA',
         value: '\$${cpaAct.toStringAsFixed(1)}',
-        delta: '${(((cpaAct - cpaProj) / math.max(0.1, cpaProj)) * 100).toStringAsFixed(1)}%',
+        delta: '$cpaSign${cpaDiffPct.toStringAsFixed(1)}%',
         deltaTone: cpaAct <= cpaProj ? 'lime' : 'rose',
       ),
     ];
@@ -245,11 +250,12 @@ class _V3AnalyticsViewState extends State<V3AnalyticsView> {
                 ],
               ),
               const SizedBox(height: 12),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 680),
-                  child: Table(
+              LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: math.max(constraints.maxWidth, 720)),
+                    child: Table(
                     columnWidths: const {
                       0: FixedColumnWidth(110),
                       1: FixedColumnWidth(72),
@@ -282,8 +288,10 @@ class _V3AnalyticsViewState extends State<V3AnalyticsView> {
                       ...breakdown.map((row) {
                         final ch = row['channel'].toString();
                         final roi = _num(row['roi'], 0);
+                        final isSelected = _channelFilter == ch;
                         return TableRow(
                           decoration: BoxDecoration(
+                            color: isSelected ? p.accentBgSoft.withOpacity(0.45) : null,
                             border: Border(bottom: BorderSide(color: p.separator, width: 1)),
                           ),
                           children: [
@@ -291,10 +299,26 @@ class _V3AnalyticsViewState extends State<V3AnalyticsView> {
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
                               child: Align(
                                 alignment: Alignment.centerLeft,
-                                child: V3Chip(
-                                  label: ch,
-                                  tone: V3Tokens.channelChipTone(ch),
-                                  palette: p,
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: Tooltip(
+                                    message: isSelected
+                                        ? 'Show all channels'
+                                        : 'Filter analytics to $ch',
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _channelFilter = isSelected ? 'All' : ch;
+                                        });
+                                        _load();
+                                      },
+                                      child: V3Chip(
+                                        label: ch,
+                                        tone: V3Tokens.channelChipTone(ch),
+                                        palette: p,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -340,6 +364,7 @@ class _V3AnalyticsViewState extends State<V3AnalyticsView> {
                       }),
                     ],
                   ),
+                ),
                 ),
               ),
             ],

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
@@ -44,6 +45,7 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
   String _aiSummary = '';
   bool _generatingAi = false;
   bool _saving = false;
+  String? _validationError;
 
   bool get _isEditing => widget.campaign != null;
 
@@ -99,6 +101,7 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
       );
       if (!mounted) return;
       setState(() {
+        _validationError = null;
         if (_titleCtrl.text.trim().isEmpty && res['title'] != null) {
           _titleCtrl.text = res['title'].toString();
         }
@@ -132,6 +135,9 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
     if (_titleCtrl.text.trim().isEmpty ||
         _objectiveCtrl.text.trim().isEmpty ||
         _audienceCtrl.text.trim().isEmpty) {
+      setState(() {
+        _validationError = 'Title, objective, and target audience segment are required.';
+      });
       widget.onNotify(
         'Missing required fields',
         'Title, objective, and target audience must all be filled out.',
@@ -140,7 +146,10 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
       return;
     }
 
-    setState(() => _saving = true);
+    setState(() {
+      _validationError = null;
+      _saving = true;
+    });
     try {
       final budgetVal = (double.tryParse(_budgetCtrl.text) ?? 18000).clamp(500.0, 500000.0);
       final payload = {
@@ -196,8 +205,8 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          width: 660,
-          margin: const EdgeInsets.all(16),
+          width: math.min(660.0, MediaQuery.of(context).size.width - 24),
+          margin: const EdgeInsets.all(12),
           constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
           decoration: BoxDecoration(
             color: p.bgPrimary,
@@ -271,37 +280,52 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _aiPromptCtrl,
-                                    style: V3Tokens.bodyMedium(p),
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      filled: true,
-                                      fillColor: p.bgPrimary,
-                                      hintText: 'Describe launch goal, offer, or audience segment…',
-                                      hintStyle: V3Tokens.bodyRegular(p, color: p.textTertiary),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(color: p.borderDefault),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(color: p.borderDefault),
-                                      ),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isNarrow = constraints.maxWidth < 460;
+                                final promptField = TextField(
+                                  controller: _aiPromptCtrl,
+                                  style: V3Tokens.bodyMedium(p),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: p.bgPrimary,
+                                    hintText: 'Describe launch goal, offer, or audience segment…',
+                                    hintStyle: V3Tokens.bodyRegular(p, color: p.textTertiary),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(color: p.borderDefault),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(color: p.borderDefault),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                V3Button(
+                                );
+                                final draftBtn = V3Button(
                                   label: _generatingAi ? 'Generating…' : 'Draft brief',
                                   icon: Icons.auto_awesome_outlined,
                                   palette: p,
                                   onTap: _generatingAi ? null : _draftAi,
-                                ),
-                              ],
+                                );
+                                if (isNarrow) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      promptField,
+                                      const SizedBox(height: 8),
+                                      Align(alignment: Alignment.centerRight, child: draftBtn),
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  children: [
+                                    Expanded(child: promptField),
+                                    const SizedBox(width: 8),
+                                    draftBtn,
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -311,52 +335,102 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
                       _labeledField(p, 'Campaign title *', _titleCtrl, 'e.g. Q4 Enterprise Launch'),
                       const SizedBox(height: 12),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Primary channel', style: V3Tokens.caption(p)),
-                                const SizedBox(height: 6),
-                                PopupMenuButton<String>(
-                                  color: p.bgPrimary,
-                                  onSelected: (ch) => setState(() => _channel = ch),
-                                  itemBuilder: (_) => _channels
-                                      .map((ch) => PopupMenuItem(
-                                          value: ch, child: Text(ch, style: V3Tokens.bodyMedium(p))))
-                                      .toList(),
-                                  child: Container(
-                                    height: 40,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    decoration: BoxDecoration(
-                                      color: p.bgPrimary,
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: p.borderDefault),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(_channel, style: V3Tokens.bodyMedium(p)),
-                                        Icon(Icons.keyboard_arrow_down_rounded,
-                                            color: p.iconSecondary),
-                                      ],
-                                    ),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isNarrow = constraints.maxWidth < 460;
+                          final channelCol = Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Primary channel', style: V3Tokens.caption(p)),
+                              const SizedBox(height: 6),
+                              PopupMenuButton<String>(
+                                color: p.bgPrimary,
+                                onSelected: (ch) => setState(() => _channel = ch),
+                                itemBuilder: (_) => _channels
+                                    .map((ch) => PopupMenuItem(
+                                        value: ch, child: Text(ch, style: V3Tokens.bodyMedium(p))))
+                                    .toList(),
+                                child: Container(
+                                  height: 40,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: p.bgPrimary,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: p.borderDefault),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(_channel, style: V3Tokens.bodyMedium(p)),
+                                      Icon(Icons.keyboard_arrow_down_rounded,
+                                          color: p.iconSecondary),
+                                    ],
                                   ),
                                 ),
+                              ),
+                            ],
+                          );
+                          final budgetField = _labeledField(
+                            p,
+                            'Total budget (USD) *',
+                            _budgetCtrl,
+                            '18000',
+                            keyboardType: TextInputType.number,
+                          );
+                          if (isNarrow) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                channelCol,
+                                const SizedBox(height: 12),
+                                budgetField,
                               ],
+                            );
+                          }
+                          return Row(
+                            children: [
+                              Expanded(child: channelCol),
+                              const SizedBox(width: 12),
+                              Expanded(child: budgetField),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text('Presets:', style: V3Tokens.caption(p)),
+                          for (final preset in const [15000, 20000, 25000, 30000, 35000])
+                            InkWell(
+                              onTap: () => setState(() => _budgetCtrl.text = '$preset'),
+                              borderRadius: BorderRadius.circular(999),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _budgetCtrl.text.trim() == '$preset'
+                                      ? p.accentBgSoft
+                                      : p.bgSecondary,
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: _budgetCtrl.text.trim() == '$preset'
+                                        ? p.accent500
+                                        : p.borderDefault,
+                                  ),
+                                ),
+                                child: Text(
+                                  '\$${preset ~/ 1000}k',
+                                  style: V3Tokens.caption(
+                                    p,
+                                    color: _budgetCtrl.text.trim() == '$preset'
+                                        ? p.accentText
+                                        : p.textSecondary,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _labeledField(
-                              p,
-                              'Total budget (USD) *',
-                              _budgetCtrl,
-                              '18000',
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -390,20 +464,43 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
                           children: [
                             Text('Projected KPI targets', style: V3Tokens.bodyMedium(p)),
                             const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              children: [
-                                _smallKpiField(p, 'CVR (%)', _cvrCtrl),
-                                _smallKpiField(p, 'CTR (%)', _ctrCtrl),
-                                _smallKpiField(p, 'ROI (x)', _roiCtrl),
-                                _smallKpiField(p, 'CPA (\$)', _cpaCtrl),
-                                _smallKpiField(p, 'AOV (\$)', _aovCtrl),
-                              ],
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final cols = constraints.maxWidth >= 500
+                                    ? 5
+                                    : (constraints.maxWidth >= 320 ? 3 : 2);
+                                const gap = 10.0;
+                                final itemW = (constraints.maxWidth - gap * (cols - 1)) / cols;
+                                return Wrap(
+                                  spacing: gap,
+                                  runSpacing: gap,
+                                  children: [
+                                    _smallKpiField(p, 'CVR (%)', _cvrCtrl, width: itemW),
+                                    _smallKpiField(p, 'CTR (%)', _ctrCtrl, width: itemW),
+                                    _smallKpiField(p, 'ROI (x)', _roiCtrl, width: itemW),
+                                    _smallKpiField(p, 'CPA (\$)', _cpaCtrl, width: itemW),
+                                    _smallKpiField(p, 'AOV (\$)', _aovCtrl, width: itemW),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
                       ),
+                      if (_validationError != null) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                          decoration: BoxDecoration(
+                            color: p.chipColors('rose').bg,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            _validationError!,
+                            style: V3Tokens.caption(p, color: p.chipColors('rose').fg),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -466,6 +563,9 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
           controller: ctrl,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          onChanged: (_) {
+            if (_validationError != null) setState(() => _validationError = null);
+          },
           style: V3Tokens.bodyMedium(p),
           decoration: InputDecoration(
             isDense: true,
@@ -487,9 +587,9 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
     );
   }
 
-  Widget _smallKpiField(V3Palette p, String label, TextEditingController ctrl) {
+  Widget _smallKpiField(V3Palette p, String label, TextEditingController ctrl, {double width = 106}) {
     return SizedBox(
-      width: 106,
+      width: width,
       child: _labeledField(p, label, ctrl, '0', keyboardType: TextInputType.number),
     );
   }

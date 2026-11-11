@@ -113,6 +113,8 @@ class _BitLoggersAppState extends State<BitLoggersApp> {
             isDark: _v3Dark,
             onToggleDark: (dark) => setState(() => _v3Dark = dark),
             initialSection: _v3SectionFromQuery(),
+            initialPipelineView: Uri.base.queryParameters['pview'] ?? 'board',
+            initialGovernanceTab: Uri.base.queryParameters['gtab'] ?? 'audit',
           );
         } else if (_appVersion == 'v2') {
           activeTheme = V2Tokens.buildThemeData();

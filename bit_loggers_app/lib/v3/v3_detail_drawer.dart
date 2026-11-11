@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
@@ -41,6 +42,7 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
   final TextEditingController _reasonCtrl = TextEditingController();
   final TextEditingController _policyCtrl = TextEditingController();
   bool _submittingDecision = false;
+  String? _reviewError;
 
   // Schedule state
   String _schedChannel = 'Social';
@@ -136,6 +138,9 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
     final ver = c?.currentVersion;
     if (c == null || ver == null) return;
     if (_reasonCtrl.text.trim().isEmpty) {
+      setState(() {
+        _reviewError = 'Provide compliance or optimization rationale before saving.';
+      });
       widget.onNotify(
         'Rationale required',
         'Provide compliance or optimization feedback before saving a decision.',
@@ -143,7 +148,10 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
       );
       return;
     }
-    setState(() => _submittingDecision = true);
+    setState(() {
+      _reviewError = null;
+      _submittingDecision = true;
+    });
     try {
       await widget.api.makeDecision(
         c.campaignId,
@@ -233,7 +241,7 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          width: 720,
+          width: math.min(720.0, MediaQuery.of(context).size.width),
           height: double.infinity,
           decoration: BoxDecoration(
             color: p.bgPrimary,
@@ -255,75 +263,114 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                   decoration: BoxDecoration(
                     border: Border(bottom: BorderSide(color: p.separator)),
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (camp != null)
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [
-                                  V3Chip(
-                                    label: V3Tokens.statusLabel(camp.status),
-                                    tone: V3Tokens.statusChipTone(camp.status),
-                                    palette: p,
-                                  ),
-                                  V3Chip(
-                                    label: curVer?.channel ?? 'Social',
-                                    tone: V3Tokens.channelChipTone(curVer?.channel ?? 'Social'),
-                                    palette: p,
-                                  ),
-                                  V3Badge(label: 'v${curVer?.versionNo ?? 1}', palette: p),
-                                ],
-                              ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _loading && camp == null ? 'Loading brief…' : (camp?.title ?? ''),
-                              style: V3Tokens.title1(p, semiBold: true).copyWith(fontSize: 21),
-                            ),
-                            if (camp != null)
-                              Text(
-                                'Updated ${V3Tokens.formatRelativeTime(camp.updatedAt)}',
-                                style: V3Tokens.caption(p),
-                              ),
-                          ],
-                        ),
-                      ),
-                      Wrap(
-                        spacing: 6,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 520;
+                      final titleBlock = Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (camp != null && canEdit) ...[
-                            V3Button(
-                              label: isLockedByMe ? 'Release lock' : 'Lease edit',
-                              icon: isLockedByMe
-                                  ? Icons.lock_open_rounded
-                                  : Icons.lock_outline_rounded,
-                              small: true,
-                              palette: p,
-                              onTap: _toggleLock,
+                          if (camp != null)
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                V3Chip(
+                                  label: V3Tokens.statusLabel(camp.status),
+                                  tone: V3Tokens.statusChipTone(camp.status),
+                                  palette: p,
+                                ),
+                                V3Chip(
+                                  label: curVer?.channel ?? 'Social',
+                                  tone: V3Tokens.channelChipTone(curVer?.channel ?? 'Social'),
+                                  palette: p,
+                                ),
+                                V3Badge(label: 'v${curVer?.versionNo ?? 1}', palette: p),
+                              ],
                             ),
-                            V3Button(
-                              label: 'Revise',
-                              icon: Icons.edit_outlined,
-                              small: true,
-                              palette: p,
-                              onTap: () {
-                                widget.onClose();
-                                widget.onEditCampaign(camp);
-                              },
+                          const SizedBox(height: 8),
+                          Text(
+                            _loading && camp == null ? 'Loading brief…' : (camp?.title ?? ''),
+                            style: V3Tokens.title1(p, semiBold: true).copyWith(fontSize: 21),
+                          ),
+                          if (camp != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              'Owner ${V3Tokens.cleanPersonName(camp.ownerName)} • Updated ${V3Tokens.formatRelativeTime(camp.updatedAt)}',
+                              style: V3Tokens.caption(p),
                             ),
                           ],
-                          IconButton(
-                            onPressed: widget.onClose,
-                            icon: Icon(Icons.close_rounded, color: p.iconSecondary),
+                        ],
+                      );
+
+                      final actionButtons = [
+                        if (camp != null && canEdit) ...[
+                          V3Button(
+                            label: isLockedByMe ? 'Release lock' : 'Lease edit',
+                            icon: isLockedByMe
+                                ? Icons.lock_open_rounded
+                                : Icons.lock_outline_rounded,
+                            small: true,
+                            palette: p,
+                            onTap: _toggleLock,
+                          ),
+                          V3Button(
+                            label: 'Revise',
+                            icon: Icons.edit_outlined,
+                            small: true,
+                            palette: p,
+                            onTap: () {
+                              widget.onClose();
+                              widget.onEditCampaign(camp);
+                            },
                           ),
                         ],
-                      ),
-                    ],
+                      ];
+
+                      if (isNarrow) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(child: titleBlock),
+                                IconButton(
+                                  onPressed: widget.onClose,
+                                  icon: Icon(Icons.close_rounded, color: p.iconSecondary),
+                                ),
+                              ],
+                            ),
+                            if (actionButtons.isNotEmpty) ...[
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: actionButtons,
+                              ),
+                            ],
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: titleBlock),
+                          const SizedBox(width: 12),
+                          Wrap(
+                            spacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              ...actionButtons,
+                              IconButton(
+                                onPressed: widget.onClose,
+                                icon: Icon(Icons.close_rounded, color: p.iconSecondary),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
 
@@ -483,7 +530,7 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '${dec.first.reviewerName}: ${dec.first.reason}',
+                            '${V3Tokens.cleanPersonName(dec.first.reviewerName)}: ${dec.first.reason}',
                             style: V3Tokens.bodyRegular(p),
                           ),
                         ),
@@ -535,7 +582,10 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                     V3SegmentedOption(id: 'CHANGES_REQUESTED', label: 'Request changes'),
                     V3SegmentedOption(id: 'REJECTED', label: 'Reject'),
                   ],
-                  onSelect: (v) => setState(() => _decisionType = v),
+                  onSelect: (v) => setState(() {
+                    _decisionType = v;
+                    _reviewError = null;
+                  }),
                 ),
                 const SizedBox(height: 14),
                 Text('Decision rationale *', style: V3Tokens.caption(p)),
@@ -543,6 +593,9 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                 TextField(
                   controller: _reasonCtrl,
                   maxLines: 3,
+                  onChanged: (_) {
+                    if (_reviewError != null) setState(() => _reviewError = null);
+                  },
                   style: V3Tokens.bodyMedium(p),
                   decoration: InputDecoration(
                     filled: true,
@@ -551,14 +604,25 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                     hintStyle: V3Tokens.bodyRegular(p, color: p.textTertiary),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: p.borderDefault),
+                      borderSide: BorderSide(
+                        color: _reviewError != null ? p.chipColors('rose').fg : p.borderDefault,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: p.borderDefault),
+                      borderSide: BorderSide(
+                        color: _reviewError != null ? p.chipColors('rose').fg : p.borderDefault,
+                      ),
                     ),
                   ),
                 ),
+                if (_reviewError != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    _reviewError!,
+                    style: V3Tokens.caption(p, color: p.chipColors('rose').fg),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Text('Policy reference (optional)', style: V3Tokens.caption(p)),
                 const SizedBox(height: 6),
@@ -601,6 +665,52 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
               ],
             ),
           ),
+          if (camp.decisions.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text('Decision history', style: V3Tokens.caption(p)),
+            const SizedBox(height: 8),
+            ...camp.decisions.reversed.map(
+              (d) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: p.bgSecondary,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: p.borderDefault),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        V3Chip(
+                          label: d.decisionType.replaceAll('_', ' '),
+                          tone: d.decisionType == 'APPROVED'
+                              ? 'lime'
+                              : d.decisionType == 'CHANGES_REQUESTED'
+                                  ? 'orange'
+                                  : 'rose',
+                          palette: p,
+                        ),
+                        Text(
+                          V3Tokens.formatRelativeTime(d.decidedAt),
+                          style: V3Tokens.caption(p),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(d.reason, style: V3Tokens.bodyMedium(p)),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${V3Tokens.cleanPersonName(d.reviewerName)}${d.policyReference != null && d.policyReference!.isNotEmpty ? ' • ${d.policyReference}' : ''}',
+                      style: V3Tokens.caption(p),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       );
     }
@@ -709,13 +819,10 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (_discussions.isEmpty)
-            Container(
+            V3DashedBox(
+              palette: p,
+              borderRadius: 14,
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: p.bgSecondary,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: p.borderDefault),
-              ),
               child: Text(
                 'No comments yet. Mention @Marcus Vance or @Alice Cooper to notify them cleanly.',
                 textAlign: TextAlign.center,
@@ -750,7 +857,8 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(msg.authorName, style: V3Tokens.bodyMedium(p)),
+                                Text(V3Tokens.cleanPersonName(msg.authorName),
+                                    style: V3Tokens.bodyMedium(p)),
                                 Text(V3Tokens.formatRelativeTime(msg.createdAt),
                                     style: V3Tokens.caption(p)),
                               ],
@@ -841,16 +949,45 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
               ],
             ),
           ),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _metricTile(p, 'Budget', V3Tokens.formatMoney(curVer?.budget ?? 0.0)),
-            _metricTile(p, 'Est. CVR', '${(curVer?.kpiProjected.conversionRate ?? 4.2).toStringAsFixed(1)}%'),
-            _metricTile(p, 'Est. CTR', '${(curVer?.kpiProjected.ctr ?? 4.8).toStringAsFixed(1)}%'),
-            _metricTile(p, 'Est. ROI', '${(curVer?.kpiProjected.roi ?? 4.6).toStringAsFixed(1)}x'),
-            _metricTile(p, 'CPA ceiling', '\$${(curVer?.kpiProjected.cpa ?? 22).toStringAsFixed(0)}'),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final cols = constraints.maxWidth >= 560 ? 5 : 2;
+            const gap = 10.0;
+            final itemW = (constraints.maxWidth - gap * (cols - 1)) / cols;
+            final budgetW = cols == 2 ? constraints.maxWidth : itemW;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                _metricTile(p, 'Budget', V3Tokens.formatMoney(curVer?.budget ?? 0.0),
+                    width: budgetW),
+                _metricTile(
+                  p,
+                  'Est. CVR',
+                  '${(curVer?.kpiProjected.conversionRate ?? 4.2).toStringAsFixed(1)}%',
+                  width: itemW,
+                ),
+                _metricTile(
+                  p,
+                  'Est. CTR',
+                  '${(curVer?.kpiProjected.ctr ?? 4.8).toStringAsFixed(1)}%',
+                  width: itemW,
+                ),
+                _metricTile(
+                  p,
+                  'Est. ROI',
+                  '${(curVer?.kpiProjected.roi ?? 4.6).toStringAsFixed(1)}x',
+                  width: itemW,
+                ),
+                _metricTile(
+                  p,
+                  'CPA ceiling',
+                  '\$${(curVer?.kpiProjected.cpa ?? 22).toStringAsFixed(0)}',
+                  width: itemW,
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 14),
         Container(
@@ -896,9 +1033,9 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
     );
   }
 
-  Widget _metricTile(V3Palette p, String label, String val) {
+  Widget _metricTile(V3Palette p, String label, String val, {double width = 118}) {
     return Container(
-      width: 118,
+      width: width,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.bgSecondary,
