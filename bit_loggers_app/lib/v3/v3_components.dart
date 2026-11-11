@@ -1,9 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'v3_tokens.dart';
 
 enum V3ButtonVariant { primary, secondary, ghost, danger }
 
-class V3Button extends StatelessWidget {
+class V3Button extends StatefulWidget {
   final String label;
   final IconData? icon;
   final VoidCallback? onTap;
@@ -22,98 +23,270 @@ class V3Button extends StatelessWidget {
   });
 
   @override
+  State<V3Button> createState() => _V3ButtonState();
+}
+
+class _V3ButtonState extends State<V3Button> {
+  bool _hovered = false;
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final disabled = onTap == null;
-    final height = small ? 32.0 : 38.0;
-    final hPad = small ? 10.0 : 14.0;
-    final fontSize = small ? 12.5 : 13.5;
+    final p = widget.palette;
+    final disabled = widget.onTap == null;
+    final height = widget.small ? 32.0 : 38.0;
+    final hPad = widget.small ? 10.0 : 14.0;
+    final fontSize = widget.small ? 12.5 : 13.5;
 
     Gradient? bgGrad;
     Color? bgColor;
     Color fgColor;
     Border? border;
 
-    switch (variant) {
+    switch (widget.variant) {
       case V3ButtonVariant.primary:
         bgGrad = disabled
             ? null
             : LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [palette.accent500, palette.accent600],
+                colors: _hovered
+                    ? [p.accent400, p.accent500]
+                    : [p.accent500, p.accent600],
               );
-        bgColor = disabled ? palette.bgTertiary : null;
-        fgColor = disabled ? palette.textTertiary : Colors.white;
+        bgColor = disabled ? p.bgTertiary : null;
+        fgColor = disabled ? p.textTertiary : Colors.white;
         border = Border.all(
-          color: disabled ? palette.borderDefault : palette.accent600,
+          color: disabled ? p.borderDefault : p.accent600,
           width: 1,
         );
         break;
       case V3ButtonVariant.danger:
         bgGrad = disabled
             ? null
-            : const LinearGradient(
+            : LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                colors: _hovered
+                    ? const [Color(0xFFF87171), Color(0xFFEF4444)]
+                    : const [Color(0xFFEF4444), Color(0xFFDC2626)],
               );
-        bgColor = disabled ? palette.bgTertiary : null;
+        bgColor = disabled ? p.bgTertiary : null;
         fgColor = Colors.white;
         border = Border.all(color: const Color(0xFFDC2626), width: 1);
         break;
       case V3ButtonVariant.ghost:
-        bgColor = palette.isDark
-            ? const Color(0xFF1E3A8A).withOpacity(0.45)
-            : palette.accentBgSoft;
-        fgColor = palette.isDark ? const Color(0xFF93C5FD) : palette.accent700;
+        bgColor = disabled
+            ? p.bgSecondary
+            : _hovered
+                ? (p.isDark
+                    ? const Color(0xFF1E3A8A).withOpacity(0.65)
+                    : p.accentBgSoft)
+                : (p.isDark
+                    ? const Color(0xFF1E3A8A).withOpacity(0.45)
+                    : p.accentBgSoft.withOpacity(0.8));
+        fgColor = disabled
+            ? p.textTertiary
+            : (p.isDark ? const Color(0xFF93C5FD) : p.accent700);
         border = null;
         break;
       case V3ButtonVariant.secondary:
-        bgColor = palette.bgPrimary;
-        fgColor = disabled ? palette.textTertiary : palette.textPrimary;
-        border = Border.all(color: palette.borderDefault, width: 1);
+        bgColor = disabled
+            ? p.bgSecondary
+            : (_hovered ? p.bgSecondary : p.bgPrimary);
+        fgColor = disabled ? p.textTertiary : p.textPrimary;
+        border = Border.all(
+          color: _hovered && !disabled ? p.borderHover : p.borderDefault,
+          width: 1,
+        );
         break;
     }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        height: height,
-        padding: EdgeInsets.symmetric(horizontal: hPad),
-        decoration: BoxDecoration(
-          gradient: bgGrad,
-          color: bgColor,
-          borderRadius: BorderRadius.circular(10),
-          border: border,
-          boxShadow: variant == V3ButtonVariant.secondary
-              ? [BoxShadow(color: palette.cardShadowColor, blurRadius: 2, offset: const Offset(0, 1))]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: small ? 14 : 15, color: fgColor),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w500,
-                color: fgColor,
-                letterSpacing: -0.15,
-              ),
+    return MouseRegion(
+      cursor: disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() {
+        _hovered = false;
+        _pressed = false;
+      }),
+      child: GestureDetector(
+        onTapDown: disabled ? null : (_) => setState(() => _pressed = true),
+        onTapUp: disabled ? null : (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _pressed ? 0.98 : 1.0,
+          duration: const Duration(milliseconds: 110),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 130),
+            height: height,
+            padding: EdgeInsets.symmetric(horizontal: hPad),
+            decoration: BoxDecoration(
+              gradient: bgGrad,
+              color: bgColor,
+              borderRadius: BorderRadius.circular(10),
+              border: border,
+              boxShadow: widget.variant == V3ButtonVariant.secondary && !disabled
+                  ? [BoxShadow(color: p.cardShadowColor, blurRadius: 2, offset: const Offset(0, 1))]
+                  : null,
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.icon != null) ...[
+                  Icon(widget.icon, size: widget.small ? 14 : 15, color: fgColor),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w500,
+                    color: fgColor,
+                    letterSpacing: -0.15,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
+}
+
+/// Interactive hover container matching BoardUI `hover:border-border-button-hover` cards.
+class V3HoverCard extends StatefulWidget {
+  final V3Palette palette;
+  final VoidCallback? onTap;
+  final EdgeInsetsGeometry padding;
+  final double borderRadius;
+  final Widget Function(bool hovered) builder;
+
+  const V3HoverCard({
+    super.key,
+    required this.palette,
+    required this.builder,
+    this.onTap,
+    this.padding = const EdgeInsets.all(14),
+    this.borderRadius = 16,
+  });
+
+  @override
+  State<V3HoverCard> createState() => _V3HoverCardState();
+}
+
+class _V3HoverCardState extends State<V3HoverCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.palette;
+    return MouseRegion(
+      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          padding: widget.padding,
+          decoration: BoxDecoration(
+            color: p.bgInner,
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            border: Border.all(
+              color: _hovered ? p.borderHover : p.borderDefault,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: p.cardShadowColor,
+                blurRadius: _hovered ? 6 : 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: widget.builder(_hovered),
+        ),
+      ),
+    );
+  }
+}
+
+/// Dashed border panel matching BoardUI empty column / empty state containers.
+class V3DashedBox extends StatelessWidget {
+  final V3Palette palette;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double borderRadius;
+  final double? minHeight;
+
+  const V3DashedBox({
+    super.key,
+    required this.palette,
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.borderRadius = 14,
+    this.minHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _DashedRectPainter(
+        color: palette.borderHover,
+        radius: borderRadius,
+      ),
+      child: Container(
+        width: double.infinity,
+        constraints: minHeight != null ? BoxConstraints(minHeight: minHeight!) : null,
+        padding: padding,
+        decoration: BoxDecoration(
+          color: palette.bgInner.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _DashedRectPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+
+  const _DashedRectPainter({required this.color, required this.radius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+    final path = Path()..addRRect(rrect);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    const dash = 5.0;
+    const gap = 4.0;
+    for (final metric in path.computeMetrics()) {
+      double d = 0.0;
+      while (d < metric.length) {
+        final next = math.min(d + dash, metric.length);
+        canvas.drawPath(metric.extractPath(d, next), paint);
+        d += dash + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedRectPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.radius != radius;
 }
 
 class V3Chip extends StatelessWidget {
@@ -365,7 +538,7 @@ class V3StatCardGrid extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: palette.bgPrimary,
               borderRadius: BorderRadius.circular(13),
@@ -374,16 +547,21 @@ class V3StatCardGrid extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
+                Flexible(
                   child: Text(
                     s.caption ?? '',
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: V3Tokens.bodyMedium(palette, color: palette.textSecondary),
+                    style: V3Tokens.caption(
+                      palette,
+                      color: palette.textSecondary,
+                      weight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.fromLTRB(5, 3, 8, 3),
+                  padding: const EdgeInsets.fromLTRB(4, 2.5, 7, 2.5),
                   decoration: BoxDecoration(
                     color: dc.bg,
                     borderRadius: BorderRadius.circular(999),
@@ -391,11 +569,12 @@ class V3StatCardGrid extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(deltaIcon, size: 14, color: dc.fg),
-                      const SizedBox(width: 4),
+                      Icon(deltaIcon, size: 13, color: dc.fg),
+                      const SizedBox(width: 3),
                       Text(
                         s.delta,
-                        style: V3Tokens.caption(palette, color: dc.fg, weight: FontWeight.w600),
+                        style: V3Tokens.caption(palette, color: dc.fg, weight: FontWeight.w600)
+                            .copyWith(fontSize: 11.5),
                       ),
                     ],
                   ),

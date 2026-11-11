@@ -32,6 +32,7 @@ class V3Sidebar extends StatefulWidget {
   final String activeVersion;
   final ValueChanged<String> onSwitchVersion;
   final VoidCallback? onCloseDrawer;
+  final int searchFocusTrigger;
 
   const V3Sidebar({
     super.key,
@@ -49,6 +50,7 @@ class V3Sidebar extends StatefulWidget {
     required this.onSwitchVersion,
     this.mobileDrawer = false,
     this.onCloseDrawer,
+    this.searchFocusTrigger = 0,
   });
 
   @override
@@ -60,9 +62,25 @@ class _V3SidebarState extends State<V3Sidebar> {
   bool _searchOpen = false;
   String _navQuery = '';
   final TextEditingController _searchCtrl = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void didUpdateWidget(covariant V3Sidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchFocusTrigger != oldWidget.searchFocusTrigger) {
+      setState(() {
+        _collapsed = false;
+        _searchOpen = true;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _searchFocusNode.requestFocus();
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _searchFocusNode.dispose();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -263,6 +281,7 @@ class _V3SidebarState extends State<V3Sidebar> {
                   Expanded(
                     child: TextField(
                       controller: _searchCtrl,
+                      focusNode: _searchFocusNode,
                       autofocus: true,
                       style: V3Tokens.bodyMedium(p),
                       decoration: InputDecoration(
@@ -312,13 +331,24 @@ class _V3SidebarState extends State<V3Sidebar> {
                         color: p.isDark ? const Color(0xFF404040) : const Color(0xFFD4D4D4),
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      child: Text(
-                        '⌘L',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          color: p.textSecondary,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.keyboard_command_key_rounded,
+                            size: 11,
+                            color: p.textSecondary,
+                          ),
+                          const SizedBox(width: 1),
+                          Text(
+                            'L',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              color: p.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -598,7 +628,7 @@ class _V3SidebarState extends State<V3Sidebar> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      u.name,
+                      V3Tokens.cleanPersonName(u.name),
                       style: V3Tokens.bodyMedium(
                         p,
                         color: active ? p.accentText : p.textPrimary,
@@ -619,7 +649,7 @@ class _V3SidebarState extends State<V3Sidebar> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              widget.currentUser.name,
+              V3Tokens.cleanPersonName(widget.currentUser.name),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: V3Tokens.bodyMedium(p),

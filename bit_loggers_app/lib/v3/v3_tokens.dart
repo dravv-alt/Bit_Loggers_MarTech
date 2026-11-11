@@ -250,6 +250,12 @@ class V3Tokens {
     return fmt.format(amount.round());
   }
 
+  static String cleanPersonName(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return 'Alice Cooper';
+    return trimmed.replaceAll(RegExp(r'\s*\([^)]*\)\s*$'), '').trim();
+  }
+
   static String formatRelativeTime(String? iso) {
     if (iso == null || iso.isEmpty) return 'Recent';
     final dt = DateTime.tryParse(iso)?.toLocal();

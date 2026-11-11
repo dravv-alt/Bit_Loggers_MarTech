@@ -335,11 +335,18 @@ class _RevenueAreaPainter extends CustomPainter {
     }
     maxY *= 1.12;
 
-    // Y axis labels (4 ticks)
+    // Y axis labels (4 ticks) + ultra-soft horizontal grid hairlines
     for (int tIdx = 0; tIdx <= 3; tIdx++) {
       final frac = tIdx / 3.0;
       final val = maxY * (1.0 - frac);
       final y = topPad + plotH * frac;
+      canvas.drawLine(
+        Offset(leftPad, y),
+        Offset(leftPad + plotW, y),
+        Paint()
+          ..color = palette.separator.withOpacity(tIdx == 3 ? 0.75 : 0.35)
+          ..strokeWidth = 0.8,
+      );
       final label = val >= 1000 ? '\$${(val / 1000).round()}k' : '\$${val.round()}';
       final tp = TextPainter(
         text: TextSpan(text: label, style: V3Tokens.caption(palette, color: palette.textTertiary)),
@@ -425,9 +432,10 @@ class _RevenueAreaPainter extends CustomPainter {
       tp.paint(canvas, Offset(x - tp.width / 2, topPad + plotH + 7));
     }
 
-    // Active hover dot
+    // Active hover dot & floating pill tooltip
     if (activeIndex != null && activeIndex! >= 0 && activeIndex! < curOffsets.length) {
       final act = curOffsets[activeIndex!];
+      final pt = points[activeIndex!];
       canvas.drawLine(
         Offset(act.dx, topPad),
         Offset(act.dx, topPad + plotH),
@@ -449,6 +457,34 @@ class _RevenueAreaPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2,
       );
+
+      final tipText =
+          '${pt.label}: ${V3Tokens.formatMoney(pt.current)} (prev ${V3Tokens.formatMoney(pt.previous)})';
+      final tipTp = TextPainter(
+        text: TextSpan(
+          text: tipText,
+          style: V3Tokens.caption(palette, color: palette.textPrimary, weight: FontWeight.w600)
+              .copyWith(fontSize: 11),
+        ),
+        textDirection: ui.TextDirection.ltr,
+      )..layout();
+      final boxW = tipTp.width + 14;
+      final boxH = tipTp.height + 8;
+      final boxX = (act.dx - boxW / 2).clamp(leftPad, leftPad + plotW - boxW);
+      final boxY = math.max(2.0, act.dy - boxH - 12);
+      final rrect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(boxX, boxY, boxW, boxH),
+        const Radius.circular(8),
+      );
+      canvas.drawRRect(rrect, Paint()..color = palette.bgPrimary);
+      canvas.drawRRect(
+        rrect,
+        Paint()
+          ..color = palette.borderDefault
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+      tipTp.paint(canvas, Offset(boxX + 7, boxY + 4));
     }
   }
 
@@ -492,6 +528,13 @@ class _ConversionsBarPainter extends CustomPainter {
       final frac = tIdx / 3.0;
       final val = maxY * (1.0 - frac);
       final y = topPad + plotH * frac;
+      canvas.drawLine(
+        Offset(leftPad, y),
+        Offset(leftPad + plotW, y),
+        Paint()
+          ..color = palette.separator.withOpacity(tIdx == 3 ? 0.75 : 0.35)
+          ..strokeWidth = 0.8,
+      );
       final label = val >= 1000 ? '${(val / 1000).toStringAsFixed(1)}k' : '${val.round()}';
       final tp = TextPainter(
         text: TextSpan(text: label, style: V3Tokens.caption(palette, color: palette.textTertiary)),
@@ -561,6 +604,38 @@ class _ConversionsBarPainter extends CustomPainter {
         )..layout();
         tp.paint(canvas, Offset(slotCenterX - tp.width / 2, topPad + plotH + 7));
       }
+    }
+
+    if (activeIndex != null && activeIndex! >= 0 && activeIndex! < points.length) {
+      final pt = points[activeIndex!];
+      final slotCenterX = leftPad + slotW * (activeIndex! + 0.5);
+      final topY = topPad + plotH - (math.max(pt.current, pt.previous) / maxY) * plotH;
+      final tipText = '${pt.label}: ${pt.current.round()} (prev ${pt.previous.round()})';
+      final tipTp = TextPainter(
+        text: TextSpan(
+          text: tipText,
+          style: V3Tokens.caption(palette, color: palette.textPrimary, weight: FontWeight.w600)
+              .copyWith(fontSize: 11),
+        ),
+        textDirection: ui.TextDirection.ltr,
+      )..layout();
+      final boxW = tipTp.width + 14;
+      final boxH = tipTp.height + 8;
+      final boxX = (slotCenterX - boxW / 2).clamp(leftPad, leftPad + plotW - boxW);
+      final boxY = math.max(2.0, topY - boxH - 8);
+      final rrect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(boxX, boxY, boxW, boxH),
+        const Radius.circular(8),
+      );
+      canvas.drawRRect(rrect, Paint()..color = palette.bgPrimary);
+      canvas.drawRRect(
+        rrect,
+        Paint()
+          ..color = palette.borderDefault
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+      tipTp.paint(canvas, Offset(boxX + 7, boxY + 4));
     }
   }
 
