@@ -34,6 +34,162 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    (function () {
+      var ctx = null;
+      var masterOut = null;
+      var noiseBuf = null;
+      var lastTickTs = 0;
+
+      function ensureAudio() {
+        try {
+          if (!ctx) {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return null;
+            ctx = new AC();
+
+            // Master compressor + gain stages keep loud mechanical clicks punchy without digital clipping
+            var comp = ctx.createDynamicsCompressor();
+            comp.threshold.value = -8;
+            comp.knee.value = 12;
+            comp.ratio.value = 4;
+            comp.attack.value = 0.001;
+            comp.release.value = 0.05;
+
+            var masterGain = ctx.createGain();
+            masterGain.gain.value = 1.9;
+            masterGain.connect(comp);
+            comp.connect(ctx.destination);
+            masterOut = masterGain;
+
+            var len = Math.floor(ctx.sampleRate * 0.024);
+            noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+            var ch = noiseBuf.getChannelData(0);
+            for (var i = 0; i < len; i++) {
+              ch[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.34));
+            }
+          }
+          if (ctx.state === 'suspended') {
+            ctx.resume().catch(function () {});
+          }
+          return ctx;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      window.addEventListener('pointerdown', ensureAudio, { passive: true });
+      window.__cgWarmupScaleTick = ensureAudio;
+      window.__cgTickCount = 0;
+      window.__cgLastTickKind = '';
+
+      window.__cgPlayScaleTick = function (kind) {
+        try {
+          var nowMs = performance.now();
+          if (nowMs - lastTickTs < 20) return;
+          lastTickTs = nowMs;
+
+          var tickKind = String(kind || 'minor');
+          window.__cgTickCount = (window.__cgTickCount || 0) + 1;
+          window.__cgLastTickKind = tickKind;
+
+          var c = ensureAudio();
+          if (!c || c.state !== 'running') return;
+          var dest = masterOut || c.destination;
+
+          var t = c.currentTime;
+
+          // 1. Crisp mechanical pawl transient (wide bandpass micro impulse)
+          if (noiseBuf) {
+            var src = c.createBufferSource();
+            src.buffer = noiseBuf;
+            var bp = c.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.frequency.setValueAtTime(
+              tickKind === 'major' ? 1950 : tickKind === 'bump' ? 880 : 2850,
+              t
+            );
+            bp.Q.setValueAtTime(tickKind === 'major' ? 1.25 : 1.45, t);
+
+            var ng = c.createGain();
+            var nPeak =
+              tickKind === 'major'
+                ? 0.85
+                : tickKind === 'ceiling'
+                ? 0.95
+                : tickKind === 'bump'
+                ? 0.45
+                : 0.68;
+            ng.gain.setValueAtTime(nPeak, t);
+            ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.019);
+
+            src.connect(bp);
+            bp.connect(ng);
+            ng.connect(dest);
+            src.start(t);
+            src.stop(t + 0.023);
+          }
+
+          // 2. Punchy damped mechanical tooth / body knock
+          var osc = c.createOscillator();
+          var og = c.createGain();
+          osc.type = 'triangle';
+          var startFreq =
+            tickKind === 'major'
+              ? 820
+              : tickKind === 'ceiling'
+              ? 960
+              : tickKind === 'bump'
+              ? 210
+              : 1280;
+          var endFreq =
+            tickKind === 'major'
+              ? 180
+              : tickKind === 'ceiling'
+              ? 230
+              : tickKind === 'bump'
+              ? 72
+              : 320;
+          var dur =
+            tickKind === 'major' ? 0.022 : tickKind === 'bump' ? 0.028 : 0.016;
+          var oPeak =
+            tickKind === 'major'
+              ? 0.58
+              : tickKind === 'ceiling'
+              ? 0.64
+              : tickKind === 'bump'
+              ? 0.42
+              : 0.44;
+
+          osc.frequency.setValueAtTime(startFreq, t);
+          osc.frequency.exponentialRampToValueAtTime(endFreq, t + dur);
+          og.gain.setValueAtTime(oPeak, t);
+          og.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+          osc.connect(og);
+          og.connect(dest);
+          osc.start(t);
+          osc.stop(t + dur + 0.004);
+
+          // 3. Ceiling ($30k cap) brass double-detent overtone
+          if (tickKind === 'ceiling') {
+            var o2 = c.createOscillator();
+            var g2 = c.createGain();
+            var t2 = t + 0.017;
+            o2.type = 'triangle';
+            o2.frequency.setValueAtTime(1720, t2);
+            o2.frequency.exponentialRampToValueAtTime(740, t2 + 0.015);
+            g2.gain.setValueAtTime(0.45, t2);
+            g2.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.016);
+            o2.connect(g2);
+            g2.connect(dest);
+            o2.start(t2);
+            o2.stop(t2 + 0.019);
+          }
+        } catch (_) {}
+      };
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
