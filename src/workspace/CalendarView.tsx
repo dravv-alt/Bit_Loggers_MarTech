@@ -451,7 +451,7 @@ export function CalendarView({
                           <div className="flex justify-end">
                             <span
                               className={cx(
-                                'inline-flex size-6 items-center justify-center rounded-full text-caption-1-medium tabular-nums',
+                                'inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 whitespace-nowrap text-caption-1-medium tabular-nums',
                                 isToday
                                   ? 'bg-accent-500 font-semibold text-white'
                                   : isSelected
