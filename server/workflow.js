@@ -1,5 +1,12 @@
 import crypto from 'node:crypto';
 import { DIAGNOSTIC_EVENTS } from './diagnostics.js';
+import {
+  assertCampaignTransition,
+  createWorkflowError,
+  evaluateCampaignCapabilities,
+  evaluateLockState,
+  normalizeCampaignStage,
+} from './state-machines.js';
 
 export class WorkflowService {
   constructor(db, diagnostics, outbox) {
@@ -120,12 +127,7 @@ export class WorkflowService {
 
   // --- Campaign Creation (FR-01, FR-02) ---
   async createCampaign(user, data, correlationId) {
-    if (user.role !== 'marketer' && user.role !== 'admin') {
-      const err = new Error('Only marketers can create campaigns.');
-      err.code = 'FORBIDDEN';
-      err.status = 403;
-      throw err;
-    }
+    assertCampaignTransition(null, 'CREATE_CAMPAIGN', user);
 
     const campaignId = this.generateId('camp');
     const versionId = this.generateId('ver');
@@ -245,11 +247,26 @@ export class WorkflowService {
       throw err;
     }
 
-    if (campaign.owner_id !== user.id && user.role !== 'admin') {
-      const err = new Error('Only the campaign owner can edit this campaign.');
-      err.code = 'FORBIDDEN';
-      err.status = 403;
-      throw err;
+    assertCampaignTransition(campaign.status, 'REVISE_VERSION', user, campaign);
+
+    // Enforce active unexpired edit leases held by another collaborator
+    const lockRes = await this.db.query(
+      `SELECT l.*, u.name as holder_name
+       FROM edit_locks l
+       JOIN users u ON l.user_id = u.user_id
+       WHERE l.campaign_id = $1`,
+      [campaignId]
+    );
+    const lockState = evaluateLockState(lockRes.rows[0], user.id);
+    if (lockState.status === 'held_by_other') {
+      throw createWorkflowError({
+        status: 409,
+        code: 'EDIT_LOCK_HELD',
+        message: `Edit blocked: Active edit lease held by ${lockState.holder_name}.`,
+        event: 'REVISE_VERSION',
+        fromState: normalizeCampaignStage(campaign.status),
+        extra: { holder: lockState.holder_name, expires_at: lockState.expires_at },
+      });
     }
 
     // Retrieve current version details
@@ -433,6 +450,28 @@ export class WorkflowService {
       }
     }
 
+    // Explicit lifecycle guard: only Draft or ChangesRequested proposals can be submitted
+    assertCampaignTransition(campaign.status, 'SUBMIT_FOR_REVIEW', user, campaign);
+
+    const lockRes = await this.db.query(
+      `SELECT l.*, u.name as holder_name
+       FROM edit_locks l
+       JOIN users u ON l.user_id = u.user_id
+       WHERE l.campaign_id = $1`,
+      [campaignId]
+    );
+    const lockState = evaluateLockState(lockRes.rows[0], user.id);
+    if (lockState.status === 'held_by_other') {
+      throw createWorkflowError({
+        status: 409,
+        code: 'EDIT_LOCK_HELD',
+        message: `Submission blocked: Active edit lease held by ${lockState.holder_name}.`,
+        event: 'SUBMIT_FOR_REVIEW',
+        fromState: normalizeCampaignStage(campaign.status),
+        extra: { holder: lockState.holder_name, expires_at: lockState.expires_at },
+      });
+    }
+
     const curVer = await this.getVersion(campaign.current_version_id);
     const now = new Date().toISOString();
 
@@ -570,11 +609,34 @@ export class WorkflowService {
     // Check if decision already recorded on this exact version (FR-05: Exactly one decision per version)
     const existingDecision = await this.getDecision(versionId);
     if (existingDecision) {
-      const err = new Error(`Version v${targetVersion.version_no} has already been decided (${existingDecision.decision_type}).`);
-      err.code = 'NOT_AWAITING_REVIEW';
-      err.status = 409;
+      throw createWorkflowError({
+        status: 409,
+        code: 'NOT_AWAITING_REVIEW',
+        message: `Version v${targetVersion.version_no} has already been decided (${existingDecision.decision_type}).`,
+        event: decision === 'APPROVED'
+          ? 'APPROVE_VERSION'
+          : decision === 'CHANGES_REQUESTED'
+            ? 'REQUEST_CHANGES'
+            : 'REJECT_VERSION',
+        fromState: normalizeCampaignStage(campaign.status),
+      });
+    }
+
+    const decisionEvent = decision === 'APPROVED'
+      ? 'APPROVE_VERSION'
+      : decision === 'CHANGES_REQUESTED'
+        ? 'REQUEST_CHANGES'
+        : decision === 'REJECTED'
+          ? 'REJECT_VERSION'
+          : null;
+    if (!decisionEvent) {
+      const err = new Error(`Invalid decision outcome: ${decision}`);
+      err.code = 'INVALID_DECISION';
+      err.status = 400;
       throw err;
     }
+
+    assertCampaignTransition(campaign.status, decisionEvent, reviewer, campaign);
 
     const decisionId = this.generateId('dec');
     const now = new Date().toISOString();
@@ -587,14 +649,9 @@ export class WorkflowService {
     } else if (decision === 'CHANGES_REQUESTED') {
       newCampaignStatus = 'ChangesRequested';
       eventType = DIAGNOSTIC_EVENTS.CHANGES_REQUESTED;
-    } else if (decision === 'REJECTED') {
+    } else {
       newCampaignStatus = 'Rejected';
       eventType = DIAGNOSTIC_EVENTS.CAMPAIGN_REJECTED;
-    } else {
-      const err = new Error(`Invalid decision outcome: ${decision}`);
-      err.code = 'INVALID_DECISION';
-      err.status = 400;
-      throw err;
     }
 
     // Single Atomic Transaction (PRD Invariant 9)
@@ -715,6 +772,18 @@ export class WorkflowService {
       err.code = 'FORBIDDEN';
       err.status = 403;
       throw err;
+    }
+
+    const curStage = normalizeCampaignStage(campaign.status);
+    if (curStage !== 'Approved' && curStage !== 'Scheduled') {
+      throw createWorkflowError({
+        status: 409,
+        code: 'SCHEDULE_BLOCKED',
+        message: `Scheduling blocked: Campaign is in "${curStage}" stage. Only Approved campaigns can be scheduled.`,
+        event: 'SCHEDULE_FLIGHT',
+        fromState: curStage,
+        allowedFrom: ['Approved', 'Scheduled'],
+      });
     }
 
     const start = new Date(startsAt);
@@ -887,7 +956,7 @@ export class WorkflowService {
   }
 
   // --- Campaign Details & Queries ---
-  async getCampaignDetails(campaignId) {
+  async getCampaignDetails(campaignId, { user = null } = {}) {
     const campaignRes = await this.db.query(
       `SELECT c.*, u.name as owner_name, u.email as owner_email
        FROM campaigns c 
@@ -919,6 +988,35 @@ export class WorkflowService {
       [campaignId]
     );
 
+    const lockRes = await this.db.query(
+      `SELECT l.*, u.name as holder_name
+       FROM edit_locks l
+       JOIN users u ON l.user_id = u.user_id
+       WHERE l.campaign_id = $1`,
+      [campaignId]
+    );
+    const rawLock = lockRes.rows[0] || null;
+    const lockState = evaluateLockState(rawLock, user?.id);
+    const activeLock = (lockState.status === 'held_by_me' || lockState.status === 'held_by_other')
+      ? {
+          campaign_id: rawLock.campaign_id,
+          holder_id: rawLock.user_id,
+          holder_name: rawLock.holder_name,
+          acquired_at: rawLock.acquired_at,
+          expires_at: rawLock.expires_at,
+        }
+      : null;
+
+    const curDecisionRow = versionsRes.rows.find(
+      (v) => v.version_id === campaign.current_version_id && v.decision_type
+    ) || null;
+    const capabilities = user
+      ? evaluateCampaignCapabilities(campaign, user, {
+          activeLock,
+          currentVersionDecision: curDecisionRow,
+        })
+      : null;
+
     const verObj = curVer ? {
       ...curVer,
       kpi_projected: this.parseJsonField(curVer.kpi_projected, {}),
@@ -934,6 +1032,8 @@ export class WorkflowService {
 
     return {
       ...campaign,
+      active_lock: activeLock,
+      ...(capabilities ? { capabilities, valid_transitions: capabilities.valid_transitions } : {}),
       currentVersion: verObj,
       current_version: verObj,
       versions: versionsRes.rows.map(v => ({
@@ -952,13 +1052,18 @@ export class WorkflowService {
     };
   }
 
-  async listCampaigns({ status, channel, owner_id } = {}) {
+  async listCampaigns({ status, channel, owner_id, user = null } = {}) {
     let sql = `
       SELECT c.*, u.name as owner_name, v.version_no, v.channel, v.budget, v.objective, v.target_audience, v.kpi_projected,
-             v.financials, v.compliance, v.ad_network, v.creatives, v.flight_phases
+             v.financials, v.compliance, v.ad_network, v.creatives, v.flight_phases,
+             l.user_id as lock_user_id, l.acquired_at as lock_acquired_at, l.expires_at as lock_expires_at, lu.name as lock_holder_name,
+             ad.decision_type as cur_decision_type
       FROM campaigns c
       JOIN users u ON c.owner_id = u.user_id
       LEFT JOIN campaign_versions v ON c.current_version_id = v.version_id
+      LEFT JOIN edit_locks l ON c.campaign_id = l.campaign_id
+      LEFT JOIN users lu ON l.user_id = lu.user_id
+      LEFT JOIN approval_decisions ad ON v.version_id = ad.version_id
     `;
     const params = [];
     const conditions = [];
@@ -984,6 +1089,35 @@ export class WorkflowService {
 
     const res = await this.db.query(sql, params);
     return res.rows.map(row => {
+      const rawLock = row.lock_user_id
+        ? {
+            campaign_id: row.campaign_id,
+            user_id: row.lock_user_id,
+            holder_name: row.lock_holder_name,
+            acquired_at: row.lock_acquired_at,
+            expires_at: row.lock_expires_at,
+          }
+        : null;
+      const lockState = evaluateLockState(rawLock, user?.id);
+      const activeLock = (lockState.status === 'held_by_me' || lockState.status === 'held_by_other')
+        ? {
+            campaign_id: row.campaign_id,
+            holder_id: row.lock_user_id,
+            holder_name: row.lock_holder_name,
+            acquired_at: row.lock_acquired_at,
+            expires_at: row.lock_expires_at,
+          }
+        : null;
+      const curDecision = row.cur_decision_type
+        ? { version_id: row.current_version_id, decision_type: row.cur_decision_type }
+        : null;
+      const capabilities = user
+        ? evaluateCampaignCapabilities(row, user, {
+            activeLock,
+            currentVersionDecision: curDecision,
+          })
+        : null;
+
       const curVerObj = row.current_version_id ? {
         version_id: row.current_version_id,
         version_no: row.version_no,
@@ -1008,6 +1142,8 @@ export class WorkflowService {
         owner_name: row.owner_name,
         status: row.status,
         current_version_id: row.current_version_id,
+        active_lock: activeLock,
+        ...(capabilities ? { capabilities, valid_transitions: capabilities.valid_transitions } : {}),
         created_at: row.created_at,
         updated_at: row.updated_at,
         currentVersion: curVerObj,

@@ -10,6 +10,7 @@ import { OutboxService } from './outbox.js';
 import { WorkflowService } from './workflow.js';
 import { AIService } from './ai.js';
 import { generateEnterpriseSyntheticData } from './synthetic-data.js';
+import { getStateMachineCatalog } from './state-machines.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,15 +51,25 @@ export async function createApp() {
     res.json({ user: req.user });
   });
 
+  // --- State Machine Contracts (AX / DX Introspection) ---
+  app.get('/api/state-machines', (req, res) => {
+    res.json(
+      getStateMachineCatalog({
+        outboxFailing: outbox.isEmailServiceFailing,
+        aiFailing: ai.isGeminiFailing,
+      }),
+    );
+  });
+
   // --- Campaigns List & Details ---
   app.get('/api/campaigns', async (req, res) => {
     const { status, channel, owner_id } = req.query;
-    const campaigns = await workflow.listCampaigns({ status, channel, owner_id });
+    const campaigns = await workflow.listCampaigns({ status, channel, owner_id, user: req.user });
     res.json({ campaigns });
   });
 
   app.get('/api/campaigns/:id', async (req, res) => {
-    const campaign = await workflow.getCampaignDetails(req.params.id);
+    const campaign = await workflow.getCampaignDetails(req.params.id, { user: req.user });
     if (!campaign) {
       return res.status(404).json({
         error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign does not exist.', correlation_id: req.correlationId }
@@ -73,7 +84,7 @@ export async function createApp() {
       res.status(201).json(campaign);
     } catch (err) {
       res.status(err.status || 500).json({
-        error: { code: err.code || 'INTERNAL_ERROR', message: err.message, correlation_id: req.correlationId }
+        error: { code: err.code || 'INTERNAL_ERROR', message: err.message, ...(err.transition ? { transition: err.transition } : {}), correlation_id: req.correlationId }
       });
     }
   });
@@ -88,7 +99,7 @@ export async function createApp() {
       res.json(campaign);
     } catch (err) {
       res.status(err.status || 500).json({
-        error: { code: err.code || 'INTERNAL_ERROR', message: err.message, correlation_id: req.correlationId }
+        error: { code: err.code || 'INTERNAL_ERROR', message: err.message, ...(err.transition ? { transition: err.transition } : {}), correlation_id: req.correlationId }
       });
     }
   });
@@ -120,7 +131,7 @@ export async function createApp() {
       res.json(result);
     } catch (err) {
       res.status(err.status || 500).json({
-        error: { code: err.code || 'SUBMIT_FAILED', message: err.message, correlation_id: req.correlationId }
+        error: { code: err.code || 'SUBMIT_FAILED', message: err.message, ...(err.transition ? { transition: err.transition } : {}), correlation_id: req.correlationId }
       });
     }
   };
@@ -142,7 +153,7 @@ export async function createApp() {
       res.json(result);
     } catch (err) {
       res.status(err.status || 500).json({
-        error: { code: err.code || 'DECISION_FAILED', message: err.message, correlation_id: req.correlationId }
+        error: { code: err.code || 'DECISION_FAILED', message: err.message, ...(err.transition ? { transition: err.transition } : {}), correlation_id: req.correlationId }
       });
     }
   };
@@ -170,7 +181,7 @@ export async function createApp() {
       res.status(201).json(result);
     } catch (err) {
       res.status(err.status || 500).json({
-        error: { code: err.code || 'SCHEDULE_FAILED', message: err.message, correlation_id: req.correlationId }
+        error: { code: err.code || 'SCHEDULE_FAILED', message: err.message, ...(err.transition ? { transition: err.transition } : {}), correlation_id: req.correlationId }
       });
     }
   };
@@ -690,6 +701,11 @@ export async function seedCalendarFlights(workflow, db, { force = false } = {}) 
             [found.current_version_id]
           );
           if (decCheck.rows.length === 0) {
+            if (found.status === 'Draft' || found.status === 'ChangesRequested') {
+              await workflow.submitCampaign(found.campaign_id, marketer, {
+                idempotencyKey: `seed-cal-sub-${found.campaign_id}-${found.current_version_id}`,
+              });
+            }
             await workflow.makeDecision(found.campaign_id, reviewer, {
               versionId: found.current_version_id,
               decision: 'APPROVED',

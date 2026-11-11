@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { DIAGNOSTIC_EVENTS } from './diagnostics.js';
+import { OUTBOX_DELIVERY_MACHINE } from './state-machines.js';
 
 export class EmailService {
   constructor({ isFailing = false, providerName = 'MockSMTP' } = {}) {
@@ -31,7 +32,7 @@ export class OutboxService {
     this.db = db;
     this.diagnostics = diagnostics;
     this.emailService = emailService || new EmailService();
-    this.maxAttempts = 3;
+    this.maxAttempts = OUTBOX_DELIVERY_MACHINE.maxAttempts;
   }
 
   get isEmailServiceFailing() {
@@ -50,7 +51,7 @@ export class OutboxService {
     this.emailService.setFailing(failing);
   }
 
-  // Poll and process due outbox events asynchronously
+  // Poll and process due outbox events cleanly through PENDING/FAILED -> PROCESSING -> PROCESSED|FAILED
   async processPendingEvents(options = {}) {
     try {
       const force = options.force === true;
@@ -63,7 +64,8 @@ export class OutboxService {
         `
         : `
           SELECT * FROM outbox_events
-          WHERE status IN ('PENDING', 'FAILED') AND next_retry_at <= NOW()
+          WHERE (status = 'PENDING' OR (status = 'FAILED' AND attempts < max_attempts))
+            AND next_retry_at <= NOW()
           ORDER BY created_at DESC
           LIMIT 20
         `;
@@ -74,6 +76,11 @@ export class OutboxService {
       const results = [];
 
       for (const evt of events) {
+        await this.db.query(
+          `UPDATE outbox_events SET status = 'PROCESSING' WHERE event_id = $1`,
+          [evt.event_id]
+        );
+
         let payload = evt.payload;
         if (typeof payload === 'string') {
           try {
@@ -84,31 +91,38 @@ export class OutboxService {
         }
 
         const { recipients = [], title, message, campaign_id, correlation_id } = payload;
-        const channels = ['in-app', 'push', 'email'];
         let allChannelsSucceeded = true;
         let failureReason = null;
+        const notifTitle = title || evt.event_type;
+        const notifBody = message || '';
 
         for (const recipientId of recipients) {
-          for (const channel of channels) {
-            // Dispatch via injected email service
-            if (channel === 'email') {
-              try {
-                await this.emailService.send({
-                  to: recipientId,
-                  subject: title || evt.event_type,
-                  body: message || '',
-                  metadata: { campaign_id, correlation_id }
-                });
-              } catch (emailErr) {
-                allChannelsSucceeded = false;
-                failureReason = emailErr.message || 'EmailProviderGatewayTimeout: SMTP server unreachable';
-                continue;
-              }
-            }
+          // 1. Dispatch external email channel cleanly
+          try {
+            await this.emailService.send({
+              to: recipientId,
+              subject: notifTitle,
+              body: notifBody,
+              metadata: { campaign_id, correlation_id }
+            });
+          } catch (emailErr) {
+            allChannelsSucceeded = false;
+            failureReason = emailErr.message || 'EmailProviderGatewayTimeout: SMTP server unreachable';
+          }
 
-            // Insert durable in-app notification
-            const notifId = 'notif-' + crypto.randomUUID().slice(0, 8);
-            try {
+          // 2. Insert durable in-app notification once per recipient/event without duplicating across retries
+          try {
+            const existing = await this.db.query(
+              `SELECT 1 FROM notifications
+               WHERE recipient_id = $1
+                 AND event_type = $2
+                 AND title = $3
+                 AND (($4::varchar IS NULL AND campaign_id IS NULL) OR campaign_id = $4)
+               LIMIT 1`,
+              [recipientId, evt.event_type, notifTitle, campaign_id || null]
+            );
+            if (existing.rows.length === 0) {
+              const notifId = 'notif-' + crypto.randomUUID().slice(0, 8);
               await this.db.query(
                 `INSERT INTO notifications 
                  (notification_id, recipient_id, campaign_id, event_type, title, body, is_read, created_at)
@@ -118,13 +132,13 @@ export class OutboxService {
                   recipientId,
                   campaign_id || null,
                   evt.event_type,
-                  title || evt.event_type,
-                  message || ''
+                  notifTitle,
+                  notifBody
                 ]
               );
-            } catch (err) {
-              console.error(`[OUTBOX] Failed to insert notification: ${err.message}`);
             }
+          } catch (err) {
+            console.error(`[OUTBOX] Failed to insert notification: ${err.message}`);
           }
         }
 
@@ -138,6 +152,7 @@ export class OutboxService {
           results.push({ event_id: evt.event_id, status: 'PROCESSED' });
         } else {
           const nextAttempts = (evt.attempts || 0) + 1;
+          const cap = evt.max_attempts || this.maxAttempts;
           const backoffSeconds = Math.pow(2, nextAttempts);
 
           await this.diagnostics.log({
@@ -146,11 +161,10 @@ export class OutboxService {
             eventType: DIAGNOSTIC_EVENTS.NOTIFICATION_RETRY,
             outcome: 'WARNING',
             errorCategory: 'DELIVERY_FAILURE',
-            message: `Notification delivery failed for event ${evt.event_id}. Attempt ${nextAttempts}/${this.maxAttempts}. Error: ${failureReason}. Retry scheduled in ${backoffSeconds}s`
+            message: `Notification delivery failed for event ${evt.event_id}. Attempt ${nextAttempts}/${cap}. Error: ${failureReason}. Retry scheduled in ${backoffSeconds}s`
           });
 
-          // If email outage is injected or max attempts reached, transition to FAILED for immediate operator visibility
-          const newStatus = (this.isEmailServiceFailing || nextAttempts >= this.maxAttempts) ? 'FAILED' : 'PENDING';
+          const newStatus = (this.isEmailServiceFailing || nextAttempts >= cap) ? 'FAILED' : 'PENDING';
           await this.db.query(
             `UPDATE outbox_events
              SET status = $1, attempts = $2, error_log = $3, next_retry_at = NOW() + ($4 || ' seconds')::INTERVAL
