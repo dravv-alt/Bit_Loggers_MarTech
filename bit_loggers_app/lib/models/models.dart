@@ -662,7 +662,7 @@ class OutboxEventItem {
       payload: parsedPayload,
       status: json['status'] ?? 'PENDING',
       attempts: json['attempts'] ?? 0,
-      maxAttempts: json['max_attempts'] ?? json['maxAttempts'] ?? 5,
+      maxAttempts: json['max_attempts'] ?? json['maxAttempts'] ?? 3,
       nextRetryAt: json['next_retry_at'] ?? json['nextRetryAt'],
       errorLog: json['error_log'] ?? json['errorLog'],
       createdAt: json['created_at'] ?? json['createdAt'] ?? '',
@@ -686,6 +686,7 @@ class OutboxEventItem {
 
 class OutboxStats {
   final int pending;
+  final int processing;
   final int processed;
   final int failed;
   final int total;
@@ -693,6 +694,7 @@ class OutboxStats {
 
   OutboxStats({
     required this.pending,
+    this.processing = 0,
     required this.processed,
     required this.failed,
     required this.total,
@@ -702,13 +704,16 @@ class OutboxStats {
   factory OutboxStats.fromJson(Map<String, dynamic> json) {
     final stats = json['stats'] is Map ? json['stats'] : json;
     final p = (stats['pending'] as num?)?.toInt() ?? 0;
+    final proc = (stats['processing'] as num?)?.toInt() ?? 0;
     final pr = (stats['processed'] as num?)?.toInt() ?? 0;
     final f = (stats['failed'] as num?)?.toInt() ?? 0;
+    final rawTotal = (stats['total'] as num?)?.toInt();
     return OutboxStats(
       pending: p,
+      processing: proc,
       processed: pr,
       failed: f,
-      total: p + pr + f,
+      total: rawTotal ?? (p + proc + pr + f),
       isEmailServiceFailing: json['isEmailServiceFailing'] == true,
     );
   }

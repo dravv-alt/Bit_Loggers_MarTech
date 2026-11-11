@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
+import '../state/campaign_state_machine.dart';
 import 'sync_queue_service.dart';
 
 class ApiService {
@@ -39,9 +40,33 @@ class ApiService {
   List<AppNotification>? _offlineNotifications;
   final Map<String, List<DiscussionMessage>> _offlineDiscussions = {};
   final Map<String, EditLock> _offlineLocks = {};
-  final Set<String> _offlineSubmittedIdempotencyKeys = {};
+  final Map<String, String> _offlineSubmittedIdempotencyHashes = {};
 
   bool _isBackendUnreachableStatus(int code) => code == 401 || code >= 500;
+
+  WorkflowApiException _parseWorkflowError(http.Response res, String fallbackMessage) {
+    try {
+      final body = jsonDecode(res.body);
+      final errObj = body is Map ? body['error'] : null;
+      if (errObj is Map) {
+        final tr = errObj['transition'];
+        return WorkflowApiException(
+          statusCode: res.statusCode,
+          code: errObj['code']?.toString() ?? 'WORKFLOW_ERROR',
+          message: errObj['message']?.toString() ?? fallbackMessage,
+          fromState: tr is Map ? tr['from_state']?.toString() : null,
+          allowedTransitions: tr is Map && tr['allowed_transitions'] is List
+              ? (tr['allowed_transitions'] as List).map((e) => e.toString()).toList()
+              : const [],
+        );
+      }
+    } catch (_) {}
+    return WorkflowApiException(
+      statusCode: res.statusCode,
+      code: 'HTTP_${res.statusCode}',
+      message: fallbackMessage,
+    );
+  }
 
   List<Campaign> get _mutableOfflineCampaigns {
     _offlineCampaigns ??= _buildInitialOfflineCampaigns();
@@ -158,6 +183,27 @@ class ApiService {
         return false;
       }
       return true;
+    }).map((c) {
+      final rawLock = _offlineLocks[c.campaignId] ?? c.activeLock;
+      final lockInfo = CampaignStateMachine.evaluateLock(rawLock, currentUser.id);
+      final validLock = lockInfo.status == LockLeaseStatus.expired ? null : rawLock;
+      if (lockInfo.status == LockLeaseStatus.expired) {
+        _offlineLocks.remove(c.campaignId);
+      }
+      return Campaign(
+        campaignId: c.campaignId,
+        title: c.title,
+        ownerId: c.ownerId,
+        ownerName: c.ownerName,
+        status: c.status,
+        currentVersionId: c.currentVersionId,
+        currentVersion: c.currentVersion,
+        versions: c.versions,
+        decisions: c.decisions,
+        activeLock: validLock,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      );
     }).toList();
   }
 
@@ -172,7 +218,12 @@ class ApiService {
 
     final list = _mutableOfflineCampaigns;
     final found = list.firstWhere((c) => c.campaignId == id, orElse: () => list.first);
-    final lock = _offlineLocks[found.campaignId] ?? found.activeLock;
+    final rawLock = _offlineLocks[found.campaignId] ?? found.activeLock;
+    final lockInfo = CampaignStateMachine.evaluateLock(rawLock, currentUser.id);
+    final validLock = lockInfo.status == LockLeaseStatus.expired ? null : rawLock;
+    if (lockInfo.status == LockLeaseStatus.expired) {
+      _offlineLocks.remove(found.campaignId);
+    }
     return Campaign(
       campaignId: found.campaignId,
       title: found.title,
@@ -183,7 +234,7 @@ class ApiService {
       currentVersion: found.currentVersion,
       versions: found.versions,
       decisions: found.decisions,
-      activeLock: lock,
+      activeLock: validLock,
       createdAt: found.createdAt,
       updatedAt: found.updatedAt,
     );
@@ -192,6 +243,13 @@ class ApiService {
   // --- Create Campaign ---
   Future<Campaign> createCampaign(Map<String, dynamic> body) async {
     Campaign buildOfflineCampaign(String newId) {
+      if (!CampaignStateMachine.canCreateCampaign(currentUser)) {
+        throw const WorkflowApiException(
+          statusCode: 403,
+          code: 'FORBIDDEN',
+          message: 'Only marketers or administrators can create campaign proposals.',
+        );
+      }
       final verId = 'ver-${_uuid.v4().substring(0, 6)}';
       final nowIso = DateTime.now().toIso8601String();
       final v1 = CampaignVersion(
@@ -212,7 +270,7 @@ class ApiService {
         title: body['title'] ?? 'Untitled Proposal',
         ownerId: currentUser.id,
         ownerName: currentUser.name.split(' (').first,
-        status: 'Draft',
+        status: CampaignStage.draft.wireValue,
         currentVersionId: verId,
         currentVersion: v1,
         versions: [v1],
@@ -233,6 +291,13 @@ class ApiService {
     }
 
     if (syncQueue.isOfflineSimulationEnabled) {
+      if (!CampaignStateMachine.canCreateCampaign(currentUser)) {
+        throw const WorkflowApiException(
+          statusCode: 403,
+          code: 'FORBIDDEN',
+          message: 'Only marketers or administrators can create campaign proposals.',
+        );
+      }
       final action = syncQueue.enqueueAction(
         actionType: 'CREATE_CAMPAIGN',
         endpoint: '/api/campaigns',
@@ -253,13 +318,10 @@ class ApiService {
       if (res.statusCode == 201 || res.statusCode == 200) {
         return Campaign.fromJson(jsonDecode(res.body));
       } else if (!_isBackendUnreachableStatus(res.statusCode)) {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Failed to create campaign');
+        throw _parseWorkflowError(res, 'Failed to create campaign');
       }
     } catch (e) {
-      if (e is Exception && e.toString().contains('Failed to create campaign')) {
-        rethrow;
-      }
+      if (e is WorkflowApiException) rethrow;
     }
 
     syncQueue.enqueueAction(
@@ -275,10 +337,45 @@ class ApiService {
   Future<Campaign> updateCampaign(String id, Map<String, dynamic> body, {int? expectedVersion}) async {
     Campaign applyOfflineUpdate() {
       final idx = _mutableOfflineCampaigns.indexWhere((c) => c.campaignId == id);
-      final existing = idx >= 0 ? _mutableOfflineCampaigns[idx] : _mutableOfflineCampaigns.first;
+      if (idx < 0) {
+        throw const WorkflowApiException(
+          statusCode: 404,
+          code: 'CAMPAIGN_NOT_FOUND',
+          message: 'Campaign does not exist.',
+        );
+      }
+      final existing = _mutableOfflineCampaigns[idx];
+      final withLock = Campaign(
+        campaignId: existing.campaignId,
+        title: existing.title,
+        ownerId: existing.ownerId,
+        ownerName: existing.ownerName,
+        status: existing.status,
+        currentVersionId: existing.currentVersionId,
+        currentVersion: existing.currentVersion,
+        versions: existing.versions,
+        decisions: existing.decisions,
+        activeLock: _offlineLocks[id] ?? existing.activeLock,
+        createdAt: existing.createdAt,
+        updatedAt: existing.updatedAt,
+      );
+      final caps = CampaignStateMachine.evaluate(withLock, currentUser);
+      if (!caps.canEdit) {
+        throw WorkflowApiException(
+          statusCode: caps.lockInfo.isHeldByOther ? 409 : 403,
+          code: caps.lockInfo.isHeldByOther ? 'EDIT_LOCK_HELD' : 'FORBIDDEN',
+          message: caps.editBlockedReason ?? 'Only the campaign owner can edit this proposal.',
+          fromState: caps.stage.wireValue,
+        );
+      }
       final curNo = existing.currentVersion?.versionNo ?? 1;
       if (expectedVersion != null && expectedVersion != curNo) {
-        throw Exception('409 VERSION_CONFLICT: Expected v$expectedVersion, current is v$curNo.');
+        throw WorkflowApiException(
+          statusCode: 409,
+          code: 'VERSION_CONFLICT',
+          message: 'Version conflict: Expected v$expectedVersion, current is v$curNo.',
+          fromState: caps.stage.wireValue,
+        );
       }
       final nextNo = curNo + 1;
       final nextVerId = 'ver-${id.replaceAll('camp-', '')}-v$nextNo';
@@ -303,18 +400,16 @@ class ApiService {
         title: body['title'] ?? existing.title,
         ownerId: existing.ownerId,
         ownerName: existing.ownerName,
-        status: 'Draft',
+        status: CampaignStage.draft.wireValue,
         currentVersionId: nextVerId,
         currentVersion: nextVer,
         versions: [...existing.versions, nextVer],
         decisions: existing.decisions,
-        activeLock: existing.activeLock,
+        activeLock: withLock.activeLock,
         createdAt: existing.createdAt,
         updatedAt: nowIso,
       );
-      if (idx >= 0) {
-        _mutableOfflineCampaigns[idx] = updated;
-      }
+      _mutableOfflineCampaigns[idx] = updated;
       _prependOfflineAudit(
         campaignId: id,
         versionId: nextVerId,
@@ -328,6 +423,7 @@ class ApiService {
     }
 
     if (syncQueue.isOfflineSimulationEnabled) {
+      final updated = applyOfflineUpdate();
       syncQueue.enqueueAction(
         actionType: 'UPDATE_CAMPAIGN',
         endpoint: '/api/campaigns/$id',
@@ -338,7 +434,7 @@ class ApiService {
           ...body,
         },
       );
-      return applyOfflineUpdate();
+      return updated;
     }
 
     try {
@@ -352,13 +448,10 @@ class ApiService {
       if (res.statusCode == 200) {
         return Campaign.fromJson(jsonDecode(res.body));
       } else if (!_isBackendUnreachableStatus(res.statusCode)) {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Update failed');
+        throw _parseWorkflowError(res, 'Update failed');
       }
     } catch (e) {
-      if (e is Exception && (e.toString().contains('Update failed') || e.toString().contains('conflict') || e.toString().contains('Only the campaign'))) {
-        rethrow;
-      }
+      if (e is WorkflowApiException) rethrow;
     }
 
     return applyOfflineUpdate();
@@ -366,41 +459,65 @@ class ApiService {
 
   // --- Submit Proposal ---
   Future<Map<String, dynamic>> submitCampaign(String id, {String? idempotencyKey}) async {
-    final key = idempotencyKey ?? 'submit-${DateTime.now().millisecondsSinceEpoch}';
+    final key = idempotencyKey ?? 'submit-$id-v${_mutableOfflineCampaigns.firstWhere((c) => c.campaignId == id, orElse: () => _mutableOfflineCampaigns.first).currentVersion?.versionNo ?? 1}';
 
     Map<String, dynamic> applyOfflineSubmit({bool queuedOffline = false}) {
-      if (_offlineSubmittedIdempotencyKeys.contains(key)) {
+      final idx = _mutableOfflineCampaigns.indexWhere((c) => c.campaignId == id);
+      if (idx < 0) {
+        throw const WorkflowApiException(
+          statusCode: 404,
+          code: 'CAMPAIGN_NOT_FOUND',
+          message: 'Campaign does not exist.',
+        );
+      }
+      final c = _mutableOfflineCampaigns[idx];
+      final requestSignature = '$id:${currentUser.id}:${c.currentVersionId}';
+      if (_offlineSubmittedIdempotencyHashes.containsKey(key)) {
+        if (_offlineSubmittedIdempotencyHashes[key] != requestSignature) {
+          throw const WorkflowApiException(
+            statusCode: 409,
+            code: 'IDEMPOTENCY_KEY_REUSED',
+            message: 'Idempotency key reused with different request parameters.',
+          );
+        }
         return {'success': true, 'status': 'Submitted', 'campaign_id': id, 'idempotent_replay': true};
       }
-      _offlineSubmittedIdempotencyKeys.add(key);
-      final idx = _mutableOfflineCampaigns.indexWhere((c) => c.campaignId == id);
-      if (idx >= 0) {
-        final c = _mutableOfflineCampaigns[idx];
-        final prevStatus = c.status;
-        _mutableOfflineCampaigns[idx] = Campaign(
-          campaignId: c.campaignId,
-          title: c.title,
-          ownerId: c.ownerId,
-          ownerName: c.ownerName,
-          status: 'Submitted',
-          currentVersionId: c.currentVersionId,
-          currentVersion: c.currentVersion,
-          versions: c.versions,
-          decisions: c.decisions,
-          activeLock: c.activeLock,
-          createdAt: c.createdAt,
-          updatedAt: DateTime.now().toIso8601String(),
-        );
-        _prependOfflineAudit(
-          campaignId: c.campaignId,
-          versionId: c.currentVersionId,
-          eventType: 'CAMPAIGN_SUBMITTED',
-          previousState: prevStatus,
-          newState: 'Submitted',
-          summary: 'Submitted "${c.title}" (v${c.currentVersion?.versionNo ?? 1}) for review',
-          details: 'Idempotency key ${key.substring(0, key.length > 14 ? 14 : key.length)}',
+
+      final caps = CampaignStateMachine.evaluate(c, currentUser);
+      if (!caps.canSubmit) {
+        throw WorkflowApiException(
+          statusCode: caps.isOwner || caps.isAdmin ? 409 : 403,
+          code: caps.isOwner || caps.isAdmin ? 'INVALID_TRANSITION' : 'FORBIDDEN',
+          message: caps.submitBlockedReason ?? 'Campaign cannot be submitted in its current stage.',
+          fromState: caps.stage.wireValue,
         );
       }
+
+      _offlineSubmittedIdempotencyHashes[key] = requestSignature;
+      final prevStatus = c.status;
+      _mutableOfflineCampaigns[idx] = Campaign(
+        campaignId: c.campaignId,
+        title: c.title,
+        ownerId: c.ownerId,
+        ownerName: c.ownerName,
+        status: CampaignStage.submitted.wireValue,
+        currentVersionId: c.currentVersionId,
+        currentVersion: c.currentVersion,
+        versions: c.versions,
+        decisions: c.decisions,
+        activeLock: _offlineLocks[id] ?? c.activeLock,
+        createdAt: c.createdAt,
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      _prependOfflineAudit(
+        campaignId: c.campaignId,
+        versionId: c.currentVersionId,
+        eventType: 'CAMPAIGN_SUBMITTED',
+        previousState: prevStatus,
+        newState: 'Submitted',
+        summary: 'Submitted "${c.title}" (v${c.currentVersion?.versionNo ?? 1}) for review',
+        details: 'Idempotency key ${key.substring(0, key.length > 14 ? 14 : key.length)}',
+      );
       return {
         'success': true,
         'status': 'Submitted',
@@ -410,6 +527,7 @@ class ApiService {
     }
 
     if (syncQueue.isOfflineSimulationEnabled) {
+      final result = applyOfflineSubmit(queuedOffline: true);
       syncQueue.enqueueAction(
         actionType: 'SUBMIT_CAMPAIGN',
         endpoint: '/api/campaigns/$id/submit',
@@ -417,7 +535,7 @@ class ApiService {
         payload: {'campaign_id': id},
         customIdempotencyKey: key,
       );
-      return applyOfflineSubmit(queuedOffline: true);
+      return result;
     }
 
     try {
@@ -430,13 +548,10 @@ class ApiService {
       if (res.statusCode == 200) {
         return jsonDecode(res.body);
       } else if (!_isBackendUnreachableStatus(res.statusCode)) {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Submission failed');
+        throw _parseWorkflowError(res, 'Submission failed');
       }
     } catch (e) {
-      if (e is Exception && e.toString().contains('Submission failed')) {
-        rethrow;
-      }
+      if (e is WorkflowApiException) rethrow;
     }
 
     return applyOfflineSubmit();
@@ -460,6 +575,115 @@ class ApiService {
             ? '/api/campaigns/$id/request-changes'
             : '/api/campaigns/$id/reject';
 
+    Map<String, dynamic> applyOfflineDecision({bool queuedOffline = false}) {
+      if (reason.trim().isEmpty) {
+        throw const WorkflowApiException(
+          statusCode: 422,
+          code: 'REASON_REQUIRED',
+          message: 'Reason is required before recording a decision.',
+        );
+      }
+      final idx = _mutableOfflineCampaigns.indexWhere((c) => c.campaignId == id);
+      if (idx < 0) {
+        throw const WorkflowApiException(
+          statusCode: 404,
+          code: 'CAMPAIGN_NOT_FOUND',
+          message: 'Campaign not found',
+        );
+      }
+      final camp = _mutableOfflineCampaigns[idx];
+      if (!camp.versions.any((v) => v.versionId == versionId) && camp.currentVersionId != versionId) {
+        throw const WorkflowApiException(
+          statusCode: 422,
+          code: 'VERSION_MISMATCH',
+          message: 'Version does not belong to this campaign.',
+        );
+      }
+      if (camp.decisions.any((d) => d.versionId == versionId)) {
+        throw const WorkflowApiException(
+          statusCode: 409,
+          code: 'NOT_AWAITING_REVIEW',
+          message: 'This version has already received a review decision.',
+        );
+      }
+      final caps = CampaignStateMachine.evaluate(camp, currentUser);
+      if (!caps.canReview) {
+        throw WorkflowApiException(
+          statusCode: caps.isOwner || !caps.isReviewerRole ? 403 : 409,
+          code: caps.isOwner || !caps.isReviewerRole ? 'FORBIDDEN' : 'INVALID_TRANSITION',
+          message: caps.reviewBlockedReason ?? 'Decision cannot be recorded right now.',
+          fromState: caps.stage.wireValue,
+        );
+      }
+      final nextStatus = type == 'APPROVED'
+          ? CampaignStage.approved.wireValue
+          : type == 'CHANGES_REQUESTED'
+              ? CampaignStage.changesRequested.wireValue
+              : CampaignStage.rejected.wireValue;
+      final dec = ApprovalDecision(
+        decisionId: 'dec-${DateTime.now().millisecondsSinceEpoch % 100000}',
+        campaignId: camp.campaignId,
+        versionId: versionId,
+        reviewerId: currentUser.id,
+        reviewerName: currentUser.name.split(' (').first,
+        decisionType: type,
+        reason: reason.trim(),
+        policyReference: policyReference,
+        decidedAt: DateTime.now().toIso8601String(),
+      );
+      _mutableOfflineCampaigns[idx] = Campaign(
+        campaignId: camp.campaignId,
+        title: camp.title,
+        ownerId: camp.ownerId,
+        ownerName: camp.ownerName,
+        status: nextStatus,
+        currentVersionId: camp.currentVersionId,
+        currentVersion: camp.currentVersion,
+        versions: camp.versions,
+        decisions: [...camp.decisions, dec],
+        activeLock: camp.activeLock,
+        createdAt: camp.createdAt,
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      final evtType = type == 'APPROVED'
+          ? 'CAMPAIGN_APPROVED'
+          : type == 'CHANGES_REQUESTED'
+              ? 'CHANGES_REQUESTED'
+              : 'CAMPAIGN_REJECTED';
+      _prependOfflineAudit(
+        campaignId: camp.campaignId,
+        versionId: versionId,
+        eventType: evtType,
+        previousState: camp.status,
+        newState: nextStatus,
+        summary: 'Recorded $type on "${camp.title}"',
+        details: reason.trim(),
+      );
+      return {
+        'success': true,
+        'decision_id': dec.decisionId,
+        'status': nextStatus,
+        'queued_offline': queuedOffline,
+      };
+    }
+
+    if (syncQueue.isOfflineSimulationEnabled) {
+      final result = applyOfflineDecision(queuedOffline: true);
+      syncQueue.enqueueAction(
+        actionType: 'MAKE_DECISION',
+        endpoint: endpoint,
+        method: 'POST',
+        payload: {
+          'campaign_id': id,
+          'version_id': versionId,
+          'decision': type,
+          'reason': reason.trim(),
+          if (policyReference != null) 'policy_reference': policyReference,
+        },
+      );
+      return result;
+    }
+
     try {
       final res = await http
           .post(
@@ -477,77 +701,134 @@ class ApiService {
       if (res.statusCode == 200) {
         return jsonDecode(res.body);
       } else if (!_isBackendUnreachableStatus(res.statusCode)) {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Decision submission failed');
+        throw _parseWorkflowError(res, 'Decision submission failed');
       }
     } catch (e) {
-      if (e is Exception && e.toString().contains('Decision submission failed')) {
-        rethrow;
-      }
+      if (e is WorkflowApiException) rethrow;
     }
 
-    // Offline / local state enforcement mirroring workflow invariants
-    if (reason.trim().isEmpty) {
-      throw Exception('Reason is required before recording a decision.');
-    }
-    final idx = _mutableOfflineCampaigns.indexWhere((c) => c.campaignId == id);
-    if (idx < 0) throw Exception('Campaign not found');
-    final camp = _mutableOfflineCampaigns[idx];
-    if (camp.ownerId == currentUser.id) {
-      throw Exception('Self-approval violation: You cannot review a campaign you created.');
-    }
-    if (camp.currentVersionId != versionId && !camp.versions.any((v) => v.versionId == versionId)) {
-      throw Exception('Version does not belong to this campaign.');
-    }
-    final nextStatus = type == 'APPROVED'
-        ? 'Approved'
-        : type == 'CHANGES_REQUESTED'
-            ? 'ChangesRequested'
-            : 'Rejected';
-    final dec = ApprovalDecision(
-      decisionId: 'dec-${DateTime.now().millisecondsSinceEpoch % 100000}',
-      campaignId: camp.campaignId,
-      versionId: versionId,
-      reviewerId: currentUser.id,
-      reviewerName: currentUser.name.split(' (').first,
-      decisionType: type,
-      reason: reason.trim(),
-      policyReference: policyReference,
-      decidedAt: DateTime.now().toIso8601String(),
-    );
-    _mutableOfflineCampaigns[idx] = Campaign(
-      campaignId: camp.campaignId,
-      title: camp.title,
-      ownerId: camp.ownerId,
-      ownerName: camp.ownerName,
-      status: nextStatus,
-      currentVersionId: camp.currentVersionId,
-      currentVersion: camp.currentVersion,
-      versions: camp.versions,
-      decisions: [...camp.decisions, dec],
-      activeLock: camp.activeLock,
-      createdAt: camp.createdAt,
-      updatedAt: DateTime.now().toIso8601String(),
-    );
-    final evtType = type == 'APPROVED'
-        ? 'CAMPAIGN_APPROVED'
-        : type == 'CHANGES_REQUESTED'
-            ? 'CHANGES_REQUESTED'
-            : 'CAMPAIGN_REJECTED';
-    _prependOfflineAudit(
-      campaignId: camp.campaignId,
-      versionId: versionId,
-      eventType: evtType,
-      previousState: camp.status,
-      newState: nextStatus,
-      summary: 'Recorded $type on "${camp.title}"',
-      details: reason.trim(),
-    );
-    return {'success': true, 'decision_id': dec.decisionId, 'status': nextStatus};
+    return applyOfflineDecision();
   }
 
   // --- Scheduling ---
   Future<Map<String, dynamic>> scheduleCampaign(String id, String versionId, String startsAt, String endsAt, String channel) async {
+    Map<String, dynamic> applyOfflineSchedule({bool queuedOffline = false}) {
+      final idx = _mutableOfflineCampaigns.indexWhere((c) => c.campaignId == id);
+      if (idx < 0) {
+        throw const WorkflowApiException(
+          statusCode: 404,
+          code: 'CAMPAIGN_NOT_FOUND',
+          message: 'Campaign not found',
+        );
+      }
+      final camp = _mutableOfflineCampaigns[idx];
+      final caps = CampaignStateMachine.evaluate(camp, currentUser);
+      if (!caps.isOwner && !caps.isAdmin) {
+        throw WorkflowApiException(
+          statusCode: 403,
+          code: 'FORBIDDEN',
+          message: caps.scheduleBlockedReason ?? 'Only the campaign owner can schedule this campaign.',
+        );
+      }
+      if (camp.currentVersionId != versionId) {
+        throw WorkflowApiException(
+          statusCode: 409,
+          code: 'SCHEDULE_BLOCKED',
+          message: 'Scheduling blocked: Prior version is superseded by v${camp.currentVersion?.versionNo ?? 1}.',
+          fromState: caps.stage.wireValue,
+        );
+      }
+      if (!caps.canSchedule) {
+        throw WorkflowApiException(
+          statusCode: 409,
+          code: 'SCHEDULE_BLOCKED',
+          message: caps.scheduleBlockedReason ?? 'Scheduling blocked: This exact version has not been approved.',
+          fromState: caps.stage.wireValue,
+        );
+      }
+      final start = DateTime.tryParse(startsAt);
+      final end = DateTime.tryParse(endsAt);
+      if (start == null || end == null || !end.isAfter(start)) {
+        throw const WorkflowApiException(
+          statusCode: 400,
+          code: 'INVALID_DATES',
+          message: 'Invalid schedule window: end date must be strictly after start date.',
+        );
+      }
+      final overlap = _mutableOfflineCalendar.where((ev) {
+        final evStatus = ev.status.toUpperCase();
+        if (evStatus == 'CANCELLED' || evStatus == 'COMPLETED') return false;
+        if (ev.channel.toLowerCase() != channel.toLowerCase() || ev.campaignId == id) return false;
+        final s = DateTime.tryParse(ev.startsAt);
+        final e = DateTime.tryParse(ev.endsAt);
+        if (s == null || e == null) return false;
+        return s.isBefore(end) && e.isAfter(start);
+      }).toList();
+      if (overlap.isNotEmpty) {
+        throw WorkflowApiException(
+          statusCode: 409,
+          code: 'SCHEDULING_CONFLICT',
+          message: 'Scheduling conflict: $channel slot is held by "${overlap.first.title}".',
+          fromState: caps.stage.wireValue,
+        );
+      }
+
+      _mutableOfflineCampaigns[idx] = Campaign(
+        campaignId: camp.campaignId,
+        title: camp.title,
+        ownerId: camp.ownerId,
+        ownerName: camp.ownerName,
+        status: CampaignStage.scheduled.wireValue,
+        currentVersionId: camp.currentVersionId,
+        currentVersion: camp.currentVersion,
+        versions: camp.versions,
+        decisions: camp.decisions,
+        activeLock: camp.activeLock,
+        createdAt: camp.createdAt,
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      _mutableOfflineCalendar.add(
+        ScheduleEvent(
+          scheduleId: 'sched-${DateTime.now().millisecondsSinceEpoch % 10000}',
+          campaignId: camp.campaignId,
+          title: camp.title,
+          channel: channel,
+          versionNo: camp.currentVersion?.versionNo ?? 1,
+          budget: camp.currentVersion?.budget ?? 15000,
+          startsAt: startsAt,
+          endsAt: endsAt,
+          status: 'ACTIVE',
+        ),
+      );
+      _prependOfflineAudit(
+        campaignId: camp.campaignId,
+        versionId: versionId,
+        eventType: 'FLIGHT_SCHEDULED',
+        previousState: 'Approved',
+        newState: 'Scheduled',
+        summary: 'Scheduled "${camp.title}" on $channel',
+        details: '$startsAt -> $endsAt',
+      );
+      return {'success': true, 'status': 'Scheduled', 'queued_offline': queuedOffline};
+    }
+
+    if (syncQueue.isOfflineSimulationEnabled) {
+      final result = applyOfflineSchedule(queuedOffline: true);
+      syncQueue.enqueueAction(
+        actionType: 'SCHEDULE_CAMPAIGN',
+        endpoint: '/api/campaigns/$id/schedule',
+        method: 'POST',
+        payload: {
+          'campaign_id': id,
+          'version_id': versionId,
+          'channel': channel,
+          'starts_at': startsAt,
+          'ends_at': endsAt,
+        },
+      );
+      return result;
+    }
+
     try {
       final res = await http
           .post(
@@ -565,95 +846,51 @@ class ApiService {
       if (res.statusCode == 201 || res.statusCode == 200) {
         return jsonDecode(res.body);
       } else if (!_isBackendUnreachableStatus(res.statusCode)) {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Scheduling failed');
+        throw _parseWorkflowError(res, 'Scheduling failed');
       }
     } catch (e) {
-      if (e is Exception && e.toString().contains('Scheduling failed')) {
-        rethrow;
-      }
+      if (e is WorkflowApiException) rethrow;
     }
 
-    final idx = _mutableOfflineCampaigns.indexWhere((c) => c.campaignId == id);
-    if (idx < 0) throw Exception('Campaign not found');
-    final camp = _mutableOfflineCampaigns[idx];
-    if (camp.currentVersionId != versionId) {
-      throw Exception('Scheduling blocked: Prior version is superseded by v${camp.currentVersion?.versionNo ?? 1}.');
-    }
-    final isApproved = camp.status == 'Approved' ||
-        camp.decisions.any((d) => d.versionId == versionId && d.decisionType == 'APPROVED');
-    if (!isApproved) {
-      throw Exception('Scheduling blocked: This exact version has not been approved.');
-    }
-    final start = DateTime.parse(startsAt);
-    final end = DateTime.parse(endsAt);
-    final overlap = _mutableOfflineCalendar.where((ev) {
-      if (ev.channel.toLowerCase() != channel.toLowerCase() || ev.campaignId == id) return false;
-      final s = DateTime.tryParse(ev.startsAt);
-      final e = DateTime.tryParse(ev.endsAt);
-      if (s == null || e == null) return false;
-      return s.isBefore(end) && e.isAfter(start);
-    }).toList();
-    if (overlap.isNotEmpty) {
-      throw Exception('Scheduling conflict: $channel slot is held by "${overlap.first.title}".');
-    }
-
-    _mutableOfflineCampaigns[idx] = Campaign(
-      campaignId: camp.campaignId,
-      title: camp.title,
-      ownerId: camp.ownerId,
-      ownerName: camp.ownerName,
-      status: 'Scheduled',
-      currentVersionId: camp.currentVersionId,
-      currentVersion: camp.currentVersion,
-      versions: camp.versions,
-      decisions: camp.decisions,
-      activeLock: camp.activeLock,
-      createdAt: camp.createdAt,
-      updatedAt: DateTime.now().toIso8601String(),
-    );
-    _mutableOfflineCalendar.add(
-      ScheduleEvent(
-        scheduleId: 'sched-${DateTime.now().millisecondsSinceEpoch % 10000}',
-        campaignId: camp.campaignId,
-        title: camp.title,
-        channel: channel,
-        versionNo: camp.currentVersion?.versionNo ?? 1,
-        budget: camp.currentVersion?.budget ?? 15000,
-        startsAt: startsAt,
-        endsAt: endsAt,
-        status: 'SCHEDULED',
-      ),
-    );
-    _prependOfflineAudit(
-      campaignId: camp.campaignId,
-      versionId: versionId,
-      eventType: 'FLIGHT_SCHEDULED',
-      previousState: 'Approved',
-      newState: 'Scheduled',
-      summary: 'Scheduled "${camp.title}" on $channel',
-      details: '$startsAt -> $endsAt',
-    );
-    return {'success': true, 'status': 'Scheduled'};
+    return applyOfflineSchedule();
   }
 
   // --- Concurrency Edit Lease ---
   Future<Map<String, dynamic>> acquireLock(String id) async {
-    try {
-      final res = await http.post(Uri.parse('$baseUrl/api/campaigns/$id/lock'), headers: _headers()).timeout(const Duration(seconds: 2));
-      if (res.statusCode == 200) {
-        return jsonDecode(res.body);
-      } else if (!_isBackendUnreachableStatus(res.statusCode)) {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Failed to acquire edit lease');
-      }
-    } catch (e) {
-      if (e is Exception && e.toString().contains('Failed to acquire')) {
-        rethrow;
+    if (!syncQueue.isOfflineSimulationEnabled) {
+      try {
+        final res = await http.post(Uri.parse('$baseUrl/api/campaigns/$id/lock'), headers: _headers()).timeout(const Duration(seconds: 2));
+        if (res.statusCode == 200) {
+          return jsonDecode(res.body);
+        } else if (res.statusCode == 409) {
+          final err = jsonDecode(res.body)['error'] as Map?;
+          return {
+            'granted': false,
+            'holder_name': err?['holder'] ?? 'Another editor',
+            'expires_at': err?['expires_at'],
+            'message': err?['message'] ?? 'Campaign is currently locked by another editor.',
+          };
+        } else if (!_isBackendUnreachableStatus(res.statusCode)) {
+          throw _parseWorkflowError(res, 'Failed to acquire edit lease');
+        }
+      } catch (e) {
+        if (e is WorkflowApiException) rethrow;
       }
     }
 
     final now = DateTime.now();
+    final existingLock = _offlineLocks[id];
+    final lockInfo = CampaignStateMachine.evaluateLock(existingLock, currentUser.id, now: now);
+    if (lockInfo.isHeldByOther) {
+      return {
+        'granted': false,
+        'holder_id': lockInfo.holderId,
+        'holder_name': lockInfo.holderName,
+        'expires_at': existingLock?.expiresAt,
+        'message': 'Campaign is currently locked by ${lockInfo.holderName}.',
+      };
+    }
+
     final expires = now.add(const Duration(minutes: 5));
     _offlineLocks[id] = EditLock(
       campaignId: id,
@@ -671,7 +908,11 @@ class ApiService {
   }
 
   Future<void> releaseLock(String id) async {
-    _offlineLocks.remove(id);
+    final existing = _offlineLocks[id];
+    if (existing == null || existing.holderId == currentUser.id) {
+      _offlineLocks.remove(id);
+    }
+    if (syncQueue.isOfflineSimulationEnabled) return;
     try {
       await http.delete(Uri.parse('$baseUrl/api/campaigns/$id/lock'), headers: _headers()).timeout(const Duration(seconds: 2));
     } catch (_) {}
@@ -729,10 +970,14 @@ class ApiService {
         ),
       ],
     );
-    if (versionId != null && versionId.isNotEmpty) {
-      return list;
-    }
-    return list;
+    final isMarketer = currentUser.role.trim().toLowerCase() == 'marketer';
+    return list.where((m) {
+      if (isMarketer && m.isInternalOnly) return false;
+      if (versionId != null && versionId.isNotEmpty && m.versionId != null && m.versionId != versionId) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 
   Future<DiscussionMessage> postDiscussion(
@@ -742,6 +987,48 @@ class ApiService {
     String? versionId,
     bool isInternalOnly = false,
   }) async {
+    final sanitizedInternalOnly =
+        currentUser.role.trim().toLowerCase() == 'marketer' ? false : isInternalOnly;
+
+    DiscussionMessage appendOfflineDiscussion() {
+      if (content.trim().isEmpty) {
+        throw const WorkflowApiException(
+          statusCode: 400,
+          code: 'BLANK_MESSAGE',
+          message: 'Message content cannot be blank.',
+        );
+      }
+      final created = DiscussionMessage(
+        messageId: 'msg-${DateTime.now().millisecondsSinceEpoch % 10000}',
+        authorName: currentUser.name.split(' (').first,
+        authorRole: currentUser.role,
+        content: content.trim(),
+        createdAt: DateTime.now().toIso8601String(),
+        parentMessageId: parentMessageId,
+        versionId: versionId,
+        isInternalOnly: sanitizedInternalOnly,
+      );
+      _offlineDiscussions.putIfAbsent(id, () => []).add(created);
+      return created;
+    }
+
+    if (syncQueue.isOfflineSimulationEnabled) {
+      final created = appendOfflineDiscussion();
+      syncQueue.enqueueAction(
+        actionType: 'POST_DISCUSSION',
+        endpoint: '/api/campaigns/$id/discussions',
+        method: 'POST',
+        payload: {
+          'campaign_id': id,
+          'content': content.trim(),
+          if (parentMessageId != null) 'parent_message_id': parentMessageId,
+          if (versionId != null) 'version_id': versionId,
+          'is_internal_only': sanitizedInternalOnly,
+        },
+      );
+      return created;
+    }
+
     try {
       final res = await http
           .post(
@@ -751,34 +1038,20 @@ class ApiService {
               'content': content,
               if (parentMessageId != null) 'parentMessageId': parentMessageId,
               if (versionId != null) 'versionId': versionId,
-              'isInternalOnly': isInternalOnly,
+              'isInternalOnly': sanitizedInternalOnly,
             }),
           )
           .timeout(const Duration(seconds: 2));
       if (res.statusCode == 201 || res.statusCode == 200) {
         return DiscussionMessage.fromJson(jsonDecode(res.body));
       } else if (!_isBackendUnreachableStatus(res.statusCode)) {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Failed to post message');
+        throw _parseWorkflowError(res, 'Failed to post message');
       }
     } catch (e) {
-      if (e is Exception && e.toString().contains('Failed to post message')) {
-        rethrow;
-      }
+      if (e is WorkflowApiException) rethrow;
     }
 
-    final created = DiscussionMessage(
-      messageId: 'msg-${DateTime.now().millisecondsSinceEpoch % 10000}',
-      authorName: currentUser.name.split(' (').first,
-      authorRole: currentUser.role,
-      content: content,
-      createdAt: DateTime.now().toIso8601String(),
-      parentMessageId: parentMessageId,
-      versionId: versionId,
-      isInternalOnly: isInternalOnly,
-    );
-    _offlineDiscussions.putIfAbsent(id, () => []).add(created);
-    return created;
+    return appendOfflineDiscussion();
   }
 
   /// Logs spend ceiling override/pause telemetry to the activity ledger.
@@ -1261,26 +1534,32 @@ class ApiService {
       );
       if (res.statusCode == 200) {
         return jsonDecode(res.body);
-      } else {
-        final err = jsonDecode(res.body);
-        throw Exception(err['error']?['message'] ?? 'Batch sync failed with status ${res.statusCode}');
+      } else if (!_isBackendUnreachableStatus(res.statusCode)) {
+        throw _parseWorkflowError(res, 'Batch sync failed with status ${res.statusCode}');
       }
     } catch (e) {
-      // In offline mock mode or when server is unreachable, simulate successful replay for local demo
-      return {
-        'processed': actions.length,
-        'synced': actions.length,
-        'failed': 0,
-        'results': actions.map((a) => {
-          'action_id': a.actionId,
-          'idempotency_key': a.idempotencyKey,
-          'status': 'SYNCED',
-          'is_replay': false,
-          'response_code': 200,
-          'data': {'mock_synced': true, 'action_type': a.actionType}
-        }).toList()
-      };
+      if (e is WorkflowApiException) rethrow;
+      if (!syncQueue.isOfflineSimulationEnabled && isConnected) {
+        rethrow;
+      }
     }
+
+    // Explicit offline / disconnected simulation fallback
+    return {
+      'processed': actions.length,
+      'synced': actions.length,
+      'failed': 0,
+      'results': actions
+          .map((a) => {
+                'action_id': a.actionId,
+                'idempotency_key': a.idempotencyKey,
+                'status': 'SYNCED',
+                'is_replay': false,
+                'response_code': 200,
+                'data': {'mock_synced': true, 'action_type': a.actionType},
+              })
+          .toList(),
+    };
   }
 
   // --- Transactional Outbox (FR-14, ADR-004) ---
@@ -1290,9 +1569,9 @@ class ApiService {
       eventId: 'evt-outbox-mock-1',
       eventType: 'CAMPAIGN_SUBMITTED_EMAIL',
       payload: {'recipient': 'marcus.reviewer@bitloggers.com', 'subject': 'Campaign V3 Needs Review'},
-      status: 'PROCESSED',
+      status: OutboxDeliveryState.processed.wireValue,
       attempts: 1,
-      maxAttempts: 5,
+      maxAttempts: OutboxDeliveryState.defaultMaxAttempts,
       createdAt: DateTime.now().subtract(const Duration(minutes: 12)).toIso8601String(),
       processedAt: DateTime.now().subtract(const Duration(minutes: 11)).toIso8601String(),
     ),
@@ -1300,9 +1579,9 @@ class ApiService {
       eventId: 'evt-outbox-mock-2',
       eventType: 'CAMPAIGN_DECISION_EMAIL',
       payload: {'recipient': 'alice.marketer@bitloggers.com', 'subject': 'Decision: APPROVED'},
-      status: 'PROCESSED',
+      status: OutboxDeliveryState.processed.wireValue,
       attempts: 1,
-      maxAttempts: 5,
+      maxAttempts: OutboxDeliveryState.defaultMaxAttempts,
       createdAt: DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
       processedAt: DateTime.now().subtract(const Duration(minutes: 4)).toIso8601String(),
     ),
@@ -1310,9 +1589,9 @@ class ApiService {
       eventId: 'evt-outbox-mock-3',
       eventType: 'ANALYTICS_DATA_SYNC',
       payload: {'metric': 'roi', 'campaign_id': 'camp-01'},
-      status: 'PENDING',
+      status: OutboxDeliveryState.pending.wireValue,
       attempts: 0,
-      maxAttempts: 5,
+      maxAttempts: OutboxDeliveryState.defaultMaxAttempts,
       createdAt: DateTime.now().subtract(const Duration(minutes: 1)).toIso8601String(),
     ),
   ];
@@ -1336,12 +1615,14 @@ class ApiService {
 
     // Fallback dynamic stateful mock outbox data for offline presentation
     final pendingCount = _mockOutboxEvents.where((e) => e.status == 'PENDING').length;
+    final processingCount = _mockOutboxEvents.where((e) => e.status == 'PROCESSING').length;
     final processedCount = _mockOutboxEvents.where((e) => e.status == 'PROCESSED').length;
     final failedCount = _mockOutboxEvents.where((e) => e.status == 'FAILED').length;
     return {
       'events': List<OutboxEventItem>.from(_mockOutboxEvents),
       'stats': OutboxStats(
         pending: pendingCount,
+        processing: processingCount,
         processed: processedCount,
         failed: failedCount,
         total: _mockOutboxEvents.length,
@@ -1360,13 +1641,13 @@ class ApiService {
       }
     } catch (_) {}
 
-    // Fallback dynamic mock worker processing
+    // Fallback dynamic mock worker processing respecting maxAttempts & incrementing attempts
     final processedList = <dynamic>[];
     for (int i = 0; i < _mockOutboxEvents.length; i++) {
       final evt = _mockOutboxEvents[i];
       if (evt.status == 'PENDING' || evt.status == 'FAILED') {
+        final nextAttempts = evt.attempts + 1;
         if (_mockEmailFailing) {
-          final nextAttempts = evt.attempts + 1;
           _mockOutboxEvents[i] = OutboxEventItem(
             eventId: evt.eventId,
             eventType: evt.eventType,
@@ -1384,7 +1665,7 @@ class ApiService {
             eventType: evt.eventType,
             payload: evt.payload,
             status: 'PROCESSED',
-            attempts: evt.attempts == 0 ? 1 : evt.attempts,
+            attempts: nextAttempts,
             maxAttempts: evt.maxAttempts,
             createdAt: evt.createdAt,
             processedAt: DateTime.now().toIso8601String(),
