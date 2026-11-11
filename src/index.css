@@ -1,79 +1,15 @@
-/* Hallmark · checked: 2026-11-01 · genre: modern-minimal (inferred)
- * floor: 0 FAIL · shape: app screen
- * built: the project · redesign: polish · v2.0.0 */
+@import "./styles/globals.css";
 
 :root {
-  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --color-scrollbar-track: rgba(15, 23, 42, 0.6);
-  --color-scrollbar-thumb: rgba(100, 116, 139, 0.4);
-  --color-scrollbar-thumb-hover: rgba(148, 163, 184, 0.6);
-  --color-panel-bg: rgba(15, 23, 42, 0.75);
-  --color-panel-border: rgba(255, 255, 255, 0.08);
-  --color-card-bg: rgba(30, 41, 59, 0.7);
-  --color-card-border: rgba(255, 255, 255, 0.07);
-  --color-card-border-hover: rgba(56, 189, 248, 0.3);
-  --color-focus-ring: #06b6d4;
+  --font-inter: "Inter";
+  --font-mono-source: "JetBrains Mono";
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
-  html, body {
+  html,
+  body {
     overflow-x: clip;
-    font-family: var(--font-body);
   }
-  code, pre {
-    font-family: var(--font-mono);
-  }
-  :focus-visible {
-    outline: 2px solid var(--color-focus-ring);
-    outline-offset: 2px;
-  }
-  button:active, a:active {
-    opacity: 0.85;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-scrollbar-track);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-scrollbar-thumb);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-scrollbar-thumb-hover);
-}
-
-.glass-panel {
-  background: var(--color-panel-bg);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--color-panel-border);
-}
-
-.glass-card {
-  background: var(--color-card-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--color-card-border);
-}
-
-.glass-card:hover {
-  border-color: var(--color-card-border-hover);
 }
