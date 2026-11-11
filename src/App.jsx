@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { CampaignWorkspaceApp } from './workspace/CampaignWorkspaceApp';
 import {
   ArrowUpRight,
   Check,
@@ -938,6 +939,27 @@ function CoastalHalftonePanorama({ mouseRef }) {
 }
 
 export default function App() {
+  const [view, setView] = useState(() => {
+    if (typeof window === 'undefined') return 'workspace';
+    const param = new URLSearchParams(window.location.search).get('view');
+    return param === 'landing' ? 'landing' : 'workspace';
+  });
+
+  if (view === 'workspace') {
+    return (
+      <CampaignWorkspaceApp
+        onOpenOverview={() => {
+          document.documentElement.classList.remove('dark');
+          setView('landing');
+        }}
+      />
+    );
+  }
+
+  return <LandingShowcase onOpenWorkspace={() => setView('workspace')} />;
+}
+
+function LandingShowcase({ onOpenWorkspace }) {
   // Hero Specimen state
   const [selectedNodeId, setSelectedNodeId] = useState('V3');
   const heroMouseRef = useRef({ x: -999, y: -999 });
@@ -1090,14 +1112,25 @@ export default function App() {
               </a>
             </nav>
 
-            <button
-              type="button"
-              onClick={() => setDownloadModalOpen(true)}
-              className="px-4 py-2 rounded-lg bg-[#111622] hover:bg-[#0D47A1] text-[#F6F4EE] text-sm font-medium transition-all shadow-sm hover:shadow flex items-center gap-2"
-            >
-              <Smartphone className="w-4 h-4 text-[#D7F46A]" />
-              <span>Download Mobile App</span>
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={onOpenWorkspace}
+                className="px-4 py-2 rounded-lg bg-[#0D47A1] hover:bg-[#111622] text-white text-sm font-medium transition-all shadow-sm flex items-center gap-2"
+              >
+                <Layers className="w-4 h-4" />
+                <span>Open Web App (v3)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDownloadModalOpen(true)}
+                className="px-4 py-2 rounded-lg bg-[#111622] hover:bg-[#0D47A1] text-[#F6F4EE] text-sm font-medium transition-all shadow-sm hover:shadow flex items-center gap-2"
+              >
+                <Smartphone className="w-4 h-4 text-[#D7F46A]" />
+                <span>Download Mobile App</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
