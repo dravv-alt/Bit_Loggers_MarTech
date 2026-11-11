@@ -44,7 +44,7 @@ class _GeminiArgonScreenState extends State<GeminiArgonScreen> {
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
       setState(() => _isLocking = false);
-      _showSnack('V3 snapshot verified & locked. Cryptographic digest committed.');
+      _showSnack('V3 snapshot verified and locked.');
       widget.onSnapshotLocked?.call();
     }
   }

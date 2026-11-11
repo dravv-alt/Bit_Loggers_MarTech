@@ -151,9 +151,12 @@ class _KanbanScreenState extends State<KanbanScreen> {
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
         onRefresh: _fetch,
-        color: AppTheme.phosphorChartreuse,
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        color: AppTheme.accent,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           children: [
             // Bespoke Editorial Header
             Row(
@@ -312,7 +315,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
             const SizedBox(height: 10),
             _buildUpcomingScheduleStrip(),
             const SizedBox(height: 24),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -327,28 +332,18 @@ class _KanbanScreenState extends State<KanbanScreen> {
     final chColor = AppTheme.getChannelColor(channel);
 
     return BorderGlowCard(
-      glowColor: chColor,
       padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(20),
-      child: Stack(
+      borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Ambient subtle color bloom in top right corner
-          Positioned(
-            top: -40,
-            right: -40,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: chColor.withOpacity(0.2),
-                boxShadow: [
-                  BoxShadow(
-                    color: chColor.withOpacity(0.35),
-                    blurRadius: 50,
-                    spreadRadius: 20,
-                  ),
-                ],
+          // Clean architectural 3px channel accent top rule (replaces blurry radial corner glow)
+          Container(
+            height: 3,
+            decoration: BoxDecoration(
+              color: chColor,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(AppTheme.tokens.radiusCard),
               ),
             ),
           ),
@@ -358,34 +353,38 @@ class _KanbanScreenState extends State<KanbanScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Eyebrow Tag with PulseStatusGlow and ShinyText
+                // Top Status Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        PulseStatusGlow(
-                          color: AppTheme.phosphorChartreuse,
-                          size: 7,
-                        ),
-                        const SizedBox(width: 8),
-                        ShinyText(
-                          text: 'FEATURED FLIGHT · ACTION REQUIRED',
-                          style: TextStyle(
-                            color: AppTheme.textPrimary.withOpacity(0.95),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
+                    Flexible(
+                      child: Row(
+                        children: [
+                          PulseStatusGlow(
+                            color: AppTheme.accent,
+                            size: 7,
                           ),
-                          shimmerColor: AppTheme.phosphorChartreuse,
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: ShinyText(
+                              text: 'FEATURED FLIGHT · ACTION REQUIRED',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: chColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
+                        color: chColor.withOpacity(0.14),
+                        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusTag),
                         border: Border.all(color: chColor.withOpacity(0.4), width: 0.75),
                       ),
                       child: Text(
@@ -465,15 +464,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     decoration: BoxDecoration(
-                      color: AppTheme.phosphorChartreuse,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.phosphorChartreuse.withOpacity(0.25),
-                          blurRadius: 16,
-                          spreadRadius: 1,
-                        ),
-                      ],
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1508,42 +1500,48 @@ class _KanbanScreenState extends State<KanbanScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.canvasAbyssal,
+      backgroundColor: AppTheme.page,
       body: RefreshIndicator(
         onRefresh: _fetch,
-        color: AppTheme.phosphorChartreuse,
-        child: Column(
-          children: [
-            // Wireframe Executive Header
-            _buildExecutiveHeader(
-              title: 'Campaign Registry',
-              subtitle: '${_campaigns.length} campaigns · Recently updated',
-              awaitingCount: awaitingCount,
-              scheduledCount: scheduledCount,
-            ),
+        color: AppTheme.accent,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: Column(
+              children: [
+                // Executive Header
+                _buildExecutiveHeader(
+                  title: 'Campaign Registry',
+                  subtitle: '${_campaigns.length} campaigns · Recently updated',
+                  awaitingCount: awaitingCount,
+                  scheduledCount: scheduledCount,
+                ),
 
-            // Search Bar & Filters
-            _buildFilterSection(
-              awaitingCount: awaitingCount,
-              scheduledCount: scheduledCount,
-              draftCount: draftCount,
-            ),
+                // Search Bar & Filters
+                _buildFilterSection(
+                  awaitingCount: awaitingCount,
+                  scheduledCount: scheduledCount,
+                  draftCount: draftCount,
+                ),
 
-            // Main Content Area (Ledger List vs Board)
-            Expanded(
-              child: _loading
-                  ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.phosphorChartreuse))
-                  : filtered.isEmpty
-                      ? _buildEmptyState(isMarketer)
-                      : _isKanbanView
-                          ? _buildKanbanView(filtered)
-                          : _buildLedgerListView(filtered),
+                // Main Content Area (Ledger List vs Board)
+                Expanded(
+                  child: _loading
+                      ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent))
+                      : filtered.isEmpty
+                          ? _buildEmptyState(isMarketer)
+                          : _isKanbanView
+                              ? _buildKanbanView(filtered)
+                              : _buildLedgerListView(filtered),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: isMarketer
           ? FloatingActionButton.extended(
+              elevation: 1,
               onPressed: () async {
                 final created = await Navigator.push(
                   context,
@@ -1554,8 +1552,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   widget.onRefresh();
                 }
               },
-              backgroundColor: AppTheme.phosphorChartreuse,
-              foregroundColor: AppTheme.textInverse,
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.onAccent,
               icon: const Icon(Icons.add, size: 16),
               label: const Text(
                 'Create campaign',
@@ -1730,22 +1728,29 @@ class _KanbanScreenState extends State<KanbanScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Filter Tabs (All, Active, Drafts)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+          // Status Tabs (Row 1) + Channel Chips (Row 2) for clean separation without crowding
+          Row(
+            children: [
+              _buildFilterTab('All', 'All ${_campaigns.length}'),
+              _buildFilterTab(
+                'Submitted',
+                'Active ${_campaigns.where((c) => c.status != 'Draft' && c.status != 'Rejected').length}',
+              ),
+              _buildFilterTab('Draft', 'Drafts $draftCount'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 28,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
               children: [
-                _buildFilterTab('All', 'All ${_campaigns.length}'),
-                _buildFilterTab('Submitted', 'Active ${_campaigns.where((c) => c.status != 'Draft').length}'),
-                _buildFilterTab('Draft', 'Drafts $draftCount'),
-                const SizedBox(width: 8),
-                Text('·', style: TextStyle(color: AppTheme.separator)),
-                const SizedBox(width: 8),
-                _buildChannelFilterChip('All', 'All'),
+                _buildChannelFilterChip('All', 'All Channels'),
                 _buildChannelFilterChip('Social', 'Social'),
                 _buildChannelFilterChip('Search', 'Search'),
                 _buildChannelFilterChip('Email', 'Email'),
                 _buildChannelFilterChip('Display', 'Display'),
+                _buildChannelFilterChip('Video', 'Video'),
               ],
             ),
           ),
@@ -1816,7 +1821,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
   // ==========================================
   Widget _buildLedgerListView(List<Campaign> campaigns) {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
       itemCount: campaigns.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, idx) {

@@ -93,9 +93,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       SnackBar(
         content: Text(
           'Sync finished: $synced synced, $failed failed ($processed total).',
-          style: TextStyle(color: AppTheme.textInverse),
+          style: TextStyle(color: AppTheme.page, fontWeight: FontWeight.w500),
         ),
-        backgroundColor: failed > 0 ? AppTheme.statusRejected : AppTheme.forge,
+        backgroundColor: AppTheme.textPrimary,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
       ),
@@ -118,9 +118,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               _isEmailFailing
                   ? 'Worker ran with outage injected: ${_outboxStats.failed} event(s) recorded as FAILED (EmailProviderGatewayTimeout).'
                   : 'Worker ran: ${processed.length} event(s) dispatched successfully to recipients.',
-              style: TextStyle(color: AppTheme.textInverse),
+              style: TextStyle(color: AppTheme.page, fontWeight: FontWeight.w500),
             ),
-            backgroundColor: _isEmailFailing ? AppTheme.statusRejected : AppTheme.forge,
+            backgroundColor: AppTheme.textPrimary,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),
@@ -130,8 +130,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       if (mounted) {
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text('Outbox worker run failed: $e'),
-            backgroundColor: AppTheme.statusRejected,
+            content: Text('Outbox worker run failed: $e', style: TextStyle(color: AppTheme.page)),
+            backgroundColor: AppTheme.textPrimary,
           ),
         );
       }
@@ -151,9 +151,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             updated
                 ? 'Email Provider Outage injected (worker will encounter retry backoff)'
                 : 'Email Provider restored to healthy state (worker ready to dispatch)',
-            style: TextStyle(color: AppTheme.textInverse),
+            style: TextStyle(color: AppTheme.page, fontWeight: FontWeight.w500),
           ),
-          backgroundColor: updated ? AppTheme.statusRejected : AppTheme.forge,
+          backgroundColor: AppTheme.textPrimary,
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -173,9 +173,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
             _isEmailFailing
                 ? 'Queued test notification (Pending: ${_outboxStats.pending}). With outage injected, worker will record failure.'
                 : 'Queued test notification (Pending: ${_outboxStats.pending}). Outbox worker will dispatch successfully.',
-            style: TextStyle(color: AppTheme.textInverse),
+            style: TextStyle(color: AppTheme.page, fontWeight: FontWeight.w500),
           ),
-          backgroundColor: _isEmailFailing ? AppTheme.statusChanges : AppTheme.forge,
+          backgroundColor: AppTheme.textPrimary,
           duration: const Duration(seconds: 3),
           behavior: SnackBarBehavior.floating,
         ),
@@ -183,8 +183,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     } else {
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          content: Text('Failed to queue test notification.'),
-          backgroundColor: AppTheme.statusRejected,
+          content: Text('Failed to queue test notification.', style: TextStyle(color: AppTheme.page)),
+          backgroundColor: AppTheme.textPrimary,
         ),
       );
     }
@@ -199,9 +199,12 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       if (!mounted) return;
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          content: Text('Outbox ledger reset to clean slate (3 curated enterprise events).'),
-          backgroundColor: AppTheme.forge,
-          duration: Duration(seconds: 2),
+          content: Text(
+            'Outbox ledger reset to clean slate (3 curated enterprise events).',
+            style: TextStyle(color: AppTheme.page, fontWeight: FontWeight.w500),
+          ),
+          backgroundColor: AppTheme.textPrimary,
+          duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -209,8 +212,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       if (mounted) {
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text('Failed to reset outbox: $e'),
-            backgroundColor: AppTheme.statusRejected,
+            content: Text('Failed to reset outbox: $e', style: TextStyle(color: AppTheme.page)),
+            backgroundColor: AppTheme.textPrimary,
           ),
         );
       }
@@ -246,9 +249,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       SnackBar(
         content: Text(
           'Enqueued offline action "${action.actionType}" with Idempotency Key: ${action.idempotencyKey.substring(0, 16)}...',
-          style: TextStyle(color: AppTheme.textInverse),
+          style: TextStyle(color: AppTheme.page, fontWeight: FontWeight.w500),
         ),
-        backgroundColor: AppTheme.forge,
+        backgroundColor: AppTheme.textPrimary,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
@@ -317,9 +320,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppTheme.forge,
+          labelColor: AppTheme.accent,
           unselectedLabelColor: AppTheme.textSecondary,
-          indicatorColor: AppTheme.forge,
+          indicatorColor: AppTheme.accent,
           indicatorWeight: 3,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           tabs: [
@@ -336,7 +339,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
-                        color: AppTheme.statusChanges,
+                        color: AppTheme.statusChangesBg,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -344,7 +347,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.leaf,
+                          color: AppTheme.statusChanges,
                         ),
                       ),
                     ),
@@ -365,7 +368,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
-                        color: AppTheme.forge,
+                        color: AppTheme.accent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -373,7 +376,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.leaf,
+                          color: AppTheme.onAccent,
                         ),
                       ),
                     ),
@@ -406,51 +409,56 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
     return RefreshIndicator(
       onRefresh: () async => setState(() {}),
-      color: AppTheme.forge,
-      backgroundColor: AppTheme.leaf,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Offline Simulation Switch Card
-          _buildOfflineToggleBanner(),
-          const SizedBox(height: 14),
-
-          // Queue Metrics Strip
-          _buildQueueMetricsStrip(),
-          const SizedBox(height: 14),
-
-          // Action Buttons: Drain & Sync, Add Sample Offline Write
-          _buildQueueActionButtons(),
-          const SizedBox(height: 16),
-
-          // Filter Row
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      color: AppTheme.accent,
+      backgroundColor: AppTheme.card,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                'Queued Actions (${filtered.length})',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                ),
+              // Offline Simulation Switch Card
+              _buildOfflineToggleBanner(),
+              const SizedBox(height: 14),
+
+              // Queue Metrics Strip
+              _buildQueueMetricsStrip(),
+              const SizedBox(height: 14),
+
+              // Action Buttons: Drain & Sync, Add Sample Offline Write
+              _buildQueueActionButtons(),
+              const SizedBox(height: 16),
+
+              // Filter Row
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Queued Actions (${filtered.length})',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildQueueFilterPills(),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: _buildQueueFilterPills(),
-              ),
+              const SizedBox(height: 12),
+
+              // Action List
+              if (filtered.isEmpty)
+                _buildEmptyQueueState()
+              else
+                ...filtered.map((action) => _buildActionCard(action)),
+              const SizedBox(height: 24),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Action List
-          if (filtered.isEmpty)
-            _buildEmptyQueueState()
-          else
-            ...filtered.map((action) => _buildActionCard(action)),
-          const SizedBox(height: 24),
-        ],
+        ),
       ),
     );
   }
@@ -461,7 +469,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSimulating ? const Color(0xFFFFF7ED) : AppTheme.secondarySystemBackground,
+        color: isSimulating ? AppTheme.statusChangesBg : AppTheme.secondarySystemBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppTheme.appleCardShadow,
       ),
@@ -473,13 +481,13 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isSimulating ? const Color(0xFFFFEDD5) : AppTheme.tertiarySystemBackground,
+                  color: isSimulating ? AppTheme.statusChanges.withOpacity(0.15) : AppTheme.tertiarySystemBackground,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   isSimulating ? Icons.wifi_off_rounded : Icons.wifi_rounded,
                   size: 20,
-                  color: isSimulating ? const Color(0xFFC2410C) : AppTheme.label,
+                  color: isSimulating ? AppTheme.statusChanges : AppTheme.label,
                 ),
               ),
               const SizedBox(width: 12),
@@ -492,14 +500,14 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isSimulating ? const Color(0xFF9A3412) : AppTheme.label,
+                        color: isSimulating ? AppTheme.statusChanges : AppTheme.label,
                         letterSpacing: -0.3,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       isSimulating
-                          ? 'Campaign updates queue locally with cryptographic keys'
+                          ? 'Campaign updates queue locally with deduplication keys'
                           : 'Mutations sync automatically with the cloud service',
                       style: TextStyle(fontSize: 12, color: AppTheme.secondaryLabel),
                     ),
@@ -508,7 +516,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               ),
               Switch.adaptive(
                 value: isSimulating,
-                activeColor: const Color(0xFFC2410C),
+                activeColor: AppTheme.statusChanges,
                 onChanged: (val) {
                   _syncQueue.setOfflineSimulation(val);
                 },
@@ -528,7 +536,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Every offline action generates a unique cryptographic key to prevent duplicate submissions upon network restoration.',
+                    'Every offline action carries a unique idempotency key to prevent duplicate submissions upon reconnection.',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.secondaryLabel.withOpacity(0.95),
@@ -551,7 +559,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
         const SizedBox(width: 8),
         _buildMetricMiniCard('Syncing', '${_syncQueue.syncingCount}', AppTheme.statusSubmitted),
         const SizedBox(width: 8),
-        _buildMetricMiniCard('Synced', '${_syncQueue.syncedCount}', AppTheme.verdictLimeDark),
+        _buildMetricMiniCard('Synced', '${_syncQueue.syncedCount}', AppTheme.statusApproved),
         const SizedBox(width: 8),
         _buildMetricMiniCard('Failed', '${_syncQueue.failedCount}', AppTheme.statusRejected),
       ],
@@ -604,10 +612,10 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           child: ElevatedButton.icon(
             onPressed: isDraining || !hasPending ? null : _drainSyncQueue,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.forge,
-              foregroundColor: AppTheme.leaf,
-              disabledBackgroundColor: AppTheme.forge.withOpacity(0.4),
-              disabledForegroundColor: AppTheme.leaf.withOpacity(0.6),
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.onAccent,
+              disabledBackgroundColor: AppTheme.accent.withOpacity(0.35),
+              disabledForegroundColor: AppTheme.onAccent.withOpacity(0.65),
               padding: const EdgeInsets.symmetric(vertical: 13),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
@@ -616,7 +624,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                 ? SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onAccent),
                   )
                 : const Icon(Icons.sync, size: 18),
             label: Text(
@@ -719,8 +727,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           ElevatedButton.icon(
             onPressed: _simulateOfflineWrite,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.label,
-              foregroundColor: Colors.white,
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.onAccent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             ),
@@ -737,7 +745,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     IconData statusIcon;
     switch (action.status.toUpperCase()) {
       case 'SYNCED':
-        statusColor = AppTheme.verdictLimeDark;
+        statusColor = AppTheme.statusApproved;
         statusIcon = Icons.check_circle_outline;
         break;
       case 'SYNCING':
@@ -780,7 +788,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppTheme.forge,
+                        color: AppTheme.accent,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -788,7 +796,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.leaf,
+                          color: AppTheme.onAccent,
                         ),
                       ),
                     ),
@@ -951,11 +959,11 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Inspect Payload →',
+                      'Inspect payload →',
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.forge.withOpacity(0.85),
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.accent,
                       ),
                     ),
                   ],
@@ -979,58 +987,63 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
     return RefreshIndicator(
       onRefresh: _fetchOutbox,
-      color: AppTheme.forge,
-      backgroundColor: AppTheme.leaf,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Outbox Worker Heartbeat & Control Banner
-          _buildOutboxControlBanner(),
-          const SizedBox(height: 14),
-
-          // Outbox Metrics Strip
-          _buildOutboxMetricsStrip(),
-          const SizedBox(height: 14),
-
-          // Worker Trigger Button
-          _buildOutboxActionButtons(),
-          const SizedBox(height: 16),
-
-          // Filter Row
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      color: AppTheme.accent,
+      backgroundColor: AppTheme.card,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                'Outbox Ledger (${filtered.length})',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                ),
+              // Outbox Worker Heartbeat & Control Banner
+              _buildOutboxControlBanner(),
+              const SizedBox(height: 14),
+
+              // Outbox Metrics Strip
+              _buildOutboxMetricsStrip(),
+              const SizedBox(height: 14),
+
+              // Worker Trigger Button
+              _buildOutboxActionButtons(),
+              const SizedBox(height: 16),
+
+              // Filter Row
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Outbox Ledger (${filtered.length})',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildOutboxFilterPills(),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: _buildOutboxFilterPills(),
-              ),
+              const SizedBox(height: 12),
+
+              // Events Feed
+              if (_loadingOutbox)
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(color: AppTheme.accent),
+                  ),
+                )
+              else if (filtered.isEmpty)
+                _buildEmptyOutboxState()
+              else
+                ...filtered.map((evt) => _buildOutboxEventCard(evt)),
+              const SizedBox(height: 24),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Events Feed
-          if (_loadingOutbox)
-            Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: CircularProgressIndicator(color: AppTheme.forge),
-              ),
-            )
-          else if (filtered.isEmpty)
-            _buildEmptyOutboxState()
-          else
-            ...filtered.map((evt) => _buildOutboxEventCard(evt)),
-          const SizedBox(height: 24),
-        ],
+        ),
       ),
     );
   }
@@ -1052,7 +1065,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                 width: 9,
                 height: 9,
                 decoration: BoxDecoration(
-                  color: AppTheme.verdictLimeDark,
+                  color: AppTheme.statusApproved,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -1071,15 +1084,15 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F4EA),
+                  color: AppTheme.statusApprovedBg,
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
+                child: Text(
                   'Active',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF137333),
+                    color: AppTheme.statusApproved,
                   ),
                 ),
               ),
@@ -1090,7 +1103,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: _isEmailFailing ? const Color(0xFFFEF2F2) : AppTheme.tertiarySystemBackground,
+              color: _isEmailFailing ? AppTheme.statusRejectedBg : AppTheme.tertiarySystemBackground,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -1120,7 +1133,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                             : 'Normal delivery dispatch operates reliably',
                         style: TextStyle(
                           fontSize: 11,
-                          color: _isEmailFailing ? const Color(0xFFB91C1C) : AppTheme.secondaryLabel,
+                          color: _isEmailFailing ? AppTheme.statusRejected : AppTheme.secondaryLabel,
                         ),
                       ),
                     ],
@@ -1146,11 +1159,11 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
       children: [
         _buildMetricMiniCard('Pending', '${_outboxStats.pending}', AppTheme.statusChanges),
         const SizedBox(width: 8),
-        _buildMetricMiniCard('Processed', '${_outboxStats.processed}', AppTheme.verdictLimeDark),
+        _buildMetricMiniCard('Processed', '${_outboxStats.processed}', AppTheme.statusApproved),
         const SizedBox(width: 8),
         _buildMetricMiniCard('Failed', '${_outboxStats.failed}', AppTheme.statusRejected),
         const SizedBox(width: 8),
-        _buildMetricMiniCard('Total Events', '${_outboxStats.total}', AppTheme.forge),
+        _buildMetricMiniCard('Total Events', '${_outboxStats.total}', AppTheme.textPrimary),
       ],
     );
   }
@@ -1163,9 +1176,9 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
           child: ElevatedButton.icon(
             onPressed: _processingWorker ? null : _triggerOutboxWorker,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.forge,
-              foregroundColor: AppTheme.leaf,
-              disabledBackgroundColor: AppTheme.forge.withOpacity(0.4),
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.onAccent,
+              disabledBackgroundColor: AppTheme.accent.withOpacity(0.4),
               padding: const EdgeInsets.symmetric(vertical: 13),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
@@ -1174,7 +1187,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                 ? SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.leaf),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onAccent),
                   )
                 : const Icon(Icons.bolt, size: 18),
             label: Text(
@@ -1301,7 +1314,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
     IconData statusIcon;
     switch (evt.status.toUpperCase()) {
       case 'PROCESSED':
-        statusColor = AppTheme.verdictLimeDark;
+        statusColor = AppTheme.statusApproved;
         statusIcon = Icons.check_circle_outline;
         break;
       case 'PROCESSING':
@@ -1463,8 +1476,8 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
                       'Details →',
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.forge.withOpacity(0.85),
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.accent,
                       ),
                     ),
                   ],
@@ -1571,7 +1584,7 @@ class _ActionDetailModal extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     'Server Response',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.verdictLimeDark),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.statusApproved),
                   ),
                   const SizedBox(height: 6),
                   Container(

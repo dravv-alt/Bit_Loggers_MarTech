@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 /// Curated high-resolution imagery and authentic ad preview components
-/// specifically designed for enterprise marketing campaign intelligence
-/// in the "Obsidian Vitreum" design system.
+/// tuned to editorial contrast and active Unslop design tokens.
 class MarketingVisuals {
-  // Curated authentic photography per marketing channel
+  // Curated authentic photography per marketing channel (no neon-on-black app icon collages)
   static const Map<String, String> defaultChannelImages = {
-    'Social': 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=80',
+    'Social': 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&auto=format&fit=crop&q=80',
     'Search': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80',
     'Email': 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&auto=format&fit=crop&q=80',
     'Display': 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
@@ -198,14 +197,12 @@ class MarketerAvatar extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.5), width: 1.0),
-        boxShadow: const [
-          BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 1)),
-        ],
+        border: Border.all(color: AppTheme.hairline, width: 1.0),
+        boxShadow: AppTheme.appleCardShadow,
       ),
       child: ClipOval(
         child: Container(
-          color: AppTheme.slabElevated,
+          color: AppTheme.well,
           child: avatarUrl.isNotEmpty
               ? Image.network(
                   avatarUrl,
@@ -251,7 +248,7 @@ class MarketerAvatar extends StatelessWidget {
         style: TextStyle(
           fontSize: size * 0.42,
           fontWeight: FontWeight.bold,
-          color: AppTheme.phosphorChartreuse,
+          color: AppTheme.accent,
         ),
       ),
     );
@@ -315,8 +312,8 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: AppTheme.slabElevated,
-                  child: Text('BL', style: TextStyle(color: AppTheme.phosphorChartreuse, fontSize: 10, fontWeight: FontWeight.bold)),
+                  backgroundColor: AppTheme.well,
+                  child: Text('BL', style: TextStyle(color: AppTheme.accent, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -327,7 +324,7 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                         children: [
                           Text('BitLoggers Brand', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
                           const SizedBox(width: 4),
-                          Icon(Icons.verified, size: 12, color: AppTheme.glacialCyan),
+                          Icon(Icons.verified, size: 12, color: AppTheme.social),
                         ],
                       ),
                       Text('Sponsored · Instagram Feed Comp', style: TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
@@ -346,7 +343,7 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
               effectiveImg,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                color: AppTheme.canvasVoid,
+                color: AppTheme.well,
                 child: Center(child: Icon(Icons.photo_library_outlined, size: 36, color: AppTheme.textSecondary)),
               ),
             ),
@@ -370,12 +367,12 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.phosphorChartreuse,
+                    color: AppTheme.accent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     'Shop Now',
-                    style: TextStyle(color: AppTheme.textInverse, fontSize: 10, fontWeight: FontWeight.w700),
+                    style: TextStyle(color: AppTheme.onAccent, fontSize: 10, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
@@ -537,12 +534,12 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppTheme.phosphorChartreuse,
+                      color: AppTheme.accent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'Claim Early Invitation →',
-                      style: TextStyle(color: AppTheme.textInverse, fontSize: 12, fontWeight: FontWeight.w700),
+                      style: TextStyle(color: AppTheme.onAccent, fontSize: 12, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
@@ -604,10 +601,10 @@ class LiveCreativeMockupCanvas extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppTheme.phosphorChartreuse,
+                    color: AppTheme.accent,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('Explore', style: TextStyle(color: AppTheme.textInverse, fontSize: 11, fontWeight: FontWeight.w700)),
+                  child: Text('Explore', style: TextStyle(color: AppTheme.onAccent, fontSize: 11, fontWeight: FontWeight.w700)),
                 ),
               ],
             ),

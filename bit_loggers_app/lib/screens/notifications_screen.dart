@@ -114,8 +114,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 820),
+          child: Column(
+            children: [
           // Toolbar: All updates · X unread | Mark all read
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -164,7 +167,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           // Notifications List
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
+                ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent))
                 : _filteredNotifications.isEmpty
                     ? Center(
                         child: Padding(
@@ -190,7 +193,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       )
                     : RefreshIndicator(
                         onRefresh: _fetch,
-                        color: AppTheme.forge,
+                        color: AppTheme.accent,
                         child: ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
                           itemCount: _filteredNotifications.length,
@@ -202,7 +205,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                       ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -214,7 +219,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.label : AppTheme.tertiarySystemBackground,
+          color: isSelected ? AppTheme.accent : AppTheme.well,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -224,8 +229,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? Colors.white : AppTheme.label,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? AppTheme.onAccent : AppTheme.textPrimary,
               ),
             ),
             if (count != null && count > 0) ...[
@@ -233,7 +238,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white.withOpacity(0.25) : AppTheme.label.withOpacity(0.12),
+                  color: isSelected ? AppTheme.onAccent.withOpacity(0.18) : AppTheme.hairline,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -241,7 +246,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : AppTheme.label,
+                    color: isSelected ? AppTheme.onAccent : AppTheme.textPrimary,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
@@ -267,11 +272,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Color _getCategoryColor(AppNotification notif) {
     final t = notif.title.toLowerCase();
     final m = notif.message.toLowerCase();
-    if (t.contains('approved') || m.contains('approved')) return AppTheme.moss;
-    if (t.contains('changes') || m.contains('changes')) return AppTheme.warmAmber;
+    if (t.contains('approved') || m.contains('approved')) return AppTheme.statusApproved;
+    if (t.contains('changes') || m.contains('changes')) return AppTheme.statusChanges;
     if (t.contains('reject') || m.contains('reject')) return AppTheme.statusRejected;
-    if (t.contains('flight') || m.contains('flight') || t.contains('schedule') || m.contains('schedule')) return AppTheme.brandAccent;
-    return AppTheme.forge;
+    if (t.contains('flight') || m.contains('flight') || t.contains('schedule') || m.contains('schedule')) return AppTheme.accent;
+    return AppTheme.textSecondary;
   }
 
   Widget _buildNotificationCard(AppNotification notif) {
@@ -376,11 +381,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.forge,
+                                  color: AppTheme.accent,
                                 ),
                               ),
-                              SizedBox(width: 2),
-                              Icon(Icons.arrow_forward_rounded, size: 10, color: AppTheme.forge),
+                              const SizedBox(width: 2),
+                              Icon(Icons.arrow_forward_rounded, size: 10, color: AppTheme.accent),
                             ],
                           ),
                       ],

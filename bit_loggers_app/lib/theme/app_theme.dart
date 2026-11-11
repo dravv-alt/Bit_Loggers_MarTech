@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Campaign Grid Theme Tokens (Compliant with heydamir/unslop anti-slop guidelines)
@@ -7,6 +6,7 @@ import 'package:flutter/material.dart';
 class CgTokens {
   final String id;
   final String name;
+  final String shortName;
   final String subtitle;
   final Color page;
   final Color card;
@@ -34,6 +34,7 @@ class CgTokens {
   const CgTokens({
     required this.id,
     required this.name,
+    required this.shortName,
     required this.subtitle,
     required this.page,
     required this.card,
@@ -94,6 +95,7 @@ class CgTokens {
 const CgTokens gessoPigment = CgTokens(
   id: 'a',
   name: 'Gesso & Pigment',
+  shortName: 'Gesso',
   subtitle: 'Warm paper · Vermilion',
   page: Color(0xFFF6F2E9),        // Warm paper
   card: Color(0xFFFFFDF8),        // Warm off-white (not pure white)
@@ -125,6 +127,7 @@ const CgTokens gessoPigment = CgTokens(
 const CgTokens chiaroscuro = CgTokens(
   id: 'b',
   name: 'Chiaroscuro',
+  shortName: 'Umber',
   subtitle: 'Warm umber · Gold leaf',
   page: Color(0xFF14110D),        // Warm umber (not pure black)
   card: Color(0xFF1D1913),        // Warm dark card
@@ -156,6 +159,7 @@ const CgTokens chiaroscuro = CgTokens(
 const CgTokens neoplastic = CgTokens(
   id: 'c',
   name: 'Neoplastic',
+  shortName: 'Plaster',
   subtitle: 'Cool plaster · Cadmium yellow',
   page: Color(0xFFEEEDE6),        // Cool plaster
   card: Color(0xFFF9F8F3),        // Pale panel
@@ -517,14 +521,32 @@ class AppTheme {
   static ThemeData get campaignGridTheme => buildTheme(tokens);
 
   static ThemeData buildTheme(CgTokens t) {
-    return ThemeData(
+    final scheme = ColorScheme(
       brightness: t.isDark ? Brightness.dark : Brightness.light,
+      primary: t.accent,
+      onPrimary: t.onAccent,
+      secondary: t.social,
+      onSecondary: Colors.white,
+      error: t.collision,
+      onError: Colors.white,
+      surface: t.card,
+      onSurface: t.text,
+      surfaceContainerHighest: t.well,
+      outline: t.hairline,
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: t.isDark ? Brightness.dark : Brightness.light,
+      colorScheme: scheme,
+      primaryColor: t.accent,
       scaffoldBackgroundColor: t.page,
       cardColor: t.card,
       dividerColor: t.hairline,
       fontFamily: 'SF Pro Display',
       appBarTheme: AppBarTheme(
-        backgroundColor: t.page,
+        backgroundColor: t.card,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
@@ -564,8 +586,61 @@ class AppTheme {
           minimumSize: const Size(44, 44),
         ),
       ),
+      chipTheme: ChipThemeData(
+        backgroundColor: t.well,
+        selectedColor: t.accent,
+        checkmarkColor: t.onAccent,
+        labelStyle: TextStyle(fontSize: 12, color: t.text, fontWeight: FontWeight.w500),
+        secondaryLabelStyle: TextStyle(fontSize: 12, color: t.onAccent, fontWeight: FontWeight.w600),
+        side: BorderSide(color: t.hairline, width: t.structuralRuleWidth),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(t.radiusControl)),
+        showCheckmark: false,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return t.onAccent;
+          return t.textSecondary;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return t.accent;
+          return t.well;
+        }),
+        trackOutlineColor: WidgetStateProperty.all(t.hairline),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: t.text,
+        contentTextStyle: TextStyle(color: t.page, fontSize: 13, fontWeight: FontWeight.w500),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(t.radiusControl)),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: t.card,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.radiusCard),
+          side: BorderSide(color: t.hairline, width: t.structuralRuleWidth),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: t.well,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(t.radiusControl),
+          borderSide: BorderSide(color: t.hairline, width: t.structuralRuleWidth),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(t.radiusControl),
+          borderSide: BorderSide(color: t.hairline, width: t.structuralRuleWidth),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(t.radiusControl),
+          borderSide: BorderSide(color: t.accent, width: 1.5),
+        ),
+        hintStyle: TextStyle(color: t.textMuted, fontSize: 13),
+      ),
       cardTheme: CardTheme(
         color: t.card,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(t.radiusCard),

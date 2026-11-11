@@ -51,7 +51,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String _selectedMetric = 'roi';
   int? _hoveredIndex;
 
-  static Map<String, _MetricInfo> _metrics = {
+  static final Map<String, _MetricInfo> _metrics = {
     'roi': _MetricInfo(
       key: 'roi',
       title: 'Return on Investment',
@@ -59,7 +59,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       unit: 'x',
       isPrefix: false,
       isLowerBetter: false,
-      accentColor: AppTheme.forge,
+      accentColor: Color(0xFFC4402A),
     ),
     'conversionRate': _MetricInfo(
       key: 'conversionRate',
@@ -68,7 +68,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       unit: '%',
       isPrefix: false,
       isLowerBetter: false,
-      accentColor: Color(0xFF2C5E43),
+      accentColor: Color(0xFF3F7D4E),
     ),
     'ctr': _MetricInfo(
       key: 'ctr',
@@ -77,7 +77,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       unit: '%',
       isPrefix: false,
       isLowerBetter: false,
-      accentColor: Color(0xFF3B5249),
+      accentColor: Color(0xFF2F8A78),
     ),
     'cpa': _MetricInfo(
       key: 'cpa',
@@ -86,7 +86,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       unit: '\$',
       isPrefix: true,
       isLowerBetter: true,
-      accentColor: Color(0xFF8A5A36),
+      accentColor: Color(0xFFA8721A),
     ),
     'aov': _MetricInfo(
       key: 'aov',
@@ -95,9 +95,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       unit: '\$',
       isPrefix: true,
       isLowerBetter: false,
-      accentColor: Color(0xFF4A5E54),
+      accentColor: Color(0xFF4A76B8),
     ),
   };
+
+  Color _getDynamicMetricColor(String key) {
+    switch (key) {
+      case 'roi':
+        return AppTheme.accent;
+      case 'conversionRate':
+        return AppTheme.approved;
+      case 'ctr':
+        return AppTheme.search;
+      case 'cpa':
+        return AppTheme.warning;
+      case 'aov':
+        return AppTheme.social;
+      default:
+        return AppTheme.accent;
+    }
+  }
 
   @override
   void initState() {
@@ -168,14 +185,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       initialDateRange: DateTimeRange(start: _startDate, end: _endDate),
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppTheme.forge,
-              onPrimary: AppTheme.leaf,
-              surface: AppTheme.leaf,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
+          data: AppTheme.campaignGridTheme,
           child: child!,
         );
       },
@@ -208,8 +218,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final activeMetricInfo = _metrics[_selectedMetric] ?? _metrics['roi']!;
 
     return Scaffold(
-      backgroundColor: AppTheme.paper,
+      backgroundColor: AppTheme.page,
       appBar: AppBar(
+        backgroundColor: AppTheme.card,
+        surfaceTintColor: Colors.transparent,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -218,13 +230,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.label,
+                color: AppTheme.textPrimary,
                 letterSpacing: -0.4,
               ),
             ),
             Text(
-              'Live performance telemetry',
-              style: TextStyle(fontSize: 11, color: AppTheme.secondaryLabel, fontWeight: FontWeight.w400),
+              'Performance telemetry',
+              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w400),
             ),
           ],
         ),
@@ -237,31 +249,36 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ],
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator(color: AppTheme.forge))
+          ? Center(child: CircularProgressIndicator(color: AppTheme.accent))
           : _errorMessage != null
               ? _buildErrorView()
               : RefreshIndicator(
-                  color: AppTheme.forge,
+                  color: AppTheme.accent,
                   onRefresh: _fetch,
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    children: [
-                      // Filter Controls (Date Presets + Custom Range + Channels)
-                      _buildFilterSection(),
-                      const SizedBox(height: 16),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 960),
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        children: [
+                          // Filter Controls (Date Presets + Custom Range + Channels)
+                          _buildFilterSection(),
+                          const SizedBox(height: 16),
 
-                      // Historical Trend Lines Chart (TimescaleDB time_bucket)
-                      _buildTrendChartCard(trends, activeMetricInfo),
-                      const SizedBox(height: 16),
+                          // Historical Trend Lines Chart
+                          _buildTrendChartCard(trends, activeMetricInfo),
+                          const SizedBox(height: 16),
 
-                      // 5 Mandatory KPI Cards Grid
-                      _buildKpiSection(kpis),
-                      const SizedBox(height: 20),
+                          // 5 Mandatory KPI Cards Grid
+                          _buildKpiSection(kpis),
+                          const SizedBox(height: 20),
 
-                      // Channel Economics & Portfolio Breakdown
-                      _buildChannelEconomicsCard(breakdown, totalBudget, totalCampaigns),
-                      const SizedBox(height: 24),
-                    ],
+                          // Channel Economics & Portfolio Breakdown
+                          _buildChannelEconomicsCard(breakdown, totalBudget, totalCampaigns),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
     );
@@ -289,8 +306,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.forge,
-                foregroundColor: AppTheme.leaf,
+                backgroundColor: AppTheme.accent,
+                foregroundColor: AppTheme.onAccent,
               ),
               onPressed: _fetch,
               child: const Text('Retry Connection'),
@@ -308,8 +325,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+        border: Border.all(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
@@ -327,26 +345,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               InkWell(
                 onTap: _pickCustomDateRange,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: _datePreset == 'Custom' ? AppTheme.label : AppTheme.tertiarySystemBackground,
-                    borderRadius: BorderRadius.circular(8),
+                    color: _datePreset == 'Custom' ? AppTheme.accent : AppTheme.well,
+                    borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
+                    border: Border.all(color: AppTheme.hairline, width: 0.5),
                   ),
                   child: Text(
                     'Custom',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: _datePreset == 'Custom' ? Colors.white : AppTheme.label,
+                      color: _datePreset == 'Custom' ? AppTheme.onAccent : AppTheme.textPrimary,
                     ),
                   ),
                 ),
@@ -365,16 +384,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               _presetChip('Quarter to Date', '90D'),
             ],
           ),
-          Divider(height: 16, color: AppTheme.separator),
+          Divider(height: 16, color: AppTheme.hairline),
 
-          // Row 2: Channel filter pills
+          // Row 2: Channel filter pills (Crisp custom pills, zero black checkmark)
           Row(
             children: [
               Text(
-                'CHANNEL:',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel, letterSpacing: 0.5),
+                'Channel',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -383,28 +402,31 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       final isSelected = _selectedChannel == ch;
                       return Padding(
                         padding: const EdgeInsets.only(right: 6),
-                        child: ChoiceChip(
-                          label: Text(ch),
-                          selected: isSelected,
-                          labelStyle: TextStyle(
-                            fontSize: 11,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isSelected ? Colors.white : AppTheme.label,
-                          ),
-                          selectedColor: AppTheme.label,
-                          backgroundColor: AppTheme.tertiarySystemBackground,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            side: BorderSide.none,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          onSelected: (val) {
-                            if (val) {
-                              setState(() => _selectedChannel = ch);
-                              _fetch();
-                            }
+                        child: InkWell(
+                          onTap: () {
+                            setState(() => _selectedChannel = ch);
+                            _fetch();
                           },
+                          borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppTheme.accent : AppTheme.well,
+                              borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
+                              border: Border.all(
+                                color: isSelected ? AppTheme.accent : AppTheme.hairline,
+                                width: AppTheme.tokens.structuralRuleWidth,
+                              ),
+                            ),
+                            child: Text(
+                              ch,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? AppTheme.onAccent : AppTheme.textPrimary,
+                              ),
+                            ),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -423,20 +445,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Expanded(
       child: InkWell(
         onTap: () => _applyDatePreset(presetCode),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 7),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.label : AppTheme.tertiarySystemBackground,
-            borderRadius: BorderRadius.circular(8),
+            color: isSelected ? AppTheme.accent : AppTheme.well,
+            borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
+            border: Border.all(
+              color: isSelected ? AppTheme.accent : AppTheme.hairline,
+              width: 0.5,
+            ),
           ),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 11,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? Colors.white : AppTheme.label,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? AppTheme.onAccent : AppTheme.textPrimary,
             ),
           ),
         ),
@@ -445,44 +471,48 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // HISTORICAL TREND LINES & TIMESCALEDB TIME_BUCKET VISUALIZER
+  // HISTORICAL TREND LINE VISUALIZER
   // ---------------------------------------------------------------------------
   Widget _buildTrendChartCard(List<Map<String, dynamic>> trends, _MetricInfo activeMetric) {
+    final metricColor = _getDynamicMetricColor(activeMetric.key);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+        border: Border.all(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header: Title + Telemetry Badge
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 6,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Historical performance flights',
-                style: AppTheme.headline,
+              Expanded(
+                child: Text(
+                  'Historical performance flights',
+                  style: AppTheme.headline,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F4EA),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppTheme.statusApprovedBg,
+                  borderRadius: BorderRadius.circular(AppTheme.tokens.radiusTag),
+                  border: Border.all(color: AppTheme.statusApproved.withOpacity(0.35), width: 0.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF137333), shape: BoxShape.circle)),
+                    Container(width: 6, height: 6, decoration: BoxDecoration(color: AppTheme.statusApproved, shape: BoxShape.circle)),
                     const SizedBox(width: 5),
-                    const Text(
+                    Text(
                       'Live telemetry',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF137333)),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.statusApproved),
                     ),
                   ],
                 ),
@@ -506,20 +536,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         _hoveredIndex = null;
                       });
                     },
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.label : AppTheme.tertiarySystemBackground,
-                        borderRadius: BorderRadius.circular(16),
+                        color: isSelected ? AppTheme.accent : AppTheme.well,
+                        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
+                        border: Border.all(
+                          color: isSelected ? AppTheme.accent : AppTheme.hairline,
+                          width: 0.5,
+                        ),
                       ),
                       child: Text(
                         metric.shortTitle,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isSelected ? Colors.white : AppTheme.label,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? AppTheme.onAccent : AppTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -531,7 +565,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           const SizedBox(height: 12),
 
           // Legend & Scrubber Banner
-          _buildChartLegend(trends, activeMetric),
+          _buildChartLegend(trends, activeMetric, metricColor),
           const SizedBox(height: 12),
 
           // The Custom Painted Interactive Line Graph
@@ -556,7 +590,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           painter: _HistoricalTrendPainter(
                             trends: trends,
                             metricKey: activeMetric.key,
-                            accentColor: activeMetric.accentColor,
+                            accentColor: metricColor,
                             hoveredIndex: _hoveredIndex,
                           ),
                         ),
@@ -586,7 +620,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     setState(() => _hoveredIndex = index);
   }
 
-  Widget _buildChartLegend(List<Map<String, dynamic>> trends, _MetricInfo activeMetric) {
+  Widget _buildChartLegend(List<Map<String, dynamic>> trends, _MetricInfo activeMetric, Color metricColor) {
     if (_hoveredIndex != null && _hoveredIndex! < trends.length) {
       final point = trends[_hoveredIndex!];
       final date = point['date'] ?? '';
@@ -598,8 +632,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: AppTheme.tertiarySystemBackground,
-          borderRadius: BorderRadius.circular(10),
+          color: AppTheme.well,
+          borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
+          border: Border.all(color: AppTheme.hairline, width: 0.5),
         ),
         child: Wrap(
           alignment: WrapAlignment.spaceBetween,
@@ -610,7 +645,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.touch_app, size: 14, color: AppTheme.forge),
+                Icon(Icons.touch_app, size: 14, color: metricColor),
                 const SizedBox(width: 4),
                 Text(
                   date,
@@ -625,16 +660,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Text(
                   'Actual: ${activeMetric.formatValue(actualVal)}',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: metricColor),
                 ),
                 Text(
                   'Target: ${activeMetric.formatValue(projVal)}',
                   style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
-                    color: isFavorable ? AppTheme.verdictLime : AppTheme.statusRejected.withOpacity(0.2),
+                    color: isFavorable ? AppTheme.statusApprovedBg : AppTheme.statusRejectedBg,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -642,7 +677,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isFavorable ? AppTheme.forge : AppTheme.statusRejected,
+                      color: isFavorable ? AppTheme.statusApproved : AppTheme.statusRejected,
                     ),
                   ),
                 ),
@@ -667,7 +702,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 14, height: 3, decoration: BoxDecoration(color: AppTheme.forge, borderRadius: BorderRadius.all(Radius.circular(2)))),
+                Container(width: 14, height: 3, decoration: BoxDecoration(color: metricColor, borderRadius: const BorderRadius.all(Radius.circular(2)))),
                 const SizedBox(width: 5),
                 Text('Actual Telemetry', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
               ],
@@ -678,7 +713,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Container(
                   width: 14,
                   height: 2,
-                  decoration: const BoxDecoration(color: Color(0xFF94A3B8)),
+                  decoration: BoxDecoration(color: AppTheme.textMuted),
                 ),
                 const SizedBox(width: 5),
                 Text('Projected Baseline', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
@@ -754,13 +789,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             Text(
               'Tap card to inspect telemetry',
-              style: TextStyle(fontSize: 10, color: AppTheme.forge.withOpacity(0.8), fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
             ),
           ],
         ),
         const SizedBox(height: 10),
 
-        // Hero Tile for Cost Per Acquisition (with spend wave burn bar and 75% red needle)
+        // Hero Tile for Cost Per Acquisition (with spend wave burn bar and 75% ceiling needle)
         _buildBentoHeroTile(kpis['cpa']),
         const SizedBox(height: 10),
 
@@ -768,7 +803,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _buildBentoKpiGrid(kpis),
         const SizedBox(height: 14),
 
-        // Conversion Funnel Bento Card (4.9M Volume Rollup)
+        // Conversion Funnel Bento Card
         _buildConversionFunnelCard(),
       ],
     );
@@ -779,19 +814,22 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final proj = (cpaData?['projected'] as num?)?.toDouble() ?? 24.5;
     final act = (cpaData?['actual'] as num?)?.toDouble() ?? 21.0;
     final diff = proj > 0 ? (((act - proj) / proj) * 100) : 0.0;
+    final isFavorable = diff <= 0;
     final isSelected = _selectedMetric == 'cpa';
 
     return InkWell(
       onTap: () => setState(() => _selectedMetric = 'cpa'),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.secondarySystemBackground,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? AppTheme.appleFloatingShadow
-              : AppTheme.appleCardShadow,
+          color: AppTheme.card,
+          borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+          border: Border.all(
+            color: isSelected ? AppTheme.accent : AppTheme.hairline,
+            width: isSelected ? 1.25 : AppTheme.tokens.structuralRuleWidth,
+          ),
+          boxShadow: isSelected ? AppTheme.appleFloatingShadow : AppTheme.appleCardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -807,7 +845,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isSelected ? AppTheme.forge : AppTheme.textSecondary,
+                            color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -817,10 +855,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                           decoration: BoxDecoration(
-                            color: AppTheme.forge,
-                            borderRadius: BorderRadius.circular(4),
+                            color: AppTheme.accent.withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(AppTheme.tokens.radiusTag),
                           ),
-                          child: Text('ACTIVE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
+                          child: Text('ACTIVE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.accent)),
                         ),
                       ],
                     ],
@@ -830,15 +868,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE6F4EA),
-                    borderRadius: BorderRadius.circular(4),
+                    color: isFavorable ? AppTheme.statusApprovedBg : AppTheme.statusRejectedBg,
+                    borderRadius: BorderRadius.circular(AppTheme.tokens.radiusTag),
                   ),
                   child: Text(
                     '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}% vs target',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF137333),
+                      color: isFavorable ? AppTheme.statusApproved : AppTheme.statusRejected,
                     ),
                   ),
                 ),
@@ -857,6 +895,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     fontFamily: 'monospace',
                     color: AppTheme.textPrimary,
                     letterSpacing: -0.5,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -877,7 +916,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.secondaryLabel,
+                color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 6),
@@ -886,33 +925,30 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Stack(
                 alignment: Alignment.centerLeft,
                 children: [
-                  // Track background
                   Container(
                     height: 8,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppTheme.tertiarySystemBackground,
+                      color: AppTheme.well,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
-                  // Filled progress (62% burn)
                   FractionallySizedBox(
                     widthFactor: 0.62,
                     child: Container(
                       height: 8,
                       decoration: BoxDecoration(
-                        color: AppTheme.forge,
+                        color: AppTheme.accent,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ),
-                  // Red needle at 75% ceiling
                   Align(
                     alignment: const Alignment(-0.5 + (0.75 * 2) - 1.0, 0),
                     child: Container(
                       width: 2,
                       height: 18,
-                      color: const Color(0xFFB9301D),
+                      color: AppTheme.statusRejected,
                     ),
                   ),
                 ],
@@ -981,12 +1017,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           _hoveredIndex = null;
         });
       },
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.paper : AppTheme.secondarySystemBackground,
-          borderRadius: BorderRadius.circular(14),
+          color: AppTheme.card,
+          borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+          border: Border.all(
+            color: isSelected ? AppTheme.accent : AppTheme.hairline,
+            width: isSelected ? 1.25 : AppTheme.tokens.structuralRuleWidth,
+          ),
           boxShadow: isSelected ? AppTheme.appleFloatingShadow : AppTheme.appleCardShadow,
         ),
         child: Column(
@@ -996,11 +1036,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    info.title, // 'Return on Investment', 'Conversion Rate', etc.
+                    info.title,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? AppTheme.forge : AppTheme.textSecondary,
+                      color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1011,10 +1051,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
-                      color: AppTheme.forge,
-                      borderRadius: BorderRadius.circular(4),
+                      color: AppTheme.accent.withOpacity(0.14),
+                      borderRadius: BorderRadius.circular(AppTheme.tokens.radiusTag),
                     ),
-                    child: Text('ACTIVE', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppTheme.verdictLime)),
+                    child: Text('ACTIVE', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: AppTheme.accent)),
                   ),
                 ],
               ],
@@ -1026,7 +1066,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
-                color: isSelected ? AppTheme.forge : AppTheme.textPrimary,
+                color: isSelected ? AppTheme.accent : AppTheme.textPrimary,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
             const SizedBox(height: 4),
@@ -1038,17 +1079,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   style: TextStyle(fontSize: 9, color: AppTheme.textSecondary),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
-                    color: isFavorable ? const Color(0xFFE6F4EA) : const Color(0xFFFDE8E4),
+                    color: isFavorable ? AppTheme.statusApprovedBg : AppTheme.statusRejectedBg,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
                     '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(0)}%',
                     style: TextStyle(
-                      fontSize: 8,
+                      fontSize: 8.5,
                       fontWeight: FontWeight.bold,
-                      color: isFavorable ? const Color(0xFF137333) : const Color(0xFF9C3A27),
+                      color: isFavorable ? AppTheme.statusApproved : AppTheme.statusRejected,
                     ),
                   ),
                 ),
@@ -1111,8 +1152,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+        border: Border.all(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
@@ -1125,9 +1167,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 child: Text(
                   'CONVERSION FUNNEL (${formatVolume(impressions)} VOLUME)',
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 9.5,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.12,
+                    letterSpacing: 0.4,
                     color: AppTheme.textSecondary,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1135,8 +1177,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'TimescaleDB rollup',
-                style: TextStyle(fontSize: 9, color: AppTheme.textSecondary),
+                'Attributed funnel',
+                style: TextStyle(fontSize: 10, color: AppTheme.textMuted),
               ),
             ],
           ),
@@ -1184,8 +1226,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     child: LinearProgressIndicator(
                       value: barVal,
                       minHeight: 4,
-                      backgroundColor: AppTheme.paper,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.forge),
+                      backgroundColor: AppTheme.well,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accent),
                     ),
                   ),
                 ],
@@ -1204,30 +1246,30 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.secondarySystemBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+        border: Border.all(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
         boxShadow: AppTheme.appleCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 4,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Channel Economics & Yield',
-                style: AppTheme.serifHeadline(fontSize: 15),
+              Expanded(
+                child: Text(
+                  'Channel Economics & Yield',
+                  style: AppTheme.serifHeadline(fontSize: 15),
+                ),
               ),
               Text(
                 'Total: \$${NumberFormat('#,###').format(totalBudget)}',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.forge,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                  color: AppTheme.accent,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -1463,19 +1505,19 @@ class _HistoricalTrendPainter extends CustomPainter {
 
       // Vertical crosshair
       final crosshairPaint = Paint()
-        ..color = AppTheme.forge.withOpacity(0.6)
+        ..color = AppTheme.textMuted
         ..strokeWidth = 1.0;
       canvas.drawLine(Offset(pX, topPadding), Offset(pX, topPadding + chartHeight), crosshairPaint);
 
       // Projected Dot
       final projDot = projPoints[hoveredIndex!];
-      canvas.drawCircle(projDot, 4.0, Paint()..color = const Color(0xFF94A3B8));
-      canvas.drawCircle(projDot, 2.0, Paint()..color = AppTheme.leaf);
+      canvas.drawCircle(projDot, 4.0, Paint()..color = AppTheme.textMuted);
+      canvas.drawCircle(projDot, 2.0, Paint()..color = AppTheme.card);
 
       // Actual Dot
       final actDot = actualPoints[hoveredIndex!];
-      canvas.drawCircle(actDot, 5.5, Paint()..color = AppTheme.forge);
-      canvas.drawCircle(actDot, 3.0, Paint()..color = AppTheme.verdictLime);
+      canvas.drawCircle(actDot, 5.5, Paint()..color = accentColor);
+      canvas.drawCircle(actDot, 2.5, Paint()..color = AppTheme.card);
     }
   }
 

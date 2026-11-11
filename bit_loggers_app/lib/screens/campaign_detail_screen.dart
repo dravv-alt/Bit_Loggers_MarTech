@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -236,9 +237,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   Widget build(BuildContext context) {
     if (_loading || _campaign == null) {
       return Scaffold(
-        backgroundColor: AppTheme.canvasVoid,
+        backgroundColor: AppTheme.page,
         body: Center(
-          child: CircularProgressIndicator(color: AppTheme.phosphorChartreuse, strokeWidth: 2),
+          child: CircularProgressIndicator(color: AppTheme.accent, strokeWidth: 2),
         ),
       );
     }
@@ -250,13 +251,18 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     final isSubmitted = _campaign!.status == 'Submitted';
 
     return Scaffold(
-      backgroundColor: AppTheme.canvasVoid,
+      backgroundColor: AppTheme.page,
       appBar: AppBar(
-        backgroundColor: AppTheme.slabQuartz,
+        backgroundColor: AppTheme.card,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(0.75),
-          child: Divider(color: AppTheme.borderCard, height: 0.75),
+          preferredSize: Size.fromHeight(AppTheme.tokens.structuralRuleWidth),
+          child: Divider(
+            color: AppTheme.hairline,
+            height: AppTheme.tokens.structuralRuleWidth,
+            thickness: AppTheme.tokens.structuralRuleWidth,
+          ),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppTheme.textPrimary),
@@ -282,27 +288,34 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               },
               child: Text(
                 '+ Revise',
-                style: TextStyle(color: AppTheme.phosphorChartreuse, fontWeight: FontWeight.w700, fontSize: 13),
+                style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.w700, fontSize: 13),
               ),
             ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        children: [
-          // If Reviewer and Status == Submitted: show SCREEN 08 "One last look."
-          if (isReviewer && isSubmitted) ...[
-            _buildReviewerDecisionScreen(),
-          ]
-          // If Status == Approved or Scheduled: show SCREEN 10 Schedule status / Version Guard
-          else if (isApproved || _campaign!.status == 'Scheduled') ...[
-            _buildScheduleStatusScreen(),
-          ]
-          // Default Dossier View
-          else ...[
-            _buildStandardDossierView(),
-          ],
-        ],
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 820),
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            children: [
+              // If Reviewer and Status == Submitted: show Review Decision
+              if (isReviewer && isSubmitted) ...[
+                _buildReviewerDecisionScreen(),
+              ]
+              // If Status == Approved or Scheduled: show Schedule status + full dossier tabs below
+              else if (isApproved || _campaign!.status == 'Scheduled') ...[
+                _buildScheduleStatusScreen(),
+                const SizedBox(height: 8),
+                _buildStandardDossierView(),
+              ]
+              // Default Dossier View
+              else ...[
+                _buildStandardDossierView(),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -488,11 +501,11 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Approve version v${curVer?.versionNo ?? 3}',
+                        'Approve version v${curVer?.versionNo ?? 1}',
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: -0.2),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.north_east_rounded, size: 16),
+                      const Icon(Icons.check_rounded, size: 16),
                     ],
                   ),
           ),
@@ -614,37 +627,35 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   // SCREEN 10 — Version Guard & Schedule Status (matching Reference Image screen 4!)
   Widget _buildScheduleStatusScreen() {
     final curVer = _campaign!.currentVersion;
+    final verNo = curVer?.versionNo ?? 1;
     final isScheduled = _campaign!.status == 'Scheduled';
+    final statusGreen = AppTheme.statusApproved;
+    final flightLabel = isScheduled
+        ? DateFormat('MMM d · 10:00 AM').format(DateTime.now().add(const Duration(days: 1)))
+        : 'Ready for launch window';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const SizedBox(height: 10),
-        // Bioluminescent glowing circle with checkmark
+        const SizedBox(height: 6),
+        // Crisp Semantic Approved / Scheduled Checkmark (no glowing halo)
         Container(
-          width: 64,
-          height: 64,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
-            color: AppTheme.phosphorChartreuse.withOpacity(0.12),
+            color: AppTheme.statusApprovedBg,
             shape: BoxShape.circle,
-            border: Border.all(color: AppTheme.phosphorChartreuse, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.phosphorChartreuse.withOpacity(0.35),
-                blurRadius: 18,
-                spreadRadius: 2,
-              ),
-            ],
+            border: Border.all(color: statusGreen, width: 1.5),
           ),
           child: Center(
-            child: Icon(Icons.check_rounded, size: 34, color: AppTheme.phosphorChartreuse),
+            child: Icon(Icons.check_rounded, size: 28, color: statusGreen),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
 
         // Dynamic Headline
         Text(
-          isScheduled ? 'Scheduled, version v${curVer?.versionNo ?? 3}.' : 'Approved, version v${curVer?.versionNo ?? 3}.',
+          isScheduled ? 'Scheduled, version v$verNo.' : 'Approved, version v$verNo.',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
@@ -657,18 +668,19 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           isScheduled
               ? 'Flight schedule confirmed and locked across delivery channels.'
               : 'Flight version approved and prepared for launch execution.',
+          textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 18),
 
-        // Apple Inset Grouped Surface: Version Progression & Ledger
+        // Inset Grouped Summary Card (Accurate version & flight state)
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: AppTheme.slabQuartz,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.35), width: 0.75),
+            color: AppTheme.card,
+            borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+            border: Border.all(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
             boxShadow: AppTheme.appleCardShadow,
           ),
           child: Column(
@@ -684,82 +696,58 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Oct 24 · 10:00 AM',
+                      flightLabel,
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.phosphorChartreuse,
-                        fontFeatures: [FontFeature.tabularFigures()],
+                        color: AppTheme.textPrimary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ],
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 14),
-                child: Divider(color: AppTheme.borderCard, height: 0.75),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Divider(color: AppTheme.hairline, height: 0.75),
               ),
 
-              // Version Progression Ledger
               _buildLedgerRow(
-                'Version v1',
-                'Superseded by revision',
-                textColor: AppTheme.textMuted,
-                badgeBg: AppTheme.slabPill,
+                'Campaign',
+                _campaign!.title,
+                isBold: true,
               ),
               const SizedBox(height: 10),
               _buildLedgerRow(
-                'Version v2',
-                'Changes requested',
-                textColor: AppTheme.solarTangerine,
+                'Channel & budget',
+                '${curVer?.channel ?? 'Social'} · \$${NumberFormat('#,###').format((curVer?.budget ?? 0).round())}',
+                textColor: AppTheme.textPrimary,
               ),
               const SizedBox(height: 10),
               _buildLedgerRow(
-                'Version v${curVer?.versionNo ?? 3}',
-                'Approved & Current',
-                textColor: AppTheme.phosphorChartreuse,
+                'Active version',
+                'Version v$verNo · Approved & current',
+                textColor: statusGreen,
                 isBold: true,
               ),
               const SizedBox(height: 10),
               _buildLedgerRow(
                 'Delivery status',
-                'Verified & active',
-                textColor: AppTheme.glacialCyan,
+                isScheduled ? 'Verified & active' : 'Awaiting slot assignment',
+                textColor: AppTheme.statusScheduled,
               ),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Status', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: isScheduled
-                          ? AppTheme.glacialCyan.withOpacity(0.15)
-                          : AppTheme.phosphorChartreuse.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: isScheduled
-                            ? AppTheme.glacialCyan.withOpacity(0.4)
-                            : AppTheme.phosphorChartreuse.withOpacity(0.4),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Text(
-                      isScheduled ? 'Scheduled' : 'Approved',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: isScheduled ? AppTheme.glacialCyan : AppTheme.phosphorChartreuse,
-                      ),
-                    ),
-                  ),
+                  AppTheme.buildStatusIndicator(_campaign!.status),
                 ],
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
         // Marketer Schedule CTA if approved but not yet scheduled
         if (!isScheduled && widget.api.currentUser.role == 'marketer') ...[
@@ -769,22 +757,22 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             child: ElevatedButton(
               onPressed: _submittingSchedule ? null : _confirmSchedule,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.phosphorChartreuse,
-                foregroundColor: AppTheme.textInverse,
+                backgroundColor: AppTheme.accent,
+                foregroundColor: AppTheme.onAccent,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl)),
               ),
               child: _submittingSchedule
                   ? SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(color: AppTheme.textInverse, strokeWidth: 2),
+                      child: CircularProgressIndicator(color: AppTheme.onAccent, strokeWidth: 2),
                     )
                   : const Text('Confirm flight launch', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
             ),
           ),
         ],
-        const SizedBox(height: 30),
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -1706,9 +1694,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             height: 5,
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: AppTheme.slabPill,
+              backgroundColor: AppTheme.well,
               valueColor: AlwaysStoppedAnimation<Color>(
-                isPositive ? AppTheme.phosphorChartreuse : AppTheme.signalCoral,
+                isPositive ? AppTheme.statusApproved : AppTheme.statusRejected,
               ),
             ),
           ),
@@ -2387,8 +2375,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             text: '$word$space',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: AppTheme.phosphorChartreuse,
-              backgroundColor: Color(0x2BD4FF38),
+              color: AppTheme.accent,
+              backgroundColor: AppTheme.accent.withOpacity(0.14),
             ),
           ),
         );
@@ -2408,42 +2396,43 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   Widget _buildTwoColRow(String label, String value, {bool isForgeBadge = false, bool italicValue = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-            overflow: TextOverflow.ellipsis,
-          ),
+        Text(
+          label,
+          style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         if (isForgeBadge)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: AppTheme.slabPill,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.25), width: 0.5),
+              color: AppTheme.well,
+              borderRadius: BorderRadius.circular(AppTheme.tokens.radiusTag),
+              border: Border.all(color: AppTheme.hairline, width: 0.5),
             ),
             child: Text(
               value,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.phosphorChartreuse,
-                fontFeatures: [FontFeature.tabularFigures()],
+                color: AppTheme.accent,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           )
         else
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-              fontStyle: italicValue ? FontStyle.italic : FontStyle.normal,
-              fontFeatures: const [FontFeature.tabularFigures()],
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+                fontStyle: italicValue ? FontStyle.italic : FontStyle.normal,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
       ],
@@ -2453,24 +2442,29 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   Widget _buildLedgerRow(String label, String value, {Color? textColor, Color? badgeBg, bool isBold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-        Container(
-          padding: badgeBg != null ? const EdgeInsets.symmetric(horizontal: 8, vertical: 2) : EdgeInsets.zero,
-          decoration: badgeBg != null
-              ? BoxDecoration(
-                  color: badgeBg,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppTheme.rimKeyLight.withOpacity(0.2), width: 0.5),
-                )
-              : null,
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-              color: textColor ?? AppTheme.textPrimary,
-              fontFeatures: const [FontFeature.tabularFigures()],
+        const SizedBox(width: 12),
+        Flexible(
+          child: Container(
+            padding: badgeBg != null ? const EdgeInsets.symmetric(horizontal: 8, vertical: 2) : EdgeInsets.zero,
+            decoration: badgeBg != null
+                ? BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(AppTheme.tokens.radiusTag),
+                    border: Border.all(color: AppTheme.hairline, width: 0.5),
+                  )
+                : null,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+                color: textColor ?? AppTheme.textPrimary,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
         ),

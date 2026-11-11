@@ -65,54 +65,60 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
     final allPassed = _report?['allPassed'] == true;
 
     return Scaffold(
-      backgroundColor: AppTheme.paper,
+      backgroundColor: AppTheme.page,
       appBar: AppBar(
-        title: const Text('14/14 Architecture Tests (LLD Sec 14)'),
+        backgroundColor: AppTheme.card,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('System Integrity Verification'),
         actions: [
           IconButton(
             icon: _running
-                ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.forge))
-                : Icon(Icons.play_arrow, color: AppTheme.forge),
+                ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent))
+                : Icon(Icons.play_arrow, color: AppTheme.accent),
             onPressed: _running ? null : _run,
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Banner summary
-          Card(
-            color: AppTheme.forge,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: AppTheme.verdictLime, width: 1.5),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.verified, color: AppTheme.verdictLime, size: 32),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          allPassed ? '100% ARCHITECTURE COMPLIANT' : 'EXECUTING TESTS...',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.verdictLime),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 820),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // Banner summary
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.card,
+                  borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+                  border: Border.all(color: AppTheme.statusApproved, width: 1.25),
+                  boxShadow: AppTheme.appleCardShadow,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.verified, color: AppTheme.statusApproved, size: 30),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              allPassed ? 'ALL INTEGRITY CHECKS PASSED' : 'EXECUTING CHECKS...',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.statusApproved),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'All 14 data consistency, concurrency lock, and permission checks verified.',
+                              style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'All 14 Acceptance Criteria verified across QA-01 Consistency, QA-02 Reliability, and QA-03 Security.',
-                          style: TextStyle(fontSize: 11, color: AppTheme.leaf.withOpacity(0.85)),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
           const SizedBox(height: 16),
 
           // Test list
@@ -140,9 +146,9 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                               decoration: BoxDecoration(
                                 color: AppTheme.paper,
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppTheme.forge, width: 0.5),
+                                border: Border.all(color: AppTheme.hairline, width: 0.5),
                               ),
-                              child: Text(t['id'], style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.forge)),
+                              child: Text(t['id'], style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
                             ),
                             const SizedBox(width: 6),
                             Container(
@@ -158,13 +164,20 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: passed ? AppTheme.verdictLime.withOpacity(0.25) : AppTheme.statusRejected.withOpacity(0.15),
+                            color: passed ? AppTheme.statusApprovedBg : AppTheme.statusRejectedBg,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: passed ? AppTheme.verdictLimeDark : AppTheme.statusRejected, width: 0.8),
+                            border: Border.all(
+                              color: passed ? AppTheme.statusApproved.withOpacity(0.35) : AppTheme.statusRejected.withOpacity(0.35),
+                              width: 0.8,
+                            ),
                           ),
                           child: Text(
                             passed ? 'PASS' : 'FAIL',
-                            style: TextStyle(color: passed ? AppTheme.verdictLimeDark : AppTheme.statusRejected, fontWeight: FontWeight.bold, fontSize: 10),
+                            style: TextStyle(
+                              color: passed ? AppTheme.statusApproved : AppTheme.statusRejected,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
                       ],
@@ -179,6 +192,8 @@ class _TestRunnerScreenState extends State<TestRunnerScreen> {
             );
           }),
         ],
+          ),
+        ),
       ),
     );
   }

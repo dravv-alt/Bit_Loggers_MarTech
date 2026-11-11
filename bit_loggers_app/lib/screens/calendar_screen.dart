@@ -186,38 +186,43 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Navigation Bar
-            _buildCalendarHeader(),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Navigation Bar
+                _buildCalendarHeader(),
 
-            // Conflict Warning Alert (if any collisions exist)
-            if (activeConflicts.isNotEmpty) _buildConflictBanner(activeConflicts),
+                // Conflict Warning Alert (if any collisions exist)
+                if (activeConflicts.isNotEmpty) _buildConflictBanner(activeConflicts),
 
-            // Channel Filter Chips
-            _buildChannelFilterBar(),
+                // Channel Filter Chips
+                _buildChannelFilterBar(),
 
-            // Subtle loading indicator
-            if (_loading)
-              LinearProgressIndicator(
-                minHeight: 2.0,
-                color: AppTheme.phosphorChartreuse,
-                backgroundColor: AppTheme.slabPill,
-              ),
+                // Subtle loading indicator
+                if (_loading)
+                  LinearProgressIndicator(
+                    minHeight: 2.0,
+                    color: AppTheme.accent,
+                    backgroundColor: AppTheme.well,
+                  ),
 
-            // View Content (Month Grid or Week Flight Lanes)
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _fetch,
-                color: AppTheme.phosphorChartreuse,
-                backgroundColor: AppTheme.slabElevated,
-                child: _activeView == 'month'
-                    ? _buildMonthView()
-                    : _buildWeekView(),
-              ),
+                // View Content (Month Grid or Week Flight Lanes)
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _fetch,
+                    color: AppTheme.accent,
+                    backgroundColor: AppTheme.card,
+                    child: _activeView == 'month'
+                        ? _buildMonthView()
+                        : _buildWeekView(),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: ElasticPressable(
@@ -225,16 +230,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           decoration: BoxDecoration(
-            color: AppTheme.phosphorChartreuse,
+            color: AppTheme.accent,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.phosphorChartreuse.withOpacity(0.35),
-                blurRadius: 18,
-                spreadRadius: 1,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            boxShadow: AppTheme.tokens.id == 'c' ? const [] : AppTheme.appleFloatingShadow,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -491,17 +489,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.phosphorChartreuse : Colors.transparent,
-          borderRadius: BorderRadius.circular(9),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppTheme.phosphorChartreuse.withOpacity(0.25),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
+          color: isSelected ? AppTheme.accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
         ),
         child: Text(
           label,
@@ -524,16 +513,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF261014),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.signalCoral.withOpacity(0.6), width: 0.75),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.signalCoral.withOpacity(0.12),
-            blurRadius: 16,
-            spreadRadius: 1,
-          ),
-        ],
+        color: AppTheme.statusRejectedBg,
+        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+        border: Border.all(color: AppTheme.statusRejected.withOpacity(0.45), width: AppTheme.tokens.structuralRuleWidth),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,17 +576,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected ? chColor : AppTheme.borderCard,
-                    width: isSelected ? 1.0 : 0.75,
+                    width: isSelected ? 1.25 : AppTheme.tokens.structuralRuleWidth,
                   ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: chColor.withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: 0.5,
-                          ),
-                        ]
-                      : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -712,21 +685,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               margin: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 2),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? AppTheme.phosphorChartreuse
-                                    : (isToday ? AppTheme.glacialCyan.withOpacity(0.12) : Colors.transparent),
-                                borderRadius: BorderRadius.circular(10),
+                                    ? AppTheme.accent
+                                    : (isToday ? AppTheme.social.withOpacity(0.12) : Colors.transparent),
+                                borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
                                 border: isSelected
-                                    ? Border.all(color: AppTheme.phosphorChartreuse, width: 1.5)
-                                    : (isToday ? Border.all(color: AppTheme.glacialCyan, width: 1.0) : null),
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: AppTheme.phosphorChartreuse.withOpacity(0.3),
-                                          blurRadius: 8,
-                                          spreadRadius: 1,
-                                        ),
-                                      ]
-                                    : null,
+                                    ? Border.all(color: AppTheme.accent, width: 1.5)
+                                    : (isToday ? Border.all(color: AppTheme.social, width: 1.0) : null),
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -737,8 +701,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       fontSize: 12,
                                       fontWeight: isSelected || isToday ? FontWeight.w700 : FontWeight.w500,
                                       color: isSelected
-                                          ? AppTheme.textInverse
-                                          : (isToday ? AppTheme.glacialCyan : AppTheme.textPrimary),
+                                          ? AppTheme.onAccent
+                                          : (isToday ? AppTheme.social : AppTheme.textPrimary),
                                       fontFeatures: const [FontFeature.tabularFigures()],
                                     ),
                                   ),
@@ -749,16 +713,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       width: 6,
                                       height: 6,
                                       decoration: BoxDecoration(
-                                        color: isSelected ? AppTheme.textInverse : AppTheme.signalCoral,
+                                        color: isSelected ? AppTheme.onAccent : AppTheme.statusRejected,
                                         shape: BoxShape.circle,
-                                        boxShadow: isSelected
-                                            ? null
-                                            : [
-                                                BoxShadow(
-                                                  color: AppTheme.signalCoral.withOpacity(0.6),
-                                                  blurRadius: 4,
-                                                ),
-                                              ],
                                       ),
                                     ),
                                   ] else if (dayEvents.isNotEmpty) ...[
@@ -1199,12 +1155,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: hasConflict
-              ? const Color(0xFF261014)
-              : AppTheme.slabElevated,
-          borderRadius: BorderRadius.circular(10),
+              ? AppTheme.statusRejectedBg
+              : AppTheme.well,
+          borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
           border: Border.all(
-            color: hasConflict ? AppTheme.signalCoral : AppTheme.rimKeyLight,
-            width: 0.75,
+            color: hasConflict ? AppTheme.statusRejected : AppTheme.hairline,
+            width: AppTheme.tokens.structuralRuleWidth,
           ),
         ),
         child: Column(
@@ -1966,15 +1922,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     width: double.infinity,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppTheme.phosphorChartreuse,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.phosphorChartreuse.withOpacity(0.3),
-                          blurRadius: 14,
-                          spreadRadius: 1,
-                        ),
-                      ],
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
                     ),
                     child: Center(
                       child: scheduling

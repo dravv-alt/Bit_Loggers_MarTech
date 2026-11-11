@@ -106,13 +106,13 @@ class _AuditScreenState extends State<AuditScreen> {
 
   Color _getEventColor(String eventType) {
     final type = eventType.toUpperCase();
-    if (type.contains('APPROV')) return AppTheme.verdictLimeDark;
-    if (type.contains('SUBMIT')) return AppTheme.forge;
-    if (type.contains('CREATE')) return AppTheme.forge;
-    if (type.contains('LOCK')) return const Color(0xFF1E3A8A);
-    if (type.contains('CHANGE') || type.contains('WARN')) return const Color(0xFFB45309);
+    if (type.contains('APPROV')) return AppTheme.statusApproved;
+    if (type.contains('SUBMIT')) return AppTheme.accent;
+    if (type.contains('CREATE')) return AppTheme.social;
+    if (type.contains('LOCK')) return AppTheme.social;
+    if (type.contains('CHANGE') || type.contains('WARN')) return AppTheme.warning;
     if (type.contains('REJECT') || type.contains('BLOCK') || type.contains('CONFLICT')) return AppTheme.statusRejected;
-    if (type.contains('CIRCUIT')) return const Color(0xFF991B1B);
+    if (type.contains('CIRCUIT')) return AppTheme.statusRejected;
     return AppTheme.textSecondary;
   }
 
@@ -141,7 +141,7 @@ class _AuditScreenState extends State<AuditScreen> {
         backgroundColor: AppTheme.paper,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.forge),
+          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -166,13 +166,16 @@ class _AuditScreenState extends State<AuditScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: AppTheme.forge),
+            icon: Icon(Icons.refresh, color: AppTheme.textPrimary),
             tooltip: 'Reload ledger',
             onPressed: _fetch,
           ),
         ],
       ),
-      body: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 960),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Loading indicator line
@@ -294,24 +297,29 @@ class _AuditScreenState extends State<AuditScreen> {
 
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(label),
-                    labelStyle: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color: isSelected ? Colors.white : AppTheme.label,
-                    ),
-                    selected: isSelected,
-                    selectedColor: AppTheme.label,
-                    backgroundColor: AppTheme.tertiarySystemBackground,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide.none,
-                    ),
-                    onSelected: (_) {
+                  child: GestureDetector(
+                    onTap: () {
                       setState(() => _selectedEventType = type);
                       _fetch();
                     },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 160),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppTheme.accent : AppTheme.well,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            color: isSelected ? AppTheme.onAccent : AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 );
               },
@@ -324,7 +332,7 @@ class _AuditScreenState extends State<AuditScreen> {
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _fetch,
-                    color: AppTheme.forge,
+                    color: AppTheme.accent,
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       itemCount: items.length,
@@ -336,6 +344,8 @@ class _AuditScreenState extends State<AuditScreen> {
                   ),
           ),
         ],
+          ),
+        ),
       ),
     );
   }
@@ -344,18 +354,19 @@ class _AuditScreenState extends State<AuditScreen> {
     final isSelected = _selectedRoleFilter == roleKey;
     return GestureDetector(
       onTap: () => setState(() => _selectedRoleFilter = roleKey),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.forge : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? AppTheme.accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 10,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? AppTheme.leaf : AppTheme.textSecondary,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected ? AppTheme.onAccent : AppTheme.textSecondary,
           ),
         ),
       ),
@@ -420,7 +431,7 @@ class _AuditScreenState extends State<AuditScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  '100% Cryptographic Seal',
+                  'Verified activity seal',
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
@@ -441,12 +452,12 @@ class _AuditScreenState extends State<AuditScreen> {
                 children: [
                   Expanded(
                     flex: approvedFlex,
-                    child: Container(color: AppTheme.moss),
+                    child: Container(color: AppTheme.statusApproved),
                   ),
                   const SizedBox(width: 2),
                   Expanded(
                     flex: createdFlex,
-                    child: Container(color: AppTheme.forge),
+                    child: Container(color: AppTheme.accent),
                   ),
                   const SizedBox(width: 2),
                   Expanded(
@@ -464,8 +475,8 @@ class _AuditScreenState extends State<AuditScreen> {
             spacing: 10,
             runSpacing: 4,
             children: [
-              _buildTelemetryChip('Approved', '$approvedCount', AppTheme.moss),
-              _buildTelemetryChip('Created', '$createdCount', AppTheme.forge),
+              _buildTelemetryChip('Approved', '$approvedCount', AppTheme.statusApproved),
+              _buildTelemetryChip('Created', '$createdCount', AppTheme.accent),
               _buildTelemetryChip('Guarded', '$guardCount', AppTheme.warmAmber),
             ],
           ),
@@ -603,12 +614,12 @@ class _AuditScreenState extends State<AuditScreen> {
                         style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6),
-                        child: Icon(Icons.arrow_forward, size: 12, color: AppTheme.forge),
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Icon(Icons.arrow_forward, size: 12, color: AppTheme.textSecondary),
                       ),
                       Text(
                         evt.newState ?? 'Updated',
-                        style: TextStyle(fontSize: 11, color: AppTheme.forge, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 11, color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -643,7 +654,7 @@ class _AuditScreenState extends State<AuditScreen> {
                           child: Text(
                             evt.campaignId!,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.forge),
+                            style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.accent, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -679,8 +690,8 @@ class _AuditScreenState extends State<AuditScreen> {
             Icon(Icons.history_edu_outlined, size: 48, color: AppTheme.textSecondary),
             const SizedBox(height: 12),
             Text(
-              'No Audit Records Match Filters',
-              style: TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+              'No audit records match filters',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 6),
             Text(
@@ -700,8 +711,8 @@ class _AuditScreenState extends State<AuditScreen> {
                 _fetch();
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.forge,
-                side: BorderSide(color: AppTheme.forge),
+                foregroundColor: AppTheme.accent,
+                side: BorderSide(color: AppTheme.accent),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: const Text('Reset All Filters', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
@@ -811,12 +822,11 @@ class _AuditScreenState extends State<AuditScreen> {
 
                   const SizedBox(height: 16),
                   Text(
-                    'VERIFIED EVENT PAYLOAD',
+                    'Event payload',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                       color: AppTheme.secondaryLabel,
-                      letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -841,22 +851,22 @@ class _AuditScreenState extends State<AuditScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Cryptographic Seal Note
+                  // Verified activity seal note
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.verdictLime.withOpacity(0.2),
+                      color: AppTheme.statusApprovedBg,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.forge.withOpacity(0.2)),
+                      border: Border.all(color: AppTheme.statusApproved.withOpacity(0.25)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.verified_outlined, size: 16, color: AppTheme.forge),
-                        SizedBox(width: 8),
+                        Icon(Icons.verified_outlined, size: 16, color: AppTheme.statusApproved),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'TimescaleDB Append-Only Non-Repudiation Seal: Timestamp partition verified & immutable.',
-                            style: TextStyle(fontSize: 11, color: AppTheme.forge, fontWeight: FontWeight.w600),
+                            'Verified activity record: immutable timestamped entry.',
+                            style: TextStyle(fontSize: 11, color: AppTheme.statusApproved, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -883,8 +893,8 @@ class _AuditScreenState extends State<AuditScreen> {
                           ).then((_) => _fetch());
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.forge,
-                          foregroundColor: AppTheme.leaf,
+                          backgroundColor: AppTheme.accent,
+                          foregroundColor: AppTheme.onAccent,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         icon: const Icon(Icons.folder_open, size: 16),

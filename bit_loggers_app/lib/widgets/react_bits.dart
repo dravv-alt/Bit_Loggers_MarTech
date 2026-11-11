@@ -53,7 +53,7 @@ class CountUp extends StatefulWidget {
     this.prefix = '',
     this.suffix = '',
     this.style,
-    this.duration = const Duration(milliseconds: 1400),
+    this.duration = const Duration(milliseconds: 350),
   });
 
   @override

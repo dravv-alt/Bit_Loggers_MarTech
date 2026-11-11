@@ -68,15 +68,15 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   Color _getOutcomeColor(String outcome) {
     switch (outcome.toUpperCase()) {
       case 'SUCCESS':
-        return AppTheme.verdictLimeDark;
+        return AppTheme.statusApproved;
       case 'FAILURE':
       case 'ERROR':
         return AppTheme.statusRejected;
       case 'ATTEMPT':
       case 'WARN':
-        return const Color(0xFFB45309);
+        return AppTheme.statusChanges;
       default:
-        return AppTheme.forge;
+        return AppTheme.textSecondary;
     }
   }
 
@@ -104,7 +104,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
         backgroundColor: AppTheme.paper,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.forge),
+          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -113,29 +113,31 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             Text(
               'Diagnostic Telemetry',
               style: TextStyle(
-                fontFamily: 'serif',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimary,
-                letterSpacing: -0.3,
+                letterSpacing: -0.4,
               ),
             ),
             Text(
-              'LLD Section 13 • Correlation Tracing',
+              'Pipeline health & request tracing',
               style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: AppTheme.forge),
+            icon: Icon(Icons.refresh, color: AppTheme.textPrimary),
             tooltip: 'Refresh telemetry',
             onPressed: _fetch,
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 960),
+          child: Column(
+            children: [
           if (_loading)
             LinearProgressIndicator(
               minHeight: 2.5,
@@ -258,7 +260,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                   )
                 : RefreshIndicator(
                     onRefresh: _fetch,
-                    color: AppTheme.forge,
+                    color: AppTheme.accent,
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                       itemCount: items.length,
@@ -269,7 +271,9 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                     ),
                   ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -278,18 +282,19 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     final isSelected = _selectedOutcome == outcomeKey;
     return GestureDetector(
       onTap: () => setState(() => _selectedOutcome = outcomeKey),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.forge : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? AppTheme.accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 10,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? AppTheme.leaf : AppTheme.textSecondary,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected ? AppTheme.onAccent : AppTheme.textSecondary,
           ),
         ),
       ),
@@ -389,7 +394,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                   const SizedBox(width: 2),
                   Expanded(
                     flex: infoFlex,
-                    child: Container(color: AppTheme.forge),
+                    child: Container(color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -402,9 +407,9 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             spacing: 10,
             runSpacing: 4,
             children: [
-              _buildDiagChip('Success', '$successCount', AppTheme.moss),
-              _buildDiagChip('Failure', '$failureCount', AppTheme.crimsonNeedle),
-              _buildDiagChip('Info', '$infoCount', AppTheme.forge),
+              _buildDiagChip('Success', '$successCount', AppTheme.statusApproved),
+              _buildDiagChip('Failure', '$failureCount', AppTheme.statusRejected),
+              _buildDiagChip('Info', '$infoCount', AppTheme.textSecondary),
             ],
           ),
         ],
@@ -525,8 +530,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                       style: TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 10,
-                        color: AppTheme.forge,
-                        fontWeight: FontWeight.bold,
+                        color: AppTheme.accent,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -602,7 +607,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               _buildDetailRow('Correlation UUID', log.correlationId, isMonospace: true),
               _buildDetailRow('Timestamp', log.timestamp),
               const SizedBox(height: 14),
-              Text('DIAGNOSTIC MESSAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryLabel)),
+              Text('Diagnostic message', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.secondaryLabel)),
               const SizedBox(height: 6),
               Container(
                 width: double.infinity,
