@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import 'v2_activity_screen.dart';
 import 'v2_calendar_screen.dart';
 import 'v2_components.dart';
@@ -42,7 +43,7 @@ class _V2ShellState extends State<V2Shell> {
   List<User> _users = [];
   int _unreadCount = 0;
   bool _loading = true;
-  int _leaseSeconds = 202;
+  int _leaseSeconds = 0;
   Timer? _leaseTimer;
   String? _initialDeepLinkHandled;
 
@@ -54,8 +55,8 @@ class _V2ShellState extends State<V2Shell> {
       _activeTab = tabMap[widget.initialTab];
     }
     _leaseTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        setState(() => _leaseSeconds = _leaseSeconds > 1 ? _leaseSeconds - 1 : 202);
+      if (mounted && _leaseSeconds > 0) {
+        setState(() => _leaseSeconds = _leaseSeconds - 1);
       }
     });
     _loadAll();
@@ -82,6 +83,15 @@ class _V2ShellState extends State<V2Shell> {
       final aud = results[2] as List<AuditEventItem>;
       final usrs = results[3] as List<User>;
       final notifs = results[4] as Map<String, dynamic>;
+      final activeLeaseSecs = camps
+          .map((c) => CampaignStateMachine.evaluateLock(c.activeLock, widget.api.currentUser.id))
+          .where(
+            (info) =>
+                info.status == LockLeaseStatus.heldByMe ||
+                info.status == LockLeaseStatus.heldByOther,
+          )
+          .map((info) => info.remainingSeconds)
+          .fold<int>(0, (prev, s) => s > prev ? s : prev);
 
       setState(() {
         _campaigns = camps;
@@ -89,6 +99,7 @@ class _V2ShellState extends State<V2Shell> {
         _auditEvents = aud;
         _users = usrs;
         _unreadCount = (notifs['unreadCount'] as int?) ?? 0;
+        _leaseSeconds = activeLeaseSecs;
         _loading = false;
         // If current filter has 0 items on initial load, switch smoothly to 'all'
         if (_pipelineFilter == 'review' &&
@@ -427,7 +438,7 @@ class _V2ShellState extends State<V2Shell> {
                             AnimatedBuilder(
                               animation: widget.api.syncQueue,
                               builder: (_, __) {
-                                final pending = widget.api.syncQueue.pendingCount;
+                                final pending = widget.api.syncQueue.retryableCount;
                                 final offline = widget.api.syncQueue.isOfflineSimulationEnabled;
                                 if (pending == 0 && !offline) return const SizedBox.shrink();
                                 return Padding(

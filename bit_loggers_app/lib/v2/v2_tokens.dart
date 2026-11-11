@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../state/campaign_state_machine.dart';
 
 /// Design tokens for CampaignGrid v2 ("The Perforated Ledger & Facet Instrument").
 class V2Tokens {
@@ -163,15 +164,7 @@ class V2Tokens {
     }
   }
 
-  static String normalizeStatusKey(String raw) {
-    final s = raw.trim().toLowerCase();
-    if (s == 'approved') return 'approved';
-    if (s == 'scheduled') return 'scheduled';
-    if (s == 'changesrequested' || s == 'changes_requested' || s == 'changes') return 'changes';
-    if (s == 'rejected' || s == 'blocked' || s == 'conflict' || s == 'failed') return 'blocked';
-    if (s == 'draft' || s == 'brand') return 'brand';
-    return 'review';
-  }
+  static String normalizeStatusKey(String raw) => CampaignStage.fromRaw(raw).v2Key;
 
   static String formatVersionTag(int versionNo) => 'V$versionNo.0';
 

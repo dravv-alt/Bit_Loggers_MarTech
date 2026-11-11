@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/sync_queue_service.dart';
+import '../state/campaign_state_machine.dart';
 import 'v2_components.dart';
 import 'v2_mappers.dart';
 import 'v2_tokens.dart';
@@ -188,7 +189,7 @@ class _V2SyncHubScreenState extends State<V2SyncHubScreen> {
   @override
   Widget build(BuildContext context) {
     final allQueue = _syncQueue.queue;
-    final pendingAttention = _syncQueue.pendingCount + _stats.pending + _stats.failed;
+    final pendingAttention = _syncQueue.retryableCount + _stats.pending + _stats.failed;
 
     return Scaffold(
       backgroundColor: V2Tokens.bgPlaster,
@@ -272,10 +273,10 @@ class _V2SyncHubScreenState extends State<V2SyncHubScreen> {
     );
   }
 
-  String _statsPendingText() => '${_syncQueue.pendingCount} queued locally';
+  String _statsPendingText() => '${_syncQueue.retryableCount} awaiting sync';
 
   Widget _buildQueueSummaryCard(List<OfflineSyncAction> allQueue) {
-    final pending = _syncQueue.pendingCount;
+    final pending = _syncQueue.retryableCount;
     final synced = _syncQueue.syncedCount;
     final failed = _syncQueue.failedCount;
     final offline = _syncQueue.isOfflineSimulationEnabled;
@@ -540,13 +541,13 @@ class _V2SyncHubScreenState extends State<V2SyncHubScreen> {
                 children: List.generate(filtered.length, (idx) {
                   final item = filtered[idx];
                   final isLast = idx == filtered.length - 1;
-                  final st = item.status.toUpperCase();
-                  final statusKey = st == 'SYNCED'
+                  final syncState = SyncActionState.fromRaw(item.status);
+                  final statusKey = syncState == SyncActionState.synced
                       ? 'approved'
-                      : st == 'FAILED'
+                      : syncState == SyncActionState.failed
                           ? 'blocked'
                           : 'changes';
-                  final isHighlighted = st == 'PENDING' || st == 'FAILED';
+                  final isHighlighted = syncState.isRetryable || syncState == SyncActionState.syncing;
                   return Container(
                     decoration: BoxDecoration(
                       color: isHighlighted ? V2Tokens.changedRowTint : Colors.transparent,
@@ -579,11 +580,13 @@ class _V2SyncHubScreenState extends State<V2SyncHubScreen> {
                                       status: statusKey,
                                       customLabel: item.isReplay
                                           ? 'Replayed cleanly'
-                                          : st == 'SYNCED'
+                                          : syncState == SyncActionState.synced
                                               ? 'Synced'
-                                              : st == 'FAILED'
+                                              : syncState == SyncActionState.failed
                                                   ? 'Needs retry'
-                                                  : 'Pending sync',
+                                                  : syncState == SyncActionState.syncing
+                                                      ? 'Syncing…'
+                                                      : 'Pending sync',
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -599,7 +602,7 @@ class _V2SyncHubScreenState extends State<V2SyncHubScreen> {
                               Text(
                                 item.error ?? '${item.method} ${item.endpoint}',
                                 style: V2Tokens.t3(
-                                  color: st == 'FAILED'
+                                  color: syncState == SyncActionState.failed
                                       ? V2Tokens.blockedSolid
                                       : V2Tokens.textSecondary,
                                 ),
@@ -688,9 +691,9 @@ class _V2SyncHubScreenState extends State<V2SyncHubScreen> {
                     children: List.generate(filtered.length, (idx) {
                       final evt = filtered[idx];
                       final isLast = idx == filtered.length - 1;
-                      final st = evt.status.toUpperCase();
-                      final isProc = st == 'PROCESSED';
-                      final isFail = st == 'FAILED';
+                      final delivery = OutboxDeliveryState.fromRaw(evt.status);
+                      final isProc = delivery == OutboxDeliveryState.processed;
+                      final isFail = delivery == OutboxDeliveryState.failed;
                       final statusKey = isProc
                           ? 'approved'
                           : isFail
@@ -698,9 +701,13 @@ class _V2SyncHubScreenState extends State<V2SyncHubScreen> {
                               : 'changes';
                       final badgeText = isProc
                           ? 'Processed'
-                          : isFail
-                              ? 'Retry ${evt.attempts} of ${evt.maxAttempts}'
-                              : 'Pending dispatch';
+                          : delivery == OutboxDeliveryState.processing
+                              ? 'Delivering…'
+                              : isFail
+                                  ? (evt.attempts >= evt.maxAttempts
+                                      ? 'Max retries (${evt.attempts}/${evt.maxAttempts})'
+                                      : 'Retry ${evt.attempts} of ${evt.maxAttempts}')
+                                  : 'Pending dispatch';
 
                       return Container(
                         decoration: BoxDecoration(

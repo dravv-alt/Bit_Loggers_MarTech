@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import 'v2_components.dart';
 import 'v2_mappers.dart';
 import 'v2_tokens.dart';
@@ -59,11 +60,10 @@ class _V2DecisionSheetState extends State<V2DecisionSheet> {
     super.dispose();
   }
 
-  bool get _isOwnerLocked {
-    final curId = widget.api.currentUser.id;
-    final role = widget.api.currentUser.role.toLowerCase();
-    return curId == widget.campaign.ownerId || (role == 'marketer');
-  }
+  CampaignCapabilities get _decisionCaps =>
+      CampaignStateMachine.evaluate(widget.campaign, widget.api.currentUser);
+
+  bool get _isOwnerLocked => !_decisionCaps.canReview;
 
   void _triggerErrorShake(String msg) {
     HapticFeedback.heavyImpact();
@@ -155,14 +155,14 @@ class _V2DecisionSheetState extends State<V2DecisionSheet> {
         parentSub: 'Owner: ${V2Tokens.cleanPersonName(widget.campaign.ownerName)} · $verTag',
         parentStatus: statusKey,
         onClose: () => Navigator.pop(context),
-        rightAction: Text('Owner lock', style: V2Tokens.t4()),
+        rightAction: Text(_decisionCaps.isOwner ? 'Owner lock' : 'Review lock', style: V2Tokens.t4()),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             Text('Review $verTag', style: V2Tokens.t1()),
             const SizedBox(height: 2),
             Text(
-              '${widget.campaign.title} · Viewer: ${V2Tokens.cleanPersonName(widget.api.currentUser.name)} (Owner)',
+              '${widget.campaign.title} · Viewer: ${V2Tokens.cleanPersonName(widget.api.currentUser.name)} (${_decisionCaps.isOwner ? 'Owner' : widget.api.currentUser.role})',
               style: V2Tokens.t3(color: V2Tokens.textSecondary),
             ),
             const SizedBox(height: 16),
@@ -179,7 +179,8 @@ class _V2DecisionSheetState extends State<V2DecisionSheet> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'You own this campaign, so you cannot decide on it.',
+                      _decisionCaps.reviewBlockedReason ??
+                          'You own this campaign, so you cannot decide on it.',
                       style: V2Tokens.t2(),
                     ),
                   ),
@@ -569,15 +570,31 @@ class _V2ProposalStudioSheetState extends State<V2ProposalStudioSheet> {
     );
     _aiPromptCtrl = TextEditingController();
     _simulatingOffline = widget.api.syncQueue.isOfflineSimulationEnabled;
-    _leaseSeconds = widget.initialLeaseSeconds;
+    _leaseSeconds = widget.existingCampaign?.activeLock != null
+        ? CampaignStateMachine.evaluateLock(
+            widget.existingCampaign!.activeLock,
+            widget.api.currentUser.id,
+          ).remainingSeconds
+        : widget.initialLeaseSeconds;
     _idempotencyKey = 'K-${DateTime.now().millisecondsSinceEpoch % 10000}';
 
     if (widget.existingCampaign != null) {
-      widget.api.acquireLock(widget.existingCampaign!.campaignId).catchError((_) => <String, dynamic>{});
+      widget.api
+          .acquireLock(widget.existingCampaign!.campaignId)
+          .then((res) {
+            if (!mounted) return;
+            final expStr = res['expires_at'] as String?;
+            final expDt = expStr != null ? DateTime.tryParse(expStr)?.toLocal() : null;
+            if (expDt != null) {
+              final secs = expDt.difference(DateTime.now()).inSeconds;
+              setState(() => _leaseSeconds = secs < 0 ? 0 : secs);
+            }
+          })
+          .catchError((_) {});
     }
     _leaseTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
-        setState(() => _leaseSeconds = _leaseSeconds > 1 ? _leaseSeconds - 1 : 202);
+        setState(() => _leaseSeconds = _leaseSeconds > 0 ? _leaseSeconds - 1 : 0);
       }
     });
   }

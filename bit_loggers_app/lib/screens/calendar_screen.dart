@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/marketing_visuals.dart';
 import '../widgets/react_bits.dart';
@@ -71,7 +72,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (mounted) {
         setState(() {
           _events = events;
-          _approvedCampaigns = allCampaigns;
+          _approvedCampaigns = allCampaigns
+              .where((c) => CampaignStateMachine.evaluate(c, widget.api.currentUser).canSchedule)
+              .toList();
           _loading = false;
         });
       }

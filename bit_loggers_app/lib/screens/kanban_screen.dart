@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/marketing_visuals.dart';
 import '../widgets/react_bits.dart';
@@ -68,14 +69,13 @@ class _KanbanScreenState extends State<KanbanScreen> {
           c.ownerName.toLowerCase().contains(q);
 
       bool matchStatus = true;
+      final stage = CampaignStage.fromRaw(c.status);
       if (_selectedStatus == 'All') {
         matchStatus = true;
-      } else if (_selectedStatus == 'Active' || _selectedStatus == 'Submitted') {
-        matchStatus = (c.status != 'Draft' && c.status != 'Rejected');
-      } else if (_selectedStatus == 'Draft') {
-        matchStatus = (c.status == 'Draft');
+      } else if (_selectedStatus == 'Active') {
+        matchStatus = stage != CampaignStage.draft && stage != CampaignStage.rejected;
       } else {
-        matchStatus = (c.status.toLowerCase() == _selectedStatus.toLowerCase());
+        matchStatus = stage == CampaignStage.fromRaw(_selectedStatus);
       }
 
       final matchChannel = _selectedChannel == 'All' ||
@@ -1487,16 +1487,17 @@ class _KanbanScreenState extends State<KanbanScreen> {
   // ==========================================
   Widget _buildCampaignQueue() {
     final filtered = _getFilteredCampaigns();
-    final isMarketer = widget.api.currentUser.role.toLowerCase() == 'marketer';
+    final canCreate = CampaignStateMachine.canCreateCampaign(widget.api.currentUser);
 
     int awaitingCount = 0;
     int scheduledCount = 0;
     int draftCount = 0;
 
     for (final c in _campaigns) {
-      if (c.status == 'Submitted' || c.status == 'InReview') awaitingCount++;
-      if (c.status == 'Scheduled') scheduledCount++;
-      if (c.status == 'Draft') draftCount++;
+      final st = CampaignStage.fromRaw(c.status);
+      if (st == CampaignStage.submitted) awaitingCount++;
+      if (st == CampaignStage.scheduled) scheduledCount++;
+      if (st == CampaignStage.draft) draftCount++;
     }
 
     return Scaffold(
@@ -1529,7 +1530,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   child: _loading
                       ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent))
                       : filtered.isEmpty
-                          ? _buildEmptyState(isMarketer)
+                          ? _buildEmptyState(canCreate)
                           : _isKanbanView
                               ? _buildKanbanView(filtered)
                               : _buildLedgerListView(filtered),
@@ -1539,7 +1540,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
           ),
         ),
       ),
-      floatingActionButton: isMarketer
+      floatingActionButton: canCreate
           ? FloatingActionButton.extended(
               elevation: 1,
               onPressed: () async {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import 'v2_components.dart';
 import 'v2_mappers.dart';
 import 'v2_tokens.dart';
@@ -52,10 +53,8 @@ class _V2DiagnosticsScreenState extends State<V2DiagnosticsScreen> {
 
   List<DiagnosticLogItem> get _filtered {
     return _logs.where((log) {
-      final out = log.outcome.toUpperCase();
-      if (_selectedOutcome == 'SUCCESS' && out != 'SUCCESS') return false;
-      if (_selectedOutcome == 'FAILURE' && out != 'FAILURE' && out != 'ERROR') return false;
-      if (_selectedOutcome == 'INFO' && (out == 'SUCCESS' || out == 'FAILURE' || out == 'ERROR')) {
+      if (_selectedOutcome != 'ALL' &&
+          DiagnosticOutcome.fromRaw(log.outcome).wireValue != _selectedOutcome) {
         return false;
       }
       if (_searchQuery.isEmpty) return true;
@@ -67,17 +66,14 @@ class _V2DiagnosticsScreenState extends State<V2DiagnosticsScreen> {
   }
 
   String _statusKey(String outcome) {
-    switch (outcome.toUpperCase()) {
-      case 'SUCCESS':
+    switch (DiagnosticOutcome.fromRaw(outcome)) {
+      case DiagnosticOutcome.success:
         return 'approved';
-      case 'FAILURE':
-      case 'ERROR':
+      case DiagnosticOutcome.failure:
         return 'blocked';
-      case 'ATTEMPT':
-      case 'WARN':
-      case 'WARNING':
+      case DiagnosticOutcome.warning:
         return 'changes';
-      default:
+      case DiagnosticOutcome.info:
         return 'review';
     }
   }
@@ -102,12 +98,17 @@ class _V2DiagnosticsScreenState extends State<V2DiagnosticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final successCount = _logs.where((l) => l.outcome.toUpperCase() == 'SUCCESS').length;
-    final failCount = _logs.where((l) {
-      final o = l.outcome.toUpperCase();
-      return o == 'FAILURE' || o == 'ERROR';
-    }).length;
-    final otherCount = _logs.length - successCount - failCount;
+    final successCount = _logs
+        .where((l) => DiagnosticOutcome.fromRaw(l.outcome) == DiagnosticOutcome.success)
+        .length;
+    final failCount = _logs
+        .where((l) => DiagnosticOutcome.fromRaw(l.outcome) == DiagnosticOutcome.failure)
+        .length;
+    final warnCount = _logs
+        .where((l) => DiagnosticOutcome.fromRaw(l.outcome) == DiagnosticOutcome.warning)
+        .length;
+    final infoCount = _logs.length - successCount - failCount - warnCount;
+    final otherCount = warnCount + infoCount;
     final items = _filtered;
 
     return Scaffold(
@@ -256,9 +257,10 @@ class _V2DiagnosticsScreenState extends State<V2DiagnosticsScreen> {
                         V2FilterChipStrip(
                           chips: [
                             (id: 'ALL', label: 'All ${_logs.length}'),
+                            (id: 'INFO', label: 'Info $infoCount'),
                             (id: 'SUCCESS', label: 'Success $successCount'),
+                            (id: 'WARNING', label: 'Warning $warnCount'),
                             (id: 'FAILURE', label: 'Failures $failCount'),
-                            (id: 'INFO', label: 'Attempt / Info $otherCount'),
                           ],
                           selectedId: _selectedOutcome,
                           onSelect: (id) => setState(() => _selectedOutcome = id),

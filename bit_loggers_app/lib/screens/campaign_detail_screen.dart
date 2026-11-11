@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/marketing_visuals.dart';
 import '../widgets/react_bits.dart';
@@ -339,7 +340,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   // SCREEN 08 — Review Decision Details + Decision Form (matching Reference Image screen 3!)
   Widget _buildReviewerDecisionScreen() {
     final curVer = _campaign!.currentVersion;
-    final isOwner = _campaign!.ownerId == widget.api.currentUser.id;
+    final caps = CampaignStateMachine.evaluate(_campaign!, widget.api.currentUser);
+    final reviewBlocked = !caps.canReview;
     final kpis = _getResolvedKpis(_campaign!);
 
     return Column(
@@ -381,10 +383,12 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          isOwner ? 'Owner • Self-approval blocked' : 'Reviewer • Independent verification',
+                          reviewBlocked
+                              ? (caps.reviewBlockedReason ?? 'Review gate restricted for active account')
+                              : 'Reviewer • Independent verification',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isOwner ? AppTheme.solarTangerine : AppTheme.textSecondary,
+                            color: reviewBlocked ? AppTheme.solarTangerine : AppTheme.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -482,7 +486,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           width: double.infinity,
           height: 50,
           child: ElevatedButton(
-            onPressed: isOwner || _submittingDecision
+            onPressed: reviewBlocked || _submittingDecision
                 ? null
                 : () => _submitReviewDecision('APPROVED'),
             style: ElevatedButton.styleFrom(
@@ -517,7 +521,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           width: double.infinity,
           height: 48,
           child: OutlinedButton(
-            onPressed: isOwner || _submittingDecision
+            onPressed: reviewBlocked || _submittingDecision
                 ? null
                 : () => _showRejectionDialog(),
             style: OutlinedButton.styleFrom(
@@ -749,8 +753,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Marketer Schedule CTA if approved but not yet scheduled
-        if (!isScheduled && widget.api.currentUser.role == 'marketer') ...[
+        // Schedule CTA if approved and current user has schedule capability
+        if (!isScheduled &&
+            CampaignStateMachine.evaluate(_campaign!, widget.api.currentUser).canSchedule) ...[
           SizedBox(
             width: double.infinity,
             height: 48,
@@ -1706,7 +1711,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   }
 
   Widget _buildDecisionActionsBar(CampaignVersion? curVer) {
-    final isOwner = _campaign!.ownerId == widget.api.currentUser.id;
+    final caps = CampaignStateMachine.evaluate(_campaign!, widget.api.currentUser);
+    final blocked = !caps.canReview;
     final verNo = curVer?.versionNo ?? 1;
 
     return Container(
@@ -1745,7 +1751,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Approve flight release or request revisions from the campaign author.',
+            blocked
+                ? (caps.reviewBlockedReason ?? 'Review gate restricted for the active account.')
+                : 'Approve flight release or request revisions from the campaign author.',
             style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 16),
@@ -1757,7 +1765,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: isOwner || _submittingDecision
+                    onPressed: blocked || _submittingDecision
                         ? null
                         : () => _submitReviewDecision('APPROVED'),
                     style: ElevatedButton.styleFrom(
@@ -1786,7 +1794,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 child: SizedBox(
                   height: 48,
                   child: OutlinedButton(
-                    onPressed: isOwner || _submittingDecision
+                    onPressed: blocked || _submittingDecision
                         ? null
                         : () => _showRejectionDialog(),
                     style: OutlinedButton.styleFrom(

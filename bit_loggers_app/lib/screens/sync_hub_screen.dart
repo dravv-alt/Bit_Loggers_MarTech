@@ -278,7 +278,7 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final pendingCount = _syncQueue.pendingCount;
+    final pendingCount = _syncQueue.retryableCount;
 
     return Scaffold(
       backgroundColor: AppTheme.paper,
@@ -603,14 +603,14 @@ class _SyncHubScreenState extends State<SyncHubScreen> with SingleTickerProvider
 
   Widget _buildQueueActionButtons() {
     final isDraining = _syncQueue.isDraining;
-    final hasPending = _syncQueue.hasPending;
+    final hasRetryable = _syncQueue.hasRetryable;
 
     return Row(
       children: [
         Expanded(
           flex: 3,
           child: ElevatedButton.icon(
-            onPressed: isDraining || !hasPending ? null : _drainSyncQueue,
+            onPressed: isDraining || !hasRetryable ? null : _drainSyncQueue,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accent,
               foregroundColor: AppTheme.onAccent,

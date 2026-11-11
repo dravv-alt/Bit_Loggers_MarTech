@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import '../widgets/marketing_visuals.dart';
 import 'v2_components.dart';
 import 'v2_mappers.dart';
@@ -203,8 +204,9 @@ class _V2CampaignDetailScreenState extends State<V2CampaignDetailScreen> {
     final isChanges = stampStatusKey == 'changes' || (isCurrentHead && campStatusKey == 'changes');
 
     final curUser = widget.api.currentUser;
-    final isOwner = curUser.id == camp.ownerId || curUser.role.toLowerCase() == 'marketer';
-    final canEdit = curUser.id == camp.ownerId || curUser.role.toLowerCase() == 'admin';
+    final caps = CampaignStateMachine.evaluate(camp, curUser);
+    final isOwner = caps.isOwner;
+    final canEdit = caps.canEdit;
 
     return Scaffold(
       backgroundColor: V2Tokens.bgPlaster,
@@ -678,6 +680,8 @@ class _V2CampaignDetailScreenState extends State<V2CampaignDetailScreen> {
     required bool isChanges,
     required bool isOwner,
   }) {
+    final caps = CampaignStateMachine.evaluate(camp, widget.api.currentUser);
+
     if (isScheduled) {
       return SizedBox(
         width: double.infinity,
@@ -706,16 +710,19 @@ class _V2CampaignDetailScreenState extends State<V2CampaignDetailScreen> {
         width: double.infinity,
         height: 46,
         child: ElevatedButton(
-          onPressed: () => _openPreFlight(camp, activeVer),
+          onPressed: caps.canSchedule ? () => _openPreFlight(camp, activeVer) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: V2Tokens.inkPrussian,
+            disabledBackgroundColor: V2Tokens.surfaceRecessed,
             foregroundColor: V2Tokens.labelOnInk,
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
           ),
           child: Text(
-            'Schedule $activeTag',
-            style: V2Tokens.t2(color: V2Tokens.labelOnInk),
+            caps.canSchedule ? 'Schedule $activeTag' : 'Approved · Owner schedules launch',
+            style: V2Tokens.t2(
+              color: caps.canSchedule ? V2Tokens.labelOnInk : V2Tokens.textSecondary,
+            ),
           ),
         ),
       );
@@ -764,22 +771,47 @@ class _V2CampaignDetailScreenState extends State<V2CampaignDetailScreen> {
       );
     }
 
-    if (isChanges) {
+    if (isChanges ||
+        caps.stage == CampaignStage.draft ||
+        caps.stage == CampaignStage.rejected) {
       return SizedBox(
         width: double.infinity,
         height: 46,
         child: ElevatedButton(
-          onPressed: () => _openStudio(camp, activeVer),
+          onPressed: caps.canEdit ? () => _openStudio(camp, activeVer) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: V2Tokens.inkPrussian,
+            disabledBackgroundColor: V2Tokens.surfaceRecessed,
             foregroundColor: V2Tokens.labelOnInk,
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
           ),
           child: Text(
-            'Edit in Proposal Studio',
-            style: V2Tokens.t2(color: V2Tokens.labelOnInk),
+            caps.canEdit ? 'Edit in Proposal Studio' : (caps.editBlockedReason ?? 'Read-only brief'),
+            overflow: TextOverflow.ellipsis,
+            style: V2Tokens.t2(
+              color: caps.canEdit ? V2Tokens.labelOnInk : V2Tokens.textSecondary,
+            ),
           ),
+        ),
+      );
+    }
+
+    if (caps.stage == CampaignStage.completed) {
+      return SizedBox(
+        width: double.infinity,
+        height: 46,
+        child: OutlinedButton(
+          onPressed: () {
+            Navigator.pop(context, 'OPEN_CALENDAR');
+            widget.onOpenCalendar?.call();
+          },
+          style: OutlinedButton.styleFrom(
+            backgroundColor: V2Tokens.surfaceRecessed,
+            side: const BorderSide(color: V2Tokens.hairline, width: 1),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+          ),
+          child: Text('Completed Flight · Archived', style: V2Tokens.t2(color: V2Tokens.textSecondary)),
         ),
       );
     }
@@ -795,11 +827,13 @@ class _V2CampaignDetailScreenState extends State<V2CampaignDetailScreen> {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
         ),
-        icon: isOwner
+        icon: !caps.canReview
             ? const Icon(Icons.lock_outline_rounded, size: 15, color: V2Tokens.cadmiumYellow)
             : const SizedBox.shrink(),
         label: Text(
-          isOwner ? 'Inspect $activeTag (Owner Lock)' : 'Review $activeTag',
+          caps.canReview
+              ? 'Review $activeTag'
+              : (caps.isOwner ? 'Inspect $activeTag (Owner Lock)' : 'Inspect $activeTag (Locked)'),
           style: V2Tokens.t2(color: V2Tokens.labelOnInk),
         ),
       ),

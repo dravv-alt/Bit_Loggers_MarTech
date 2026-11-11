@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import '../theme/app_theme.dart';
 
 /// Diagnostic Engine Log Viewer
@@ -54,7 +55,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
   List<DiagnosticLogItem> get _filteredLogs {
     return _logs.where((l) {
-      if (_selectedOutcome != 'ALL' && l.outcome.toUpperCase() != _selectedOutcome) {
+      if (_selectedOutcome != 'ALL' &&
+          DiagnosticOutcome.fromRaw(l.outcome).wireValue != _selectedOutcome) {
         return false;
       }
       if (_searchQuery.isEmpty) return true;
@@ -66,30 +68,27 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   }
 
   Color _getOutcomeColor(String outcome) {
-    switch (outcome.toUpperCase()) {
-      case 'SUCCESS':
+    switch (DiagnosticOutcome.fromRaw(outcome)) {
+      case DiagnosticOutcome.success:
         return AppTheme.statusApproved;
-      case 'FAILURE':
-      case 'ERROR':
+      case DiagnosticOutcome.failure:
         return AppTheme.statusRejected;
-      case 'ATTEMPT':
-      case 'WARN':
+      case DiagnosticOutcome.warning:
         return AppTheme.statusChanges;
-      default:
+      case DiagnosticOutcome.info:
         return AppTheme.textSecondary;
     }
   }
 
   IconData _getOutcomeIcon(String outcome) {
-    switch (outcome.toUpperCase()) {
-      case 'SUCCESS':
+    switch (DiagnosticOutcome.fromRaw(outcome)) {
+      case DiagnosticOutcome.success:
         return Icons.check_circle_outline;
-      case 'FAILURE':
-      case 'ERROR':
+      case DiagnosticOutcome.failure:
         return Icons.error_outline;
-      case 'ATTEMPT':
+      case DiagnosticOutcome.warning:
         return Icons.replay_outlined;
-      default:
+      case DiagnosticOutcome.info:
         return Icons.info_outline;
     }
   }
@@ -226,6 +225,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                         children: [
                           _buildOutcomeFilterBtn('All', 'ALL'),
                           _buildOutcomeFilterBtn('Success', 'SUCCESS'),
+                          _buildOutcomeFilterBtn('Warn', 'WARNING'),
                           _buildOutcomeFilterBtn('Failure', 'FAILURE'),
                           _buildOutcomeFilterBtn('Info', 'INFO'),
                         ],
@@ -306,13 +306,17 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     int failureCount = 0;
     int infoCount = 0;
     for (final l in logs) {
-      final o = l.outcome.toUpperCase();
-      if (o == 'SUCCESS') {
-        successCount++;
-      } else if (o == 'FAILURE' || o == 'ERROR') {
-        failureCount++;
-      } else {
-        infoCount++;
+      switch (DiagnosticOutcome.fromRaw(l.outcome)) {
+        case DiagnosticOutcome.success:
+          successCount++;
+          break;
+        case DiagnosticOutcome.failure:
+          failureCount++;
+          break;
+        case DiagnosticOutcome.warning:
+        case DiagnosticOutcome.info:
+          infoCount++;
+          break;
       }
     }
     final total = math.max(1, logs.length);
