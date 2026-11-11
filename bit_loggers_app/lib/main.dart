@@ -12,24 +12,128 @@ import 'screens/diagnostics_screen.dart';
 import 'screens/test_runner_screen.dart';
 import 'screens/sync_hub_screen.dart';
 import 'screens/campaign_detail_screen.dart';
+import 'v2/v2_shell.dart';
+import 'v2/v2_tokens.dart';
+import 'v3/v3_shell.dart';
+import 'v3/v3_tokens.dart';
 
 void main() {
   runApp(const BitLoggersApp());
 }
 
-class BitLoggersApp extends StatelessWidget {
+class BitLoggersApp extends StatefulWidget {
   const BitLoggersApp({super.key});
 
   @override
+  State<BitLoggersApp> createState() => _BitLoggersAppState();
+}
+
+class _BitLoggersAppState extends State<BitLoggersApp> {
+  final ApiService _sharedApi = ApiService();
+  late String _appVersion; // 'v1' | 'v2' | 'v3'
+  bool _v3Dark = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final vParam = Uri.base.queryParameters['v'];
+    final themeParam = Uri.base.queryParameters['theme'];
+    if (vParam == '1') {
+      _appVersion = 'v1';
+    } else if (vParam == '3') {
+      _appVersion = 'v3';
+    } else if (vParam == '2') {
+      _appVersion = 'v2';
+    } else if (themeParam != null && themeParam.isNotEmpty) {
+      _appVersion = 'v1';
+    } else {
+      _appVersion = 'v2';
+    }
+
+    final darkParam = Uri.base.queryParameters['dark'] ?? Uri.base.queryParameters['mode'];
+    if (darkParam == '1' || darkParam == 'dark') {
+      _v3Dark = true;
+    }
+
+    if (themeParam != null && themeParam.isNotEmpty) {
+      AppTheme.setThemeById(themeParam);
+    }
+
+    final roleParam = Uri.base.queryParameters['role'];
+    if (roleParam != null && roleParam.toLowerCase() == 'reviewer') {
+      _sharedApi.currentUser = User(
+        id: 'usr-reviewer-1',
+        name: 'Marcus Vance (Reviewer)',
+        email: 'marcus.reviewer@bitloggers.com',
+        role: 'reviewer',
+      );
+    }
+  }
+
+  void _setAppVersion(String version) {
+    setState(() => _appVersion = version);
+  }
+
+  String _v3SectionFromQuery() {
+    final tab = Uri.base.queryParameters['tab'] ?? '0';
+    switch (tab) {
+      case '1':
+      case 'calendar':
+        return 'calendar';
+      case '2':
+      case 'analytics':
+        return 'analytics';
+      case '3':
+      case 'notifications':
+        return 'notifications';
+      case '4':
+      case 'governance':
+        return 'governance';
+      default:
+        return 'pipeline';
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final tabParam = int.tryParse(Uri.base.queryParameters['tab'] ?? '') ?? 0;
+
     return ValueListenableBuilder<CgTokens>(
       valueListenable: AppTheme.activeThemeNotifier,
       builder: (context, currentTokens, _) {
+        final v3Palette = _v3Dark ? V3Palette.dark : V3Palette.light;
+        final ThemeData activeTheme;
+        final Widget activeHome;
+
+        if (_appVersion == 'v3') {
+          activeTheme = V3Tokens.buildThemeData(v3Palette);
+          activeHome = V3Shell(
+            api: _sharedApi,
+            onSwitchVersion: _setAppVersion,
+            isDark: _v3Dark,
+            onToggleDark: (dark) => setState(() => _v3Dark = dark),
+            initialSection: _v3SectionFromQuery(),
+          );
+        } else if (_appVersion == 'v2') {
+          activeTheme = V2Tokens.buildThemeData();
+          activeHome = V2Shell(
+            api: _sharedApi,
+            initialTab: tabParam,
+            onSwitchVersion: _setAppVersion,
+          );
+        } else {
+          activeTheme = AppTheme.campaignGridTheme;
+          activeHome = MainShell(
+            api: _sharedApi,
+            onSwitchVersion: _setAppVersion,
+          );
+        }
+
         return MaterialApp(
           title: 'CampaignGrid — Bit Loggers',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.campaignGridTheme,
-          home: const MainShell(),
+          theme: activeTheme,
+          home: activeHome,
         );
       },
     );
@@ -37,14 +141,17 @@ class BitLoggersApp extends StatelessWidget {
 }
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  final ApiService? api;
+  final ValueChanged<String>? onSwitchVersion;
+
+  const MainShell({super.key, this.api, this.onSwitchVersion});
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  final ApiService _api = ApiService();
+  late final ApiService _api;
   int _currentIndex = 0;
   List<User> _users = [];
   int _unreadCount = 0;
@@ -52,6 +159,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    _api = widget.api ?? ApiService();
     final themeParam = Uri.base.queryParameters['theme'];
     if (themeParam != null && themeParam.isNotEmpty) {
       AppTheme.setThemeById(themeParam);
@@ -62,15 +170,6 @@ class _MainShellState extends State<MainShell> {
       if (parsed != null && parsed >= 0 && parsed <= 3) {
         _currentIndex = parsed;
       }
-    }
-    final roleParam = Uri.base.queryParameters['role'];
-    if (roleParam != null && roleParam.toLowerCase() == 'reviewer') {
-      _api.currentUser = User(
-        id: 'usr-reviewer-1',
-        name: 'Bob Miller (Reviewer)',
-        email: 'bob.reviewer@bitloggers.com',
-        role: 'reviewer',
-      );
     }
     _initData();
   }
@@ -98,9 +197,9 @@ class _MainShellState extends State<MainShell> {
       SnackBar(
         content: Text(
           'Operating as ${user.name} (${user.role})',
-          style: TextStyle(color: AppTheme.textInverse),
+          style: TextStyle(color: AppTheme.page, fontWeight: FontWeight.w500),
         ),
-        backgroundColor: AppTheme.forge,
+        backgroundColor: AppTheme.textPrimary,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
@@ -151,21 +250,28 @@ class _MainShellState extends State<MainShell> {
     }
 
     final currentScreen = _currentIndex < screens.length ? screens[_currentIndex] : screens[0];
+    final isCompact = MediaQuery.of(context).size.width < 680;
 
     return Scaffold(
       backgroundColor: AppTheme.systemBackground,
       appBar: AppBar(
         backgroundColor: AppTheme.card,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        titleSpacing: 14,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.75),
-          child: Divider(color: AppTheme.borderCard, height: 0.75),
+          preferredSize: Size.fromHeight(AppTheme.tokens.structuralRuleWidth),
+          child: Divider(
+            color: AppTheme.hairline,
+            height: AppTheme.tokens.structuralRuleWidth,
+            thickness: AppTheme.tokens.structuralRuleWidth,
+          ),
         ),
         title: Row(
           children: [
             AppTheme.buildBrandMonogram(size: 28),
             const SizedBox(width: 10),
-            Expanded(
+            Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -173,21 +279,23 @@ class _MainShellState extends State<MainShell> {
                   Text(
                     'CampaignGrid',
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: isCompact ? 16 : 17,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
                       letterSpacing: -0.5,
                     ),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     formattedDate,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10.5,
                       color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.1,
                     ),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -196,9 +304,52 @@ class _MainShellState extends State<MainShell> {
           ],
         ),
         actions: [
-          // Theme Switcher Dropdown (Compliant with heydamir/unslop)
+          // Quick 3-Way Version Switcher (v1 | v2 | v3)
+          if (widget.onSwitchVersion != null)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.well,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: AppTheme.hairline,
+                      width: AppTheme.tokens.structuralRuleWidth,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: ['v1', 'v2', 'v3'].map((v) {
+                      final isSel = v == 'v1';
+                      return GestureDetector(
+                        onTap: isSel ? null : () => widget.onSwitchVersion?.call(v),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: isCompact ? 6 : 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: isSel ? AppTheme.accent : Colors.transparent,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            v,
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: isSel ? AppTheme.onAccent : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+
+          // Theme Switcher Dropdown (Compact cue on mobile, full name on desktop)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 2),
             child: ValueListenableBuilder<CgTokens>(
               valueListenable: AppTheme.activeThemeNotifier,
               builder: (context, currentTheme, _) {
@@ -208,12 +359,12 @@ class _MainShellState extends State<MainShell> {
                     borderRadius: BorderRadius.circular(currentTheme.radiusControl),
                     side: BorderSide(color: currentTheme.hairline, width: currentTheme.structuralRuleWidth),
                   ),
-                  color: currentTheme.well,
+                  color: currentTheme.card,
                   offset: const Offset(0, 42),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                    padding: EdgeInsets.symmetric(horizontal: isCompact ? 8 : 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: currentTheme.card,
+                      color: currentTheme.well,
                       borderRadius: BorderRadius.circular(currentTheme.radiusControl),
                       border: Border.all(color: currentTheme.hairline, width: currentTheme.structuralRuleWidth),
                     ),
@@ -228,17 +379,17 @@ class _MainShellState extends State<MainShell> {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 5),
                         Text(
-                          currentTheme.name,
+                          isCompact ? currentTheme.shortName : currentTheme.name,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: currentTheme.text,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_drop_down, size: 16, color: currentTheme.textSecondary),
+                        const SizedBox(width: 2),
+                        Icon(Icons.arrow_drop_down, size: 15, color: currentTheme.textSecondary),
                       ],
                     ),
                   ),
@@ -296,15 +447,16 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
 
-          // Offline Sync Hub Button
+          // Offline Sync Hub (full icon/badge on wide screens, or warning badge when pending/offline on mobile)
           AnimatedBuilder(
             animation: _api.syncQueue,
             builder: (context, _) {
               final pending = _api.syncQueue.pendingCount;
               final isOffline = _api.syncQueue.isOfflineSimulationEnabled;
               if (pending == 0 && !isOffline) {
+                if (isCompact) return const SizedBox.shrink();
                 return IconButton(
-                  icon: Icon(Icons.cloud_sync_outlined, size: 21, color: AppTheme.textPrimary),
+                  icon: Icon(Icons.cloud_sync_outlined, size: 20, color: AppTheme.textPrimary),
                   tooltip: 'Sync hub',
                   onPressed: () {
                     Navigator.push(
@@ -316,7 +468,7 @@ class _MainShellState extends State<MainShell> {
               }
               return Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: InkWell(
                     onTap: () {
                       Navigator.push(
@@ -324,12 +476,12 @@ class _MainShellState extends State<MainShell> {
                         MaterialPageRoute(builder: (_) => SyncHubScreen(api: _api)),
                       );
                     },
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isOffline ? AppTheme.warning.withOpacity(0.2) : AppTheme.approved.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10),
+                        color: isOffline ? AppTheme.warning.withOpacity(0.16) : AppTheme.approved.withOpacity(0.16),
+                        borderRadius: BorderRadius.circular(AppTheme.tokens.radiusControl),
                         border: Border.all(
                           color: isOffline ? AppTheme.warning : AppTheme.approved,
                           width: 0.75,
@@ -340,19 +492,21 @@ class _MainShellState extends State<MainShell> {
                         children: [
                           Icon(
                             isOffline ? Icons.wifi_off_rounded : Icons.sync_rounded,
-                            size: 13,
+                            size: 12,
                             color: isOffline ? AppTheme.warning : AppTheme.approved,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            isOffline ? (pending > 0 ? '$pending pending' : 'offline') : '$pending sync',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isOffline ? AppTheme.warning : AppTheme.approved,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                          if (!isCompact || pending > 0) ...[
+                            const SizedBox(width: 3),
+                            Text(
+                              isOffline ? (pending > 0 ? '$pending' : 'Offline') : '$pending',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: isOffline ? AppTheme.warning : AppTheme.approved,
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -362,28 +516,88 @@ class _MainShellState extends State<MainShell> {
             },
           ),
 
-          // System Verification Tests
-          IconButton(
-            icon: Icon(Icons.shield_outlined, size: 20, color: AppTheme.textPrimary),
-            tooltip: 'System verification',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => TestRunnerScreen(api: _api)),
-              );
-            },
+          // System Verification Tests (wide screens only; grouped into More menu on mobile)
+          if (!isCompact)
+            IconButton(
+              icon: Icon(Icons.shield_outlined, size: 20, color: AppTheme.textPrimary),
+              tooltip: 'System verification',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => TestRunnerScreen(api: _api)),
+                );
+              },
+            ),
+
+          // Notifications Alert Bell
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                padding: EdgeInsets.all(isCompact ? 6 : 8),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                icon: Icon(Icons.notifications_none_rounded, size: 20, color: AppTheme.textPrimary),
+                tooltip: 'Notifications',
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => NotificationsScreen(api: _api)),
+                  );
+                  _initData();
+                },
+              ),
+              if (_unreadCount > 0)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: AppTheme.collision,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
 
-          // Ledger & Diagnostics Menu
+          // Workspace Tools Menu (Sync, Verification, Audit Ledger, Diagnostics)
           PopupMenuButton<String>(
-            icon: Icon(Icons.more_horiz, color: AppTheme.textPrimary),
-            color: AppTheme.well,
-            tooltip: 'Governance & audit',
+            padding: EdgeInsets.all(isCompact ? 6 : 8),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            icon: Icon(Icons.more_horiz, size: 20, color: AppTheme.textPrimary),
+            color: AppTheme.card,
+            tooltip: 'Workspace tools & audit',
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: AppTheme.hairline, width: 0.75),
+              borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+              side: BorderSide(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
             ),
             itemBuilder: (context) => [
+              if (widget.onSwitchVersion != null) ...[
+                PopupMenuItem(
+                  value: 'switch_v2',
+                  child: Row(
+                    children: [
+                      Icon(Icons.auto_awesome_mosaic_outlined, size: 16, color: AppTheme.accent),
+                      const SizedBox(width: 8),
+                      Text('Switch to v2 workspace',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'switch_v3',
+                  child: Row(
+                    children: [
+                      Icon(Icons.layers_rounded, size: 16, color: AppTheme.social),
+                      const SizedBox(width: 8),
+                      Text('Switch to v3 BoardUI',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                    ],
+                  ),
+                ),
+              ],
               PopupMenuItem(
                 value: 'sync_hub',
                 child: Row(
@@ -391,6 +605,16 @@ class _MainShellState extends State<MainShell> {
                     Icon(Icons.cloud_sync_rounded, size: 16, color: AppTheme.social),
                     const SizedBox(width: 8),
                     Text('Sync hub & outbox', style: TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'tests',
+                child: Row(
+                  children: [
+                    Icon(Icons.shield_outlined, size: 16, color: AppTheme.approved),
+                    const SizedBox(width: 8),
+                    Text('System verification', style: TextStyle(fontSize: 13, color: AppTheme.textPrimary)),
                   ],
                 ),
               ),
@@ -416,8 +640,14 @@ class _MainShellState extends State<MainShell> {
               ),
             ],
             onSelected: (val) {
-              if (val == 'sync_hub') {
+              if (val == 'switch_v2') {
+                widget.onSwitchVersion?.call('v2');
+              } else if (val == 'switch_v3') {
+                widget.onSwitchVersion?.call('v3');
+              } else if (val == 'sync_hub') {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => SyncHubScreen(api: _api)));
+              } else if (val == 'tests') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => TestRunnerScreen(api: _api)));
               } else if (val == 'audit') {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => AuditScreen(api: _api)));
               } else if (val == 'diagnostics') {
@@ -426,59 +656,30 @@ class _MainShellState extends State<MainShell> {
             },
           ),
 
-          // Notifications Alert Bell
-          Stack(
-            children: [
-              IconButton(
-                icon: Icon(Icons.notifications_none_rounded, size: 20, color: AppTheme.textPrimary),
-                tooltip: 'Notifications',
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => NotificationsScreen(api: _api)),
-                  );
-                  _initData();
-                },
-              ),
-              if (_unreadCount > 0)
-                Positioned(
-                  top: 9,
-                  right: 9,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: AppTheme.collision,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-
           // User Profile Pill
           PopupMenuButton<User>(
             tooltip: 'Switch user role',
-            color: AppTheme.well,
+            color: AppTheme.card,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: AppTheme.hairline, width: 0.75),
+              borderRadius: BorderRadius.circular(AppTheme.tokens.radiusCard),
+              side: BorderSide(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
             ),
             itemBuilder: (context) {
               return _users.map((u) {
+                final isMarketer = u.role == 'marketer';
                 return PopupMenuItem<User>(
                   value: u,
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 11,
-                        backgroundColor: u.role == 'marketer' ? AppTheme.accent : AppTheme.social,
+                        backgroundColor: isMarketer ? AppTheme.accent : AppTheme.social,
                         child: Text(
                           u.name.split(' ').map((n) => n[0]).take(2).join(),
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textInverse,
+                            color: isMarketer ? AppTheme.onAccent : Colors.white,
                           ),
                         ),
                       ),
@@ -491,15 +692,14 @@ class _MainShellState extends State<MainShell> {
             },
             onSelected: _switchUser,
             child: Padding(
-              padding: const EdgeInsets.only(left: 4, right: 12),
+              padding: const EdgeInsets.only(left: 2, right: 12),
               child: Container(
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: AppTheme.well,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.hairline, width: 0.75),
-                  boxShadow: AppTheme.appleCardShadow,
+                  border: Border.all(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth),
                 ),
                 child: Center(
                   child: Text(
@@ -507,7 +707,7 @@ class _MainShellState extends State<MainShell> {
                         ? _api.currentUser.name.split(' ').map((n) => n[0]).take(2).join()
                         : 'SJ',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.accent,
                     ),
@@ -526,47 +726,52 @@ class _MainShellState extends State<MainShell> {
         decoration: BoxDecoration(
           color: AppTheme.card,
           border: Border(top: BorderSide(color: AppTheme.hairline, width: AppTheme.tokens.structuralRuleWidth)),
-          boxShadow: AppTheme.appleCardShadow,
         ),
         child: SafeArea(
           top: false,
-          child: SizedBox(
-            height: 56,
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildNavItem(
-                    index: 0,
-                    label: 'Home',
-                    icon: Icons.home_outlined,
-                    activeIcon: Icons.home_rounded,
-                  ),
+          child: Center(
+            heightFactor: 1.0,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: SizedBox(
+                height: 56,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildNavItem(
+                        index: 0,
+                        label: 'Home',
+                        icon: Icons.home_outlined,
+                        activeIcon: Icons.home_rounded,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildNavItem(
+                        index: 1,
+                        label: isReviewer ? 'Review' : 'Campaigns',
+                        icon: isReviewer ? Icons.fact_check_outlined : Icons.view_kanban_outlined,
+                        activeIcon: isReviewer ? Icons.fact_check_rounded : Icons.view_kanban_rounded,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildNavItem(
+                        index: 2,
+                        label: 'Calendar',
+                        icon: Icons.calendar_today_outlined,
+                        activeIcon: Icons.calendar_month_rounded,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildNavItem(
+                        index: 3,
+                        label: 'Insights',
+                        icon: Icons.insights_outlined,
+                        activeIcon: Icons.insights_rounded,
+                      ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: _buildNavItem(
-                    index: 1,
-                    label: isReviewer ? 'Review' : 'Campaigns',
-                    icon: isReviewer ? Icons.fact_check_outlined : Icons.view_kanban_outlined,
-                    activeIcon: isReviewer ? Icons.fact_check_rounded : Icons.view_kanban_rounded,
-                  ),
-                ),
-                Expanded(
-                  child: _buildNavItem(
-                    index: 2,
-                    label: 'Calendar',
-                    icon: Icons.calendar_today_outlined,
-                    activeIcon: Icons.calendar_month_rounded,
-                  ),
-                ),
-                Expanded(
-                  child: _buildNavItem(
-                    index: 3,
-                    label: 'Insights',
-                    icon: Icons.insights_outlined,
-                    activeIcon: Icons.insights_rounded,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
