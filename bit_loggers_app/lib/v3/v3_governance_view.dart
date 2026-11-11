@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import 'v3_components.dart';
 import 'v3_tokens.dart';
 
@@ -152,7 +153,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
   @override
   Widget build(BuildContext context) {
     final p = widget.palette;
-    final offlinePending = widget.api.syncQueue.pendingCount;
+    final offlinePending = widget.api.syncQueue.retryableCount;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -175,7 +176,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                   'tests',
                   Icons.verified_user_outlined,
                   'Verification suite',
-                  (_report?['total'] as int?) ?? 14,
+                  (_report?['total'] as int?) ?? 16,
                 ),
               ],
             ),
@@ -613,11 +614,8 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
 
   Widget _buildDiagnosticsTab(V3Palette p) {
     final rows = _diagList.where((d) {
-      final out = d.outcome.toUpperCase();
       if (_diagFilter == 'ALL') return true;
-      if (_diagFilter == 'WARNING') return out == 'WARNING' || out == 'WARN' || out == 'ATTEMPT';
-      if (_diagFilter == 'FAILURE') return out == 'FAILURE' || out == 'ERROR';
-      return out == _diagFilter;
+      return DiagnosticOutcome.fromRaw(d.outcome).wireValue == _diagFilter;
     }).toList();
 
     return Column(
@@ -641,6 +639,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                 selected: _diagFilter,
                 options: const [
                   V3SegmentedOption(id: 'ALL', label: 'All'),
+                  V3SegmentedOption(id: 'INFO', label: 'Info'),
                   V3SegmentedOption(id: 'SUCCESS', label: 'Success'),
                   V3SegmentedOption(id: 'WARNING', label: 'Warning'),
                   V3SegmentedOption(id: 'FAILURE', label: 'Failure'),
@@ -693,11 +692,10 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                         .toList(),
                   ),
                   ...rows.map((log) {
-                    final dotColor = log.outcome == 'SUCCESS'
-                        ? 'green'
-                        : (log.outcome == 'WARNING' || log.outcome == 'WARN')
-                            ? 'yellow'
-                            : 'rose';
+                    final parsed = DiagnosticOutcome.fromRaw(log.outcome);
+                    final dotColor = parsed.dotColorKey == 'blue'
+                        ? 'indigo'
+                        : parsed.dotColorKey;
                     final cid = log.correlationId.isNotEmpty ? log.correlationId : 'local';
                     return TableRow(
                       decoration: BoxDecoration(
@@ -714,7 +712,7 @@ class _V3GovernanceViewState extends State<V3GovernanceView> {
                             children: [
                               V3StatusDot(colorKey: dotColor, palette: p),
                               const SizedBox(width: 6),
-                              Text(log.outcome, style: V3Tokens.bodyMedium(p)),
+                              Text(parsed.wireValue, style: V3Tokens.bodyMedium(p)),
                             ],
                           ),
                         ),

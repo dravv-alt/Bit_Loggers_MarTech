@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/models.dart';
+import '../state/campaign_state_machine.dart';
 import 'v3_components.dart';
 import 'v3_tokens.dart';
 
@@ -75,9 +76,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
       final matchesCh =
           _channelFilter == 'All' || ch.toLowerCase() == _channelFilter.toLowerCase();
       final matchesStage = _stageFilter == 'All' ||
-          (_stageFilter == 'Draft'
-              ? (c.status == 'Draft' || c.status == 'Revised')
-              : c.status == _stageFilter);
+          CampaignStage.fromRaw(c.status).wireValue == _stageFilter;
       return matchesQ && matchesCh && matchesStage;
     }).toList();
 
@@ -130,9 +129,13 @@ class _V3PipelineViewState extends State<V3PipelineView> {
       0,
       (s, c) => s + (c.currentVersion?.budget ?? 0.0),
     );
-    final reviewCount = widget.campaigns.where((c) => c.status == 'Submitted').length;
-    final approvedOrLive =
-        widget.campaigns.where((c) => c.status == 'Approved' || c.status == 'Scheduled').length;
+    final reviewCount = widget.campaigns
+        .where((c) => CampaignStage.fromRaw(c.status) == CampaignStage.submitted)
+        .length;
+    final approvedOrLive = widget.campaigns.where((c) {
+      final st = CampaignStage.fromRaw(c.status);
+      return st == CampaignStage.approved || st == CampaignStage.scheduled;
+    }).length;
     final rois = widget.campaigns
         .map((c) => c.currentVersion?.kpiProjected.roi ?? 0.0)
         .where((r) => r > 0)
@@ -329,9 +332,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                 runSpacing: gap,
                 children: _columns.map((col) {
                   final items = list
-                      .where((c) => col.id == 'Draft'
-                          ? (c.status == 'Draft' || c.status == 'Revised')
-                          : c.status == col.id)
+                      .where((c) => CampaignStage.fromRaw(c.status).wireValue == col.id)
                       .toList();
                   return SizedBox(
                     width: colW,
@@ -455,9 +456,8 @@ class _V3PipelineViewState extends State<V3PipelineView> {
     final ver = camp.currentVersion;
     final roi = ver?.kpiProjected.roi ?? 4.2;
     final cpa = ver?.kpiProjected.cpa ?? 22.0;
-    final canEdit = widget.currentUser.id == camp.ownerId || widget.currentUser.role == 'admin';
-    final lockedByOther =
-        camp.activeLock != null && camp.activeLock!.holderId != widget.currentUser.id;
+    final caps = CampaignStateMachine.evaluate(camp, widget.currentUser);
+    final lockedByOther = caps.lockInfo.isHeldByOther;
 
     final ownerDisplay = V3Tokens.cleanPersonName(
       camp.ownerName.isNotEmpty ? camp.ownerName : _ownerLabel(camp.ownerId),
@@ -541,8 +541,9 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                   Wrap(
                     spacing: 6,
                     children: [
-                      if ((camp.status == 'Draft' || camp.status == 'ChangesRequested') &&
-                          canEdit) ...[
+                      if (caps.canEdit &&
+                          caps.stage != CampaignStage.approved &&
+                          caps.stage != CampaignStage.scheduled)
                         V3Button(
                           label: 'Edit',
                           icon: Icons.edit_outlined,
@@ -550,6 +551,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                           palette: p,
                           onTap: () => widget.onEditCampaign(camp),
                         ),
+                      if (caps.canSubmit)
                         V3Button(
                           label: 'Submit',
                           icon: Icons.send_outlined,
@@ -558,8 +560,7 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                           palette: p,
                           onTap: () => widget.onSubmitCampaign(camp.campaignId),
                         ),
-                      ] else if (camp.status == 'Submitted' &&
-                          widget.currentUser.role != 'marketer')
+                      if (caps.canReview)
                         V3Button(
                           label: 'Review',
                           icon: Icons.check_circle_outline_rounded,
@@ -567,8 +568,8 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                           variant: V3ButtonVariant.primary,
                           palette: p,
                           onTap: () => widget.onInspectCampaign(camp.campaignId, initialTab: 'review'),
-                        )
-                      else if (camp.status == 'Approved' && canEdit)
+                        ),
+                      if (caps.canSchedule && caps.stage == CampaignStage.approved)
                         V3Button(
                           label: 'Schedule',
                           icon: Icons.calendar_today_outlined,
@@ -577,8 +578,8 @@ class _V3PipelineViewState extends State<V3PipelineView> {
                           palette: p,
                           onTap: () =>
                               widget.onInspectCampaign(camp.campaignId, initialTab: 'schedule'),
-                        )
-                      else if (camp.status == 'Scheduled')
+                        ),
+                      if (caps.stage == CampaignStage.scheduled)
                         V3Button(
                           label: 'Flight live',
                           icon: Icons.event_available_outlined,

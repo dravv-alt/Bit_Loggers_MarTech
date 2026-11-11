@@ -521,20 +521,24 @@ class _V3ProposalStudioModalState extends State<V3ProposalStudioModal> {
                       label: 'Cancel',
                       variant: V3ButtonVariant.ghost,
                       palette: p,
-                      onTap: _saving ? null : widget.onClose,
+                      onTap: (_saving || _generatingAi) ? null : widget.onClose,
                     ),
                     V3Button(
                       label: 'Save draft',
                       icon: Icons.save_outlined,
                       palette: p,
-                      onTap: _saving ? null : () => _commit(submit: false),
+                      onTap: (_saving || _generatingAi) ? null : () => _commit(submit: false),
                     ),
                     V3Button(
-                      label: _saving ? 'Submitting…' : 'Save & submit for review',
+                      label: _saving
+                          ? 'Submitting…'
+                          : _generatingAi
+                              ? 'Drafting with AI…'
+                              : 'Save & submit for review',
                       icon: Icons.send_outlined,
                       variant: V3ButtonVariant.primary,
                       palette: p,
-                      onTap: _saving ? null : () => _commit(submit: true),
+                      onTap: (_saving || _generatingAi) ? null : () => _commit(submit: true),
                     ),
                   ],
                 ),

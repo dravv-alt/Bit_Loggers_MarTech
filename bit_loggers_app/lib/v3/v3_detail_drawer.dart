@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import 'v3_components.dart';
 import 'v3_tokens.dart';
 
@@ -53,6 +54,7 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
   // Comment state
   final TextEditingController _commentCtrl = TextEditingController();
   bool _sendingComment = false;
+  bool _togglingLock = false;
 
   static const _channels = ['Social', 'Search', 'Email', 'Display', 'Video', 'Influencer'];
 
@@ -95,25 +97,45 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
 
   Future<void> _toggleLock() async {
     final c = _campaign;
-    if (c == null) return;
-    final lockedByMe = c.activeLock?.holderId == widget.api.currentUser.id;
-    if (lockedByMe) {
-      await widget.api.releaseLock(c.campaignId);
-      widget.onNotify(
-        'Edit lease released',
-        'Other authors can now revise this brief.',
-        'information',
+    if (c == null || _togglingLock) return;
+    setState(() => _togglingLock = true);
+    try {
+      final lockState = CampaignStateMachine.evaluateLock(
+        c.activeLock,
+        widget.api.currentUser.id,
       );
-    } else {
-      await widget.api.acquireLock(c.campaignId);
-      widget.onNotify(
-        '5-minute edit lease acquired',
-        'Your draft edits are protected from concurrent overwrites.',
-        'success',
-      );
+      if (lockState.isHeldByMe) {
+        await widget.api.releaseLock(c.campaignId);
+        widget.onNotify(
+          'Edit lease released',
+          'Other authors can now revise this brief.',
+          'information',
+        );
+      } else {
+        final res = await widget.api.acquireLock(c.campaignId);
+        if (res['granted'] == false) {
+          widget.onNotify(
+            'Edit lease unavailable',
+            res['holder_name'] != null
+                ? 'Held by ${res['holder_name']}.'
+                : 'Held by another editor.',
+            'error',
+          );
+          return;
+        }
+        widget.onNotify(
+          '5-minute edit lease acquired',
+          'Your draft edits are protected from concurrent overwrites.',
+          'success',
+        );
+      }
+      await _load();
+      await widget.onMutated();
+    } catch (e) {
+      widget.onNotify('Lease action failed', e.toString(), 'error');
+    } finally {
+      if (mounted) setState(() => _togglingLock = false);
     }
-    await _load();
-    await widget.onMutated();
   }
 
   Future<void> _submitForReview() async {
@@ -231,10 +253,12 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
       ..sort((a, b) => a.versionNo.compareTo(b.versionNo));
     final curVer = camp?.currentVersion ?? (versions.isNotEmpty ? versions.last : null);
     final prevVer = versions.length > 1 ? versions[versions.length - 2] : null;
-    final isOwner = camp?.ownerId == widget.api.currentUser.id;
-    final canApprove = !isOwner || widget.api.currentUser.role == 'admin';
-    final canEdit = isOwner || widget.api.currentUser.role == 'admin';
-    final isLockedByMe = camp?.activeLock?.holderId == widget.api.currentUser.id;
+    final caps = camp != null
+        ? CampaignStateMachine.evaluate(camp, widget.api.currentUser)
+        : null;
+    final canEdit = caps?.canEdit ?? false;
+    final canApprove = caps?.canReview ?? false;
+    final isLockedByMe = caps?.lockInfo.isHeldByMe ?? false;
 
     return Align(
       alignment: Alignment.centerRight,
@@ -305,13 +329,15 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                       final actionButtons = [
                         if (camp != null && canEdit) ...[
                           V3Button(
-                            label: isLockedByMe ? 'Release lock' : 'Lease edit',
+                            label: _togglingLock
+                                ? 'Updating…'
+                                : (isLockedByMe ? 'Release lock' : 'Lease edit'),
                             icon: isLockedByMe
                                 ? Icons.lock_open_rounded
                                 : Icons.lock_outline_rounded,
                             small: true,
                             palette: p,
-                            onTap: _toggleLock,
+                            onTap: _togglingLock ? null : _toggleLock,
                           ),
                           V3Button(
                             label: 'Revise',
@@ -546,10 +572,11 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
     }
 
     if (_activeTab == 'review') {
+      final caps = CampaignStateMachine.evaluate(camp, widget.api.currentUser);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (!canApprove)
+          if (!caps.canReview)
             Container(
               margin: const EdgeInsets.only(bottom: 14),
               padding: const EdgeInsets.all(14),
@@ -558,7 +585,8 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                'Owner self-approval lock active: Switch to Marcus Vance (Reviewer) in the sidebar to record a signoff.',
+                caps.reviewBlockedReason ??
+                    'Owner self-approval lock active: Switch to a reviewer account to record a signoff.',
                 style: V3Tokens.bodyMedium(p, color: p.chipColors('blue').fg),
               ),
             ),
@@ -716,7 +744,8 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
     }
 
     if (_activeTab == 'schedule') {
-      final ready = camp.status == 'Approved' || camp.status == 'Scheduled';
+      final caps = CampaignStateMachine.evaluate(camp, widget.api.currentUser);
+      final ready = caps.canSchedule;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -729,7 +758,8 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                'Approval required before scheduling: Only approved versions can lock a slot on the production channel calendar.',
+                caps.scheduleBlockedReason ??
+                    'Approval required before scheduling: Only approved versions can lock a slot on the production channel calendar.',
                 style: V3Tokens.bodyMedium(p, color: p.chipColors('rose').fg),
               ),
             ),
@@ -1016,7 +1046,7 @@ class _V3DetailDrawerState extends State<V3DetailDrawer> {
             ],
           ),
         ),
-        if ((camp.status == 'Draft' || camp.status == 'ChangesRequested') && canEdit) ...[
+        if (CampaignStateMachine.evaluate(camp, widget.api.currentUser).canSubmit) ...[
           const SizedBox(height: 16),
           Align(
             alignment: Alignment.centerRight,

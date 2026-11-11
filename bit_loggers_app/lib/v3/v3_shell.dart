@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../state/campaign_state_machine.dart';
 import 'v3_analytics_view.dart';
 import 'v3_calendar_view.dart';
 import 'v3_components.dart';
@@ -176,6 +177,7 @@ class _V3ShellState extends State<V3Shell> {
 
   void _selectUser(User u) {
     setState(() => widget.api.currentUser = u);
+    _loadWorkspace();
     _pushToast(
       'Operating as ${u.name}',
       'Active permissions switched to ${u.role} role.',
@@ -581,17 +583,18 @@ class _V3ShellState extends State<V3Shell> {
                     ),
                   ),
                 _buildBellButton(p),
-                V3Button(
-                  label: 'New brief',
-                  icon: Icons.add_rounded,
-                  variant: V3ButtonVariant.primary,
-                  small: isCompact,
-                  palette: p,
-                  onTap: () => setState(() {
-                    _editingCampaign = null;
-                    _studioOpen = true;
-                  }),
-                ),
+                if (CampaignStateMachine.canCreateCampaign(user))
+                  V3Button(
+                    label: 'New brief',
+                    icon: Icons.add_rounded,
+                    variant: V3ButtonVariant.primary,
+                    small: isCompact,
+                    palette: p,
+                    onTap: () => setState(() {
+                      _editingCampaign = null;
+                      _studioOpen = true;
+                    }),
+                  ),
               ],
             );
 

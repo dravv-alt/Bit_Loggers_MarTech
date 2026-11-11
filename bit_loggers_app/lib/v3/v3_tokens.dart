@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../state/campaign_state_machine.dart';
 
 /// BoardUI v3 Light & Dark Token System converted natively for Flutter.
 @immutable
@@ -211,39 +212,11 @@ class V3Tokens {
     }
   }
 
-  static String statusChipTone(String status) {
-    switch (status) {
-      case 'Submitted':
-        return 'yellow';
-      case 'ChangesRequested':
-        return 'orange';
-      case 'Approved':
-        return 'cyan';
-      case 'Scheduled':
-        return 'lime';
-      case 'Rejected':
-        return 'rose';
-      default:
-        return 'neutral';
-    }
-  }
+  static String statusChipTone(String status) =>
+      CampaignStage.fromRaw(status).v3Tone;
 
-  static String statusLabel(String status) {
-    switch (status) {
-      case 'Submitted':
-        return 'Awaiting review';
-      case 'ChangesRequested':
-        return 'Changes requested';
-      case 'Approved':
-        return 'Approved';
-      case 'Scheduled':
-        return 'Scheduled';
-      case 'Rejected':
-        return 'Rejected';
-      default:
-        return 'Draft';
-    }
-  }
+  static String statusLabel(String status) =>
+      CampaignStage.fromRaw(status).label;
 
   static String formatMoney(num amount) {
     final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
